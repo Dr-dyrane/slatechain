@@ -32,7 +32,7 @@ export function Navbar() {
     <nav className="flex items-center justify-between p-4 bg-background border-b">
       <Link href="/" className="flex items-center space-x-2">
         <Logo />
-        <span className="text-2xl font-bold text-primary hidden md:inline">SlateChain</span>
+        <span className="text-2xl font-bold text-black hidden md:inline">SlateChain</span>
       </Link>
       <div className="flex items-center space-x-4">
         <Button

@@ -65,19 +65,15 @@ export function DataTable<TData, TValue>({
         },
     })
 
-    const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value
-        setColumnFilters([{ id: 'customer', value }])  // Update column filter for 'customer'
-        table.setColumnFilterValue('customer', value)
-    }
-
     return (
         <div className="w-full">
             <div className="flex items-center py-4">
                 <Input
                     placeholder="Filter..."
-                    value={(table.getColumn("customer")?.getFilterValue() as string) ?? ""}  // Make sure to use the correct column name for filtering
-                    onChange={handleFilterChange}  // Use the filter handler function
+                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                    onChange={(event) =>
+                        table.getColumn("name")?.setFilterValue(event.target.value)
+                    }
                     className="max-w-sm"
                     aria-label="Filter table"
                 />
@@ -91,16 +87,18 @@ export function DataTable<TData, TValue>({
                         {table
                             .getAllColumns()
                             .filter((column) => column.getCanHide())
-                            .map((column) => (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    className="capitalize"
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                >
-                                    {column.id}
-                                </DropdownMenuCheckboxItem>
-                            ))}
+                            .map((column) => {
+                                return (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        className="capitalize"
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                    >
+                                        {column.id}
+                                    </DropdownMenuCheckboxItem>
+                                )
+                            })}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -109,13 +107,18 @@ export function DataTable<TData, TValue>({
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
+                                {headerGroup.headers.map((header) => {
+                                    return (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                        </TableHead>
+                                    )
+                                })}
                             </TableRow>
                         ))}
                     </TableHeader>

@@ -23,7 +23,7 @@ const columns = [
         header: "Order Number",
     },
     {
-        accessorKey: "customer",
+        accessorKey: "name",
         header: "Customer",
     },
     {
@@ -53,9 +53,9 @@ export default function OrdersPage() {
         const fetchOrders = async () => {
             // In a real application, this would be an API call
             const data = [
-                { id: 1, orderNumber: "ORD001", customer: "John Doe", status: "Pending", total: 1500 },
-                { id: 2, orderNumber: "ORD002", customer: "Jane Smith", status: "Shipped", total: 2300 },
-                { id: 3, orderNumber: "ORD003", customer: "Bob Johnson", status: "Delivered", total: 1800 },
+                { id: 1, orderNumber: "ORD001", name: "John Doe", status: "Pending", total: 1500 },
+                { id: 2, orderNumber: "ORD002", name: "Jane Smith", status: "Shipped", total: 2300 },
+                { id: 3, orderNumber: "ORD003", name: "Bob Johnson", status: "Delivered", total: 1800 },
             ]
             dispatch(setOrders(data))
         }

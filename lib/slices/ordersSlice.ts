@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 interface Order {
   id: number
   orderNumber: string
-  customer: string
+  name: string
   status: string
   total: number
 }
