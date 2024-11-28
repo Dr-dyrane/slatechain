@@ -38,7 +38,7 @@ export function Sidebar({ items }: SidebarProps) {
               <Link key={item.href} href={item.href} passHref>
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
-                  className="w-full justify-start px-4 py-2"
+                  className="w-full justify-start px-4 py-2 mb-2"
                 >
                   <Icon className={cn("mr-3 h-5 w-5", isActive ? "fill-current" : "fill-none"
                   )} />
