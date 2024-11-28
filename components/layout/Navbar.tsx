@@ -22,7 +22,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 w-full bg-background">
-      <div className="container mx-auto flex items-center justify-between p-4">
+      <div className="mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex flex-row space-x-2">
           <Logo />
           <div className="text-2xl font-bold">SlateChain</div>
