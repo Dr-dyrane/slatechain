@@ -25,6 +25,8 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.user = null
       state.error = null
+      document.cookie = 'auth_token=; Max-Age=0; path=/;' // Clear the cookie
+      localStorage.removeItem('auth_token') // If you're storing the token in localStorage
     },
     setError: (state, action: PayloadAction<string>) => {
       state.error = action.payload

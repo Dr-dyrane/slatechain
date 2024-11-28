@@ -6,18 +6,21 @@ import { useTheme } from "next-themes";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
 import { logout } from "@/lib/slices/authSlice";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { CircleUserRound, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
+import { useRouter } from "next/navigation";
 
 export function Navbar() {
   const { theme, setTheme } = useTheme();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch();
+  const router = useRouter()
 
   const handleLogout = () => {
     dispatch(logout());
+    router.push('/login')
   };
 
   return (
@@ -39,10 +42,13 @@ export function Navbar() {
           </Button>
           {isAuthenticated ? (
             <>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
+              <Button variant="outline">
+                <CircleUserRound />
+                <span className="hidden md:block">{user?.name}</span>
               </Button>
-              <span className="hidden md:block">{user?.name}</span>
+              <Button variant="destructive"  className="border-red-600 hover:bg-red-100 hover:text-red-600" onClick={handleLogout}>Logout
+              </Button>
+
             </>
           ) : (
             <Link href="/login">
