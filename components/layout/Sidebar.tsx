@@ -32,13 +32,16 @@ export function Sidebar({ items }: SidebarProps) {
         <nav className="space-y-1">
           {items.map((item) => {
             const Icon = icons[item.href] || Home; // Fallback to Home
+            const isActive = pathname === item.href;
+
             return (
               <Link key={item.href} href={item.href} passHref>
                 <Button
-                  variant={pathname === item.href ? "secondary" : "ghost"}
+                  variant={isActive ? "secondary" : "ghost"}
                   className="w-full justify-start px-4 py-2"
                 >
-                  <Icon className="mr-3 h-5 w-5" />
+                  <Icon className={cn("mr-3 h-5 w-5", isActive ? "fill-current" : "fill-none"
+                  )} />
                   {item.title}
                 </Button>
               </Link>

@@ -30,6 +30,7 @@ export function BottomNav({ items }: SidebarProps) {
       <ul className="flex justify-around items-center h-16">
         {items.map((item) => {
           const Icon = icons[item.href] || Home; // Fallback to Home
+          const isActive = pathname === item.href;
 
           return (
             <li key={item.href}>
@@ -37,12 +38,17 @@ export function BottomNav({ items }: SidebarProps) {
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center w-full h-full text-xs",
-                  pathname === item.href
+                  isActive
                     ? ""
                     : "text-muted-foreground hover:text-secondary-foreground"
+
                 )}
               >
-                <Icon className="h-5 w-5 mb-1" />
+                <Icon
+                  className={cn(
+                    "h-5 w-5",
+                    isActive ? "fill-current" : "fill-none text-muted-foreground"
+                  )} />
                 {/* <span>{item.title}</span> */}
               </Link>
             </li>
