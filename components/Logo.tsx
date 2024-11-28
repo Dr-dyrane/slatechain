@@ -1,10 +1,20 @@
 import { useTheme } from 'next-themes'; // Import the useTheme hook
+import { useEffect, useState } from 'react';
 
 export function Logo() {
   const { theme } = useTheme(); // Get the current theme (either 'light' or 'dark')
 
-  // Set the fill color based on the theme
-  const fillColor = theme === 'dark' ? '#ffffff' : '#000000';
+  const [fillColor, setFillColor] = useState('#000000'); // Default color
+
+  useEffect(() => {
+    // Set the fill color based on the theme after the component mounts
+    if (theme === 'dark') {
+      setFillColor('#ffffff');
+    } else {
+      setFillColor('#000000');
+    }
+  }, [theme]); // This effect runs whenever the theme changes
+
 
   return (
     <svg width="32px" height="32px" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" fill={fillColor}>
