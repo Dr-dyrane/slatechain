@@ -6,7 +6,7 @@ import { useTheme } from "next-themes";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/lib/store";
 import { logout } from "@/lib/slices/authSlice";
-import { CircleUserRound, MoonIcon, SunIcon } from "lucide-react";
+import { CircleUserRound, LogOut, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,7 @@ export function Navbar() {
       <div className="mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex flex-row space-x-2">
           <Logo />
-          <div className="text-2xl font-bold">SlateChain</div>
+          <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
         </Link>
         <div className="flex items-center space-x-4">
           <Button
@@ -44,9 +44,12 @@ export function Navbar() {
             <>
               <Button variant="outline">
                 <CircleUserRound />
-                <span className="hidden md:block">{user?.name}</span>
+                <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
-              <Button variant="destructive"  className="border-red-600 hover:bg-red-100 hover:text-red-600" onClick={handleLogout}>Logout
+              <Button variant="destructive" className="border-red-600 hover:bg-red-100 hover:text-red-600" onClick={handleLogout}>
+                <LogOut className="block md:hidden"/>
+                <span className="hidden md:block ml-1">Logout
+                </span>
               </Button>
 
             </>

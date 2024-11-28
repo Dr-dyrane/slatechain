@@ -30,7 +30,7 @@ export function Layout({ children }: LayoutProps) {
         <aside className="hidden w-64 md:block">
           <Sidebar items={sidebarItems} />
         </aside>
-        <main className="flex-1 border bg-secondary md:rounded-2xl overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 border bg-secondary md:rounded-2xl overflow-y-auto p-6 pb-20 md:pb-6">{children}</main>
         <RightBar />
       </div>
       <Footer />

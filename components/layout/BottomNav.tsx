@@ -43,7 +43,7 @@ export function BottomNav({ items }: SidebarProps) {
                 )}
               >
                 <Icon className="h-5 w-5 mb-1" />
-                <span>{item.title}</span>
+                {/* <span>{item.title}</span> */}
               </Link>
             </li>
           );
