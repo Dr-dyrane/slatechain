@@ -5,6 +5,7 @@ import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { RightBar } from "./RightBar";
+import { BottomNav } from "./BottomNav";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
         <RightBar />
       </div>
       <Footer />
+      <BottomNav items={sidebarItems}/>
     </div>
   );
 }
