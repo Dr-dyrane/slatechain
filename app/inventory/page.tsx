@@ -8,7 +8,7 @@ import { PlusIcon } from 'lucide-react'
 import { RootState } from "@/lib/store"
 import { setInventory } from "@/lib/slices/inventorySlice"
 
-const columns = [
+export const columns = [
   {
     accessorKey: "name",
     header: "Name",
