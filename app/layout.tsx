@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import ClientLayout from "./ClientLayout";
-import { Navbar } from '@/components/Navbar'
-import { Sidebar } from '@/components/Sidebar'
+import { Navbar } from '@/components/layout/Navbar'
+import { Sidebar } from '@/components/layout/Sidebar'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { Providers } from '@/components/Providers'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import { Layout } from '@/components/layout';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,15 +32,7 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <ErrorBoundary>
-              <div className="flex flex-col h-screen md:flex-row">
-                <Sidebar />
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <Navbar />
-                  <main className="flex-1 p-4 overflow-auto">
-                    <ClientLayout>{children}</ClientLayout>
-                  </main>
-                </div>
-              </div>
+              <Layout>{children}</Layout>
             </ErrorBoundary>
           </ThemeProvider>
         </Providers>
