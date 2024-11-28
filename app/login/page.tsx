@@ -36,8 +36,6 @@ export default function LoginPage() {
 
     // Simulate login
     dispatch(login({ id: '1', name: 'John Doe', email }))
-    // Set a cookie
-    document.cookie = `auth_token=dummy_token; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict; Secure`
     router.push('/')
   }
 
