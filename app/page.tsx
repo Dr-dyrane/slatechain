@@ -3,8 +3,11 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Logo } from '@/components/Logo'
+import { useTheme } from 'next-themes';
+import { MoonIcon, SunIcon } from 'lucide-react';
 
 export default function LandingPage() {
+    const { theme, setTheme } = useTheme();
     return (
         <div className="min-h-screen flex flex-col">
             <header className="container mx-auto flex justify-between items-center">
@@ -12,14 +15,26 @@ export default function LandingPage() {
                     <Logo />
                     <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
                 </Link>
-                <nav>
-                    <Button asChild variant="ghost" className="mr-4">
-                        <Link href="/login">Sign In</Link>
+                <div className='flex flex-row gap-2'>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                        aria-label="Toggle theme"
+                    >
+                        <SunIcon className="h-5 w-5 dark:hidden" />
+                        <MoonIcon className="h-5 w-5 hidden dark:block" />
                     </Button>
-                    <Button asChild>
-                        <Link href="/register">Sign Up</Link>
-                    </Button>
-                </nav>
+                    <nav>
+                        <Button asChild variant="ghost" className="mr-4">
+                            <Link href="/login">Sign In</Link>
+                        </Button>
+                        <Button asChild>
+                            <Link href="/register">Sign Up</Link>
+                        </Button>
+                    </nav>
+                </div>
+
             </header>
 
             <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center">
