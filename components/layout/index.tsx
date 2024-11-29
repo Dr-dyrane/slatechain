@@ -39,7 +39,7 @@ export function Layout({ children }: LayoutProps) {
           </aside>
         )}
         <main
-          className={`flex-1 border bg-secondary/35 p-6 pb-20 md:pb-6 ${layoutRequired ? "md:rounded-2xl" : ""
+          className={`flex-1 border bg-secondary/35 overflow-scroll ${layoutRequired ? "md:rounded-2xl p-6 pb-20 md:pb-6" : "p-0"
             }`}
         >
           {children}

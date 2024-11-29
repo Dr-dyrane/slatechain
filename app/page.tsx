@@ -9,8 +9,8 @@ import { MoonIcon, SunIcon } from 'lucide-react';
 export default function LandingPage() {
     const { theme, setTheme } = useTheme();
     return (
-        <div className="min-h-screen flex flex-col">
-            <header className="container mx-auto flex justify-between items-center">
+        <div className="min-h-screen flex flex-col p-4">
+            <header className="w-full flex justify-between items-center">
                 <Link href="/" className="flex flex-row space-x-2">
                     <Logo />
                     <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
@@ -34,7 +34,6 @@ export default function LandingPage() {
                         </Button>
                     </nav>
                 </div>
-
             </header>
 
             <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center">
@@ -48,7 +47,7 @@ export default function LandingPage() {
             </main>
 
             <footer className="bg-secondary py-4 rounded-md">
-                <div className="container mx-auto flex justify-between items-center">
+                <div className="container mx-auto flex flex-col md:flex-row gap-2 justify-between items-center">
                     <p>&copy; 2023 SlateChain. All rights reserved.</p>
                     <nav>
                         <Link href="/pricing" className="mr-4 hover:underline">Pricing</Link>
