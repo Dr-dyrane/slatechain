@@ -6,6 +6,7 @@ import { Logo } from '@/components/Logo'
 import { useTheme } from 'next-themes';
 import { MoonIcon, SunIcon } from 'lucide-react';
 
+
 export default function LandingPage() {
     const { theme, setTheme } = useTheme();
     return (
@@ -36,12 +37,12 @@ export default function LandingPage() {
                 </div>
             </header>
 
-            <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center">
+            <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8">
                 <h1 className="text-5xl font-bold mb-6">Streamline Your Supply Chain</h1>
-                <p className="text-xl mb-8 max-w-2xl">
+                <p className="text-xl mb-8 max-w-2xl text-muted-foreground">
                     SlateChain helps you manage your inventory, track orders, and optimize logistics with ease.
                 </p>
-                <Button asChild size="lg">
+                <Button asChild size="lg" className='rounded-xl'>
                     <Link href="/register">Get Started</Link>
                 </Button>
             </main>
