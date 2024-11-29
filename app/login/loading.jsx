@@ -1,36 +1,40 @@
-import React from 'react';
+import React from "react";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 
 const Skeleton = ({ className }) => (
-  <div className={`animate-pulse bg-gray-200 rounded-lg ${className}`}></div>
+	<div className={`animate-pulse bg-gray-200 rounded-lg ${className}`}></div>
 );
 
 const AuthLoading = () => {
-  return (
-    <div className="flex flex-col items-center justify-center w-full p-4 min-h-screen">
-      <div className="my-14 flex flex-col items-center justify-center w-full text-center">
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-8 w-48" />
-      </div>
-
-      <div className="bg-white rounded-3xl p-10 w-full mt-10 flex flex-col max-w-sm lg:max-w-md">
-        <div className="mb-5 flex flex-col">
-          <Skeleton className="h-4 w-24 mb-2" />
-          <Skeleton className="h-10 w-full" />
-        </div>
-
-        <div className="mb-5 flex flex-col">
-          <div className="flex justify-between mb-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-          <Skeleton className="h-10 w-full" />
-        </div>
-
-        <Skeleton className="h-12 w-full rounded-md mt-4" />
-      </div>
-    </div>
-  );
+	return (
+		<div className="flex h-full items-center justify-center bg-none">
+			<Card className="w-[350px]">
+				<CardHeader className="text-center space-y-2">
+					<Skeleton className="h-12 w-12 rounded-full mx-auto" />
+					<Skeleton className="h-6 w-3/4 mx-auto" />
+					<Skeleton className="h-4 w-5/6 mx-auto" />
+				</CardHeader>
+				<CardContent className="space-y-4">
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-1/4" />
+						<Skeleton className="h-10 w-full" />
+					</div>
+					<div className="space-y-2">
+						<Skeleton className="h-4 w-1/4" />
+						<Skeleton className="h-10 w-full" />
+					</div>
+				</CardContent>
+				<CardFooter className="flex flex-col space-y-4">
+					<div className="flex justify-between w-full">
+						<Skeleton className="h-10 w-24" />
+						<Skeleton className="h-10 w-24" />
+					</div>
+					<Skeleton className="h-4 w-3/4 mx-auto" />
+					<Skeleton className="h-4 w-2/3 mx-auto" />
+				</CardFooter>
+			</Card>
+		</div>
+	);
 };
 
 export default AuthLoading;
-

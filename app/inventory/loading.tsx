@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 const LayoutLoader = () => {
 
   return (
-    <div className="space-y-4 p-8 pt-6">
-    <div className="h-6 w-[160px] bg-muted animate-pulse rounded"/>
+    <div className="space-y-4 pt-6">
+     <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {[...Array(4)].map((_, i) => (
         <Card key={i}>

@@ -1,88 +1,48 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { DollarSign, CreditCard, Activity, Users } from 'lucide-react'
-import { columns } from "./inventory/page"
-import { DataTable } from "@/components/DataTable"
-import { useDispatch, useSelector } from "react-redux"
-import { RootState } from "@/lib/store"
-import { useEffect } from "react"
-import { setInventory } from "@/lib/slices/inventorySlice"
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/Logo'
 
-const cardData = [
-  {
-    title: "Total Revenue",
-    icon: DollarSign,
-    value: "$45,231.89",
-    description: "+20.1% from last month"
-  },
-  {
-    title: "Inventory Items",
-    icon: CreditCard,
-    value: "+2,350",
-    description: "+180.1% from last month"
-  },
-  {
-    title: "Active Orders",
-    icon: Activity,
-    value: "+573",
-    description: "+201 since last hour"
-  },
-  {
-    title: "Shipments in Transit",
-    icon: Users,
-    value: "+989",
-    description: "+18 since last hour"
-  }
-]
+export default function LandingPage() {
+    return (
+        <div className="min-h-screen flex flex-col">
+            <header className="container mx-auto flex justify-between items-center">
+                <Link href="/" className="flex flex-row space-x-2">
+                    <Logo />
+                    <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
+                </Link>
+                <nav>
+                    <Button asChild variant="ghost" className="mr-4">
+                        <Link href="/login">Sign In</Link>
+                    </Button>
+                    <Button asChild>
+                        <Link href="/register">Sign Up</Link>
+                    </Button>
+                </nav>
+            </header>
 
+            <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center">
+                <h1 className="text-5xl font-bold mb-6">Streamline Your Supply Chain</h1>
+                <p className="text-xl mb-8 max-w-2xl">
+                    SlateChain helps you manage your inventory, track orders, and optimize logistics with ease.
+                </p>
+                <Button asChild size="lg">
+                    <Link href="/register">Get Started</Link>
+                </Button>
+            </main>
 
-
-export default function Dashboard() {
-  const inventory = useSelector((state: RootState) => state.inventory.items)
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    // Simulated API call
-    const fetchInventory = async () => {
-      // In a real application, this would be an API call
-      const data = [
-        { id: 1, name: "Product A", sku: "SKU001", quantity: 100, location: "Warehouse 1" },
-        { id: 2, name: "Product B", sku: "SKU002", quantity: 150, location: "Warehouse 2" },
-        { id: 3, name: "Product C", sku: "SKU003", quantity: 75, location: "Warehouse 1" },
-      ]
-      dispatch(setInventory(data))
-    }
-
-    fetchInventory()
-  }, [dispatch])
-
-  return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {cardData.map((card, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">{card.description}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Inventory</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <DataTable columns={columns} data={inventory} />
-        </CardContent>
-      </Card>
-    </div>
-  )
+            <footer className="bg-secondary py-4 rounded-md">
+                <div className="container mx-auto flex justify-between items-center">
+                    <p>&copy; 2023 SlateChain. All rights reserved.</p>
+                    <nav>
+                        <Link href="/pricing" className="mr-4 hover:underline">Pricing</Link>
+                        <Link href="/terms" className="mr-4 hover:underline">Terms</Link>
+                        <Link href="/policy" className="hover:underline">Policy</Link>
+                    </nav>
+                </div>
+            </footer>
+        </div>
+    )
 }
 
