@@ -10,7 +10,7 @@ export default function LandingPage() {
     const { theme, setTheme } = useTheme();
     return (
         <div className="min-h-screen flex flex-col p-4">
-            <header className="w-full flex justify-between items-center">
+            <header className="w-full md:container md:mx-auto flex justify-between items-center">
                 <Link href="/" className="flex flex-row space-x-2">
                     <Logo />
                     <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
@@ -46,7 +46,7 @@ export default function LandingPage() {
                 </Button>
             </main>
 
-            <footer className="bg-secondary py-4 rounded-md">
+            <footer className="bg-secondary py-4 rounded-md md:container md:mx-auto">
                 <div className="container mx-auto flex flex-col md:flex-row gap-2 justify-between items-center">
                     <p>&copy; 2023 SlateChain. All rights reserved.</p>
                     <nav>
