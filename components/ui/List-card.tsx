@@ -41,7 +41,7 @@ export function ListCard<TData extends Record<string, any>, TValue>({
 
     return (
         <>
-            <ScrollArea className="h-[calc(100vh-200px)]">
+            <ScrollArea className="">
                 {data.map((item, index) => (
                     <TouchableOpacity key={index} onClick={() => handleItemClick(item)}>
                         <Card className="mb-2">
