@@ -74,14 +74,11 @@ export default function Dashboard() {
           </Card>
         ))}
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Inventory</CardTitle>
-        </CardHeader>
-        <CardContent>
-        <DataTable columns={columns} data={inventory} />
-        </CardContent>
-      </Card>
+
+      <CardTitle>Recent Inventory</CardTitle>
+
+      <DataTable columns={columns} data={inventory} />
+
     </div>
   )
 }

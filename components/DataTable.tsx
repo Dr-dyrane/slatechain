@@ -13,7 +13,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Search } from 'lucide-react'
 
 import { Button } from "@/components/ui/button"
 import {
@@ -31,13 +31,21 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { ListCard } from "./ui/List-card"
 
-interface DataTableProps<TData, TValue> {
+
+interface DataRow {
+    id: number
+    name: string
+    [key: string]: any
+}
+
+interface DataTableProps<TData extends DataRow, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends DataRow, TValue>({
     columns,
     data,
 }: DataTableProps<TData, TValue>) {
@@ -66,17 +74,20 @@ export function DataTable<TData, TValue>({
     })
 
     return (
-        <div className="w-full">
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder="Filter..."
-                    value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("name")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                    aria-label="Filter table"
-                />
+        <div className="w-full space-y-4">
+            <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center space-x-2">
+                    <Search className="h-5 w-5 text-muted-foreground" />
+                    <Input
+                        placeholder="Filter..."
+                        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+                        onChange={(event) =>
+                            table.getColumn("name")?.setFilterValue(event.target.value)
+                        }
+                        className="max-w-sm"
+                        aria-label="Filter table"
+                    />
+                </div>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" className="ml-auto">
@@ -102,23 +113,26 @@ export function DataTable<TData, TValue>({
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
-            <div className="rounded-md border">
+
+            <div className="block sm:hidden">
+                <ListCard columns={columns} data={table.getRowModel().rows.map(row => row.original)} />
+            </div>
+
+            <div className="rounded-md border hidden sm:block">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
@@ -146,7 +160,8 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
+
+            <div className="flex items-center justify-between space-x-2 py-4">
                 <div className="flex-1 text-sm text-muted-foreground">
                     {table.getFilteredSelectedRowModel().rows.length} of{" "}
                     {table.getFilteredRowModel().rows.length} row(s) selected.
@@ -173,3 +188,4 @@ export function DataTable<TData, TValue>({
         </div>
     )
 }
+
