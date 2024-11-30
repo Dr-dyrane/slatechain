@@ -55,8 +55,8 @@ export default function SuppliersPage() {
               <CardDescription>Manage conversations with suppliers</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-center h-64 bg-muted rounded-md">
-                <MessageSquare className="mr-2 h-8 w-8" />
+              <div className="flex flex-col sm:flex-row items-center justify-center h-64 bg-muted rounded-md">
+                <MessageSquare className="mb-2 sm:mr-2 h-8 w-8" />
                 <span>Communication Center Placeholder</span>
               </div>
             </CardContent>
@@ -69,8 +69,8 @@ export default function SuppliersPage() {
               <CardDescription>Upload and manage supplier documents</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-center h-64 bg-muted rounded-md">
-                <FileText className="mr-2 h-8 w-8" />
+              <div className="flex flex-col sm:flex-row items-center justify-center h-64 bg-muted rounded-md">
+                <FileText className="mb-2 sm:mr-2 h-8 w-8" />
                 <span>Document Management Placeholder</span>
               </div>
             </CardContent>
