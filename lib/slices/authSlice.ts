@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { registerUser, loginUser } from "@/api/auth";
+import { registerUser, loginUser } from "@/lib/api/auth";
 
 interface User {
 	id: string;

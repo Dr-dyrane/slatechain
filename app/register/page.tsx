@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
 import { setCurrentStep, setRoleSpecificData } from '@/lib/slices/onboardingSlice'
-import { uploadDocument } from '@/api/auth'
+import { uploadDocument } from '@/lib/api/auth'
 import { AppDispatch } from '@/lib/store'
 import Link from 'next/link'
 

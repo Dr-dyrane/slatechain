@@ -2,7 +2,7 @@ import {
 	fetchProgress,
 	saveStepProgress,
 	completeOnboardingApi,
-} from "@/api/onboarding";
+} from "@/lib/api/onboarding";
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface OnboardingState {
