@@ -177,7 +177,7 @@ export default function RegisterPage() {
 
   return (
     <div className="flex h-full items-center justify-center bg-none">
-      <Card className="w-[400px]">
+      <Card className="w-[350px] sm:w-[400px]">
         <CardHeader className='text-center'>
           <Logo />
           <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>

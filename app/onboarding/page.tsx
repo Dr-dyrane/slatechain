@@ -70,7 +70,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="flex h-full items-center justify-center bg-none">
-      <Card className="w-[500px]">
+      <Card className="w-[350px] sm:w-[500px]">
         <CardHeader className='flex flex-row justify-between'>
           <div>
             <CardTitle>{onboardingSteps[currentStep].title}</CardTitle>
