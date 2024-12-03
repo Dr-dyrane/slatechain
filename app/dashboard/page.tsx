@@ -8,6 +8,10 @@ import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useEffect } from "react"
 import { setInventory } from "@/lib/slices/inventorySlice"
+import { useRouter } from "next/navigation"
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { resumeOnboarding } from "@/lib/slices/onboardingSlice"
+import { Button } from "@/components/ui/button"
 
 const cardData = [
   {
@@ -41,6 +45,13 @@ const cardData = [
 export default function Dashboard() {
   const inventory = useSelector((state: RootState) => state.inventory.items)
   const dispatch = useDispatch()
+  const router = useRouter()
+  const onboardingState = useSelector((state: RootState) => state.onboarding)
+
+  const handleResumeOnboarding = () => {
+    dispatch(resumeOnboarding())
+    router.push('/onboarding')
+  }
 
   useEffect(() => {
     // Simulated API call
@@ -59,6 +70,17 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {onboardingState.cancelled && (
+        <Alert>
+          <AlertTitle>Incomplete Onboarding</AlertTitle>
+          <AlertDescription>
+            You haven't completed your onboarding process. This may limit your access to some features.
+            <Button variant="link" onClick={handleResumeOnboarding}>
+              Resume Onboarding
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cardData.map((card, index) => (

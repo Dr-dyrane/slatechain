@@ -5,8 +5,10 @@ interface OnboardingState {
 	totalSteps: number;
 	completedSteps: number[];
 	roleSpecificData: {
-		[key: string]: any;
+		[key: string]: string | number | boolean;
 	};
+	completed: boolean;
+	cancelled: boolean;
 }
 
 const initialState: OnboardingState = {
@@ -14,6 +16,8 @@ const initialState: OnboardingState = {
 	totalSteps: 5,
 	completedSteps: [],
 	roleSpecificData: {},
+	completed: false,
+	cancelled: false,
 };
 
 const onboardingSlice = createSlice({
@@ -30,11 +34,20 @@ const onboardingSlice = createSlice({
 		},
 		setRoleSpecificData: (
 			state,
-			action: PayloadAction<{ [key: string]: any }>
+			action: PayloadAction<{ [key: string]: string | number | boolean }>
 		) => {
 			state.roleSpecificData = { ...state.roleSpecificData, ...action.payload };
 		},
+		completeOnboarding: (state) => {
+			state.completed = true;
+		},
 		resetOnboarding: () => initialState,
+		cancelOnboarding: (state) => {
+			state.cancelled = true;
+		},
+		resumeOnboarding: (state) => {
+			state.cancelled = false;
+		},
 	},
 });
 
@@ -42,6 +55,9 @@ export const {
 	setCurrentStep,
 	completeStep,
 	setRoleSpecificData,
+	completeOnboarding,
 	resetOnboarding,
+	cancelOnboarding,
+	resumeOnboarding,
 } = onboardingSlice.actions;
 export default onboardingSlice.reducer;
