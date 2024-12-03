@@ -69,7 +69,7 @@ export function ServiceQuestions({ role, onComplete }: ServiceQuestionsProps) {
                 />
               </div>
             )}
-            <Button type="submit">Next</Button>
+            <Button type="submit">Submit</Button>
           </div>
         </form>
       </CardContent>

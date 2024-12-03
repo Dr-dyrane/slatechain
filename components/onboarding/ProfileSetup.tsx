@@ -64,7 +64,7 @@ export function ProfileSetup({ role, onComplete }: ProfileSetupProps) {
                                 required
                             />
                         </div>
-                        <Button type="submit">Next</Button>
+                        <Button type="submit">Submit</Button>
                     </div>
                 </form>
             </CardContent>

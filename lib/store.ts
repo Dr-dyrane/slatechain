@@ -11,7 +11,7 @@ import { combineReducers } from "redux";
 const persistConfig = {
 	key: "root", // Key to store the Redux state
 	storage, // You can use 'sessionStorage' instead of 'localStorage' if you prefer
-	whitelist: ["auth"], // Specify which slices you want to persist (e.g., auth)
+	whitelist: ["auth", "onboarding"], // Specify which slices you want to persist (e.g., auth)
 };
 
 // Combine reducers
