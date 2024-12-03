@@ -1,68 +1,81 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { RootState, AppDispatch } from '@/lib/store'
-import { setCurrentStep, completeStep, setRoleSpecificData, completeOnboarding, cancelOnboarding } from '@/lib/slices/onboardingSlice'
-import { Welcome } from '@/components/onboarding/Welcome'
-import { ProfileSetup } from '@/components/onboarding/ProfileSetup'
-import { ServiceQuestions } from '@/components/onboarding/ServiceQuestions'
-import { Preferences } from '@/components/onboarding/Preferences'
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { fetchUserProgress, saveProgress, complete } from "@/lib/slices/onboardingSlice";
+import { setCurrentStep, completeStep, setRoleSpecificData, cancelOnboarding } from "@/lib/slices/onboardingSlice";
+import { Welcome } from "@/components/onboarding/Welcome";
+import { ProfileSetup } from "@/components/onboarding/ProfileSetup";
+import { ServiceQuestions } from "@/components/onboarding/ServiceQuestions";
+import { Preferences } from "@/components/onboarding/Preferences";
+import { AppDispatch, RootState } from "@/lib/store";
 
 const onboardingSteps = [
-  { title: 'Welcome', component: Welcome },
-  { title: 'Profile Setup', component: ProfileSetup },
-  { title: 'Service-Specific Questions', component: ServiceQuestions },
-  { title: 'Preferences', component: Preferences },
-  { title: 'Completion', component: null },
-]
+  { title: "Welcome", component: Welcome },
+  { title: "Profile Setup", component: ProfileSetup },
+  { title: "Service-Specific Questions", component: ServiceQuestions },
+  { title: "Preferences", component: Preferences },
+  { title: "Completion", component: null },
+];
 
 export default function OnboardingPage() {
-  const dispatch = useDispatch<AppDispatch>()
-  const router = useRouter()
-  const { user } = useSelector((state: RootState) => state.auth)
-  const { currentStep, completedSteps, roleSpecificData } = useSelector((state: RootState) => state.onboarding)
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const { userId, currentStep, completedSteps, roleSpecificData } = useSelector((state: RootState) => state.onboarding);
 
   useEffect(() => {
-    if (!user) {
-      router.push('/login')
+    if (user) {
+      // Fetch user progress on component mount
+      dispatch(fetchUserProgress(user.id));
+    } else {
+      router.push("/login");
     }
-  }, [user, router])
+  }, [user, dispatch, router]);
 
-  const handleNext = (data: any) => {
+  const handleNext = async (data: any) => {
+    if (!user?.id) {
+      console.error("User ID is missing. Unable to save progress or complete onboarding.");
+      return;
+    }
+
     // Ensure we're only passing serializable data
     const serializableData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
         acc[key] = value;
       }
       return acc;
     }, {} as { [key: string]: string | number | boolean });
 
     dispatch(setRoleSpecificData(serializableData));
+
     if (currentStep < onboardingSteps.length - 1) {
+      await dispatch(saveProgress({ userId: user.id, stepId: currentStep }));
       dispatch(completeStep(currentStep));
       dispatch(setCurrentStep(currentStep + 1));
     } else {
-      // Onboarding complete
-      dispatch(completeOnboarding());
-      router.push('/dashboard');
+      // Complete onboarding
+      await dispatch(complete(user.id));
+      router.push("/dashboard");
     }
   };
 
+
   const handleBack = () => {
     if (currentStep > 0) {
-      dispatch(setCurrentStep(currentStep - 1))
+      dispatch(setCurrentStep(currentStep - 1));
     }
-  }
+  };
 
   const handleCancel = () => {
-    dispatch(cancelOnboarding())
-    router.push('/dashboard')
-  }
+    dispatch(cancelOnboarding());
+    router.push("/dashboard");
+  };
+
 
   const CurrentStepComponent = onboardingSteps[currentStep].component
 

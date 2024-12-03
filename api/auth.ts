@@ -1,20 +1,35 @@
-// Simulated API calls for authentication and registration
-
 export const registerUser = async (userData: any) => {
-	// Simulate API call
 	await new Promise((resolve) => setTimeout(resolve, 1000));
-	// In a real app, you would make an API call here
-	return { id: "1", ...userData };
+
+	// Save userId in localStorage
+	localStorage.setItem("userId", "1");
+	return {
+		id: "1",
+		token: "mock-jwt-token",
+		...userData,
+	};
 };
 
 export const loginUser = async (credentials: {
 	email: string;
 	password: string;
 }) => {
-	// Simulate API call
 	await new Promise((resolve) => setTimeout(resolve, 1000));
-	// In a real app, you would make an API call here
-	return { id: "1", name: "John Doe", email: credentials.email, role: "admin" };
+	if (
+		credentials.email === "test@example.com" &&
+		credentials.password === "password"
+	) {
+		// Save userId in localStorage
+		localStorage.setItem("userId", "1");
+		return {
+			id: "1",
+			name: "John Doe",
+			email: credentials.email,
+			role: "admin",
+			token: "mock-jwt-token",
+		};
+	}
+	throw new Error("Invalid email or password.");
 };
 
 export const uploadDocument = async (
@@ -22,9 +37,7 @@ export const uploadDocument = async (
 	userId: string,
 	documentType: string
 ) => {
-	// Simulate file upload
 	await new Promise((resolve) => setTimeout(resolve, 1000));
-	// In a real app, you would upload the file to a server
 	console.log(`Uploading ${documentType} for user ${userId}: ${file.name}`);
-	return { success: true, message: "Document uploaded successfully" };
+	return { success: true, message: `${documentType} uploaded successfully.` };
 };

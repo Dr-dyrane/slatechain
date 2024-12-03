@@ -28,8 +28,9 @@ export const register = createAsyncThunk(
 		try {
 			const response = await registerUser(userData);
 			return response;
-		} catch (error) {
-			return rejectWithValue("Registration failed");
+		} catch (error: any) {
+			// Pass the actual error message from the API
+			return rejectWithValue(error.message || "Registration failed");
 		}
 	}
 );
@@ -43,8 +44,9 @@ export const login = createAsyncThunk(
 		try {
 			const response = await loginUser(credentials);
 			return response;
-		} catch (error) {
-			return rejectWithValue("Login failed");
+		} catch (error: any) {
+			// Pass the actual error message from the API
+			return rejectWithValue(error.message || "Login failed");
 		}
 	}
 );
@@ -69,26 +71,26 @@ const authSlice = createSlice({
 			})
 			.addCase(register.fulfilled, (state, action) => {
 				state.isAuthenticated = true;
-				state.user = action.payload;
+				state.user = action.payload; // Add user to store
 				state.isLoading = false;
 				state.error = null;
 			})
 			.addCase(register.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.payload as string;
+				state.error = action.payload as string; // Capture error message
 			})
 			.addCase(login.pending, (state) => {
 				state.isLoading = true;
 			})
 			.addCase(login.fulfilled, (state, action) => {
 				state.isAuthenticated = true;
-				state.user = action.payload;
+				state.user = action.payload; // Add user to store
 				state.isLoading = false;
 				state.error = null;
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.isLoading = false;
-				state.error = action.payload as string;
+				state.error = action.payload as string; // Capture error message
 			});
 	},
 });
