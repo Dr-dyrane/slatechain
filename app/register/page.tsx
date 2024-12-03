@@ -10,14 +10,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { registerUser } from '@/lib/slices/authSlice'
+import { register } from '@/lib/slices/authSlice'
+import { setCurrentStep, setRoleSpecificData } from '@/lib/slices/onboardingSlice'
+import { uploadDocument } from '@/api/auth'
 import { AppDispatch } from '@/lib/store'
-import Link from 'next/link';
+import Link from 'next/link'
 
 const steps = ['Basic Info', 'Role Selection', 'KYC Verification']
 
 export default function RegisterPage() {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setStep] = useState(0)
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -53,24 +55,22 @@ export default function RegisterPage() {
     setError('')
 
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1)
+      setStep(currentStep + 1)
     } else {
       try {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        const result = await dispatch(registerUser(formData)).unwrap()
+        const result = await dispatch(register(formData)).unwrap()
 
-        // Handle file uploads separately
+        // Handle file uploads
         if (idDocument) {
-          // Simulate file upload
-          console.log('Uploading ID document:', idDocument.name)
-          // In a real app, you would make an API call to upload the file
+          await uploadDocument(idDocument, result.id, 'ID Document')
         }
         if (taxDocument && formData.role === 'supplier') {
-          // Simulate file upload
-          console.log('Uploading tax document:', taxDocument.name)
-          // In a real app, you would make an API call to upload the file
+          await uploadDocument(taxDocument, result.id, 'Tax Document')
         }
+
+        // Set initial onboarding data
+        dispatch(setCurrentStep(0))
+        dispatch(setRoleSpecificData({ role: formData.role }))
 
         router.push('/onboarding')
       } catch (error) {

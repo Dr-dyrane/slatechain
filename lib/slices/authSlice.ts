@@ -1,4 +1,5 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { registerUser, loginUser } from "@/api/auth";
 
 interface User {
 	id: string;
@@ -21,21 +22,17 @@ const initialState: AuthState = {
 	isLoading: false,
 };
 
-export const registerUser = createAsyncThunk<
-	User,
-	Omit<User, "id">,
-	{ rejectValue: string }
->("auth/registerUser", async (userData, { rejectWithValue }) => {
-	try {
-		// Simulate API call
-		await new Promise((resolve) => setTimeout(resolve, 1000));
-		// In a real app, you would make an API call here
-		const response = { data: { id: "1", ...userData } };
-		return response.data as User;
-	} catch (error) {
-		return rejectWithValue("Registration failed");
+export const register = createAsyncThunk(
+	"auth/register",
+	async (userData: Omit<User, "id">, { rejectWithValue }) => {
+		try {
+			const response = await registerUser(userData);
+			return response;
+		} catch (error) {
+			return rejectWithValue("Registration failed");
+		}
 	}
-});
+);
 
 export const login = createAsyncThunk(
 	"auth/login",
@@ -44,18 +41,8 @@ export const login = createAsyncThunk(
 		{ rejectWithValue }
 	) => {
 		try {
-			// Simulate API call
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-			// In a real app, you would make an API call here
-			const response = {
-				data: {
-					id: "1",
-					name: "John Doe",
-					email: credentials.email,
-					role: "admin",
-				},
-			};
-			return response.data;
+			const response = await loginUser(credentials);
+			return response;
 		} catch (error) {
 			return rejectWithValue("Login failed");
 		}
@@ -77,23 +64,23 @@ const authSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
-			.addCase(registerUser.pending, (state) => {
+			.addCase(register.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(registerUser.fulfilled, (state, action: PayloadAction<User>) => {
+			.addCase(register.fulfilled, (state, action) => {
 				state.isAuthenticated = true;
 				state.user = action.payload;
 				state.isLoading = false;
 				state.error = null;
 			})
-			.addCase(registerUser.rejected, (state, action) => {
+			.addCase(register.rejected, (state, action) => {
 				state.isLoading = false;
 				state.error = action.payload as string;
 			})
 			.addCase(login.pending, (state) => {
 				state.isLoading = true;
 			})
-			.addCase(login.fulfilled, (state, action: PayloadAction<User>) => {
+			.addCase(login.fulfilled, (state, action) => {
 				state.isAuthenticated = true;
 				state.user = action.payload;
 				state.isLoading = false;

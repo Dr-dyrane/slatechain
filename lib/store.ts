@@ -4,6 +4,7 @@ import storage from "redux-persist/lib/storage"; // This uses localStorage by de
 import authReducer from "./slices/authSlice";
 import inventoryReducer from "./slices/inventorySlice";
 import ordersReducer from "./slices/ordersSlice";
+import onboardingReducer from "./slices/onboardingSlice";
 import { combineReducers } from "redux";
 
 // Redux Persist Config
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
 	auth: authReducer,
 	inventory: inventoryReducer,
 	orders: ordersReducer,
+	onboarding: onboardingReducer,
 });
 
 // Create a persisted reducer using the config
