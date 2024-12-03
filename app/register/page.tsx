@@ -79,6 +79,14 @@ export default function RegisterPage() {
     }
   }
 
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setStep(currentStep - 1)
+    } else {
+      router.push('/')
+    }
+  }
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
@@ -191,21 +199,18 @@ export default function RegisterPage() {
           <div className="flex justify-between w-full">
             <Button
               variant="outline"
-              onClick={() => currentStep > 0 && setCurrentStep(currentStep - 1)}
+              onClick={handleBack}
             >
-              {currentStep === 0 ? <Link href="/">Cancel</Link> : "Back"}
+              {currentStep === 0 ? 'Cancel' : 'Back'}
             </Button>
             <Button onClick={handleSubmit}>
               {currentStep === steps.length - 1 ? 'Register' : 'Next'}
             </Button>
           </div>
           <div className="text-sm text-center">
-            <Link href="/">
-              <Button variant="outline" asChild>Cancel</Button>
-            </Link>
             Already have an account?{" "}
             <Button variant="link" asChild className="p-0">
-              <a href="/login">Sign in</a>
+              <Link href="/login">Sign in</Link>
             </Button>
           </div>
         </CardFooter>
