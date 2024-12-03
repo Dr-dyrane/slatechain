@@ -23,9 +23,9 @@ export default function RegisterPage() {
     email: '',
     password: '',
     role: '',
-    idDocument: null,
-    taxDocument: null,
   })
+  const [idDocument, setIdDocument] = useState<File | null>(null)
+  const [taxDocument, setTaxDocument] = useState<File | null>(null)
   const [error, setError] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
@@ -38,9 +38,13 @@ export default function RegisterPage() {
     setFormData({ ...formData, role: value })
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'idDocument' | 'taxDocument') => {
     if (e.target.files && e.target.files[0]) {
-      setFormData({ ...formData, [field]: e.target.files[0] })
+      if (field === 'idDocument') {
+        setIdDocument(e.target.files[0])
+      } else {
+        setTaxDocument(e.target.files[0])
+      }
     }
   }
 
@@ -54,7 +58,20 @@ export default function RegisterPage() {
       try {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000))
-        await dispatch(registerUser(formData)).unwrap()
+        const result = await dispatch(registerUser(formData)).unwrap()
+
+        // Handle file uploads separately
+        if (idDocument) {
+          // Simulate file upload
+          console.log('Uploading ID document:', idDocument.name)
+          // In a real app, you would make an API call to upload the file
+        }
+        if (taxDocument && formData.role === 'supplier') {
+          // Simulate file upload
+          console.log('Uploading tax document:', taxDocument.name)
+          // In a real app, you would make an API call to upload the file
+        }
+
         router.push('/onboarding')
       } catch (error) {
         setError('Registration failed. Please try again.')
@@ -177,7 +194,6 @@ export default function RegisterPage() {
               onClick={() => currentStep > 0 && setCurrentStep(currentStep - 1)}
             >
               {currentStep === 0 ? <Link href="/">Cancel</Link> : "Back"}
-
             </Button>
             <Button onClick={handleSubmit}>
               {currentStep === steps.length - 1 ? 'Register' : 'Next'}

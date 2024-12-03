@@ -23,7 +23,7 @@ const initialState: AuthState = {
 
 export const registerUser = createAsyncThunk<
 	User,
-	any,
+	Omit<User, "id">,
 	{ rejectValue: string }
 >("auth/registerUser", async (userData, { rejectWithValue }) => {
 	try {
