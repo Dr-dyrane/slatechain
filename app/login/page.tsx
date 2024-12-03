@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login } from '@/lib/slices/authSlice'
@@ -11,33 +11,21 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { AppDispatch, RootState } from '@/lib/store'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
+  const { error, isLoading } = useSelector((state: RootState) => state.auth)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
-
-    if (!email || !password) {
-      setError('Please enter both email and password.')
-      return
+    const result = await dispatch(login({ email, password }))
+    if (login.fulfilled.match(result)) {
+      router.push('/dashboard')
     }
-
-    // Simple email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address.')
-      return
-    }
-
-    // Simulate login
-    dispatch(login({ id: '1', name: 'John Doe', email }))
-    router.push('/dashboard')
   }
 
   return (
@@ -53,22 +41,22 @@ export default function LoginPage() {
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  required 
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  required 
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
                 />
               </div>
             </div>
@@ -80,12 +68,15 @@ export default function LoginPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex justify-between w-full">
-            <Button variant="outline" asChild>
+          <div className="flex w-full justify-between">
+            <Button variant="outline" asChild >
               <Link href="/">Cancel</Link>
             </Button>
-            <Button onClick={handleSubmit}>Login</Button>
+            <Button onClick={handleSubmit} disabled={isLoading} >
+              {isLoading ? 'Logging in...' : 'Login'}
+            </Button>
           </div>
+
           <div className="text-sm text-center">
             Don't have an account?{" "}
             <Link href="/register" className="text-primary hover:underline">
