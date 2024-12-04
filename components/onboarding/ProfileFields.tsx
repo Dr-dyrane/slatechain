@@ -6,38 +6,45 @@ interface ProfileFieldsProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+const profileFields = [
+  {
+    id: "companyName",
+    name: "companyName",
+    label: "Company Name",
+    icon: Building,
+  },
+  {
+    id: "businessType",
+    name: "businessType",
+    label: "Business Type",
+    icon: Briefcase,
+  },
+  {
+    id: "employeeCount",
+    name: "employeeCount",
+    label: "Number of Employees",
+    type: "number",
+    icon: Users,
+  },
+];
+
 export const ProfileFields: React.FC<ProfileFieldsProps> = ({
   formData,
   onInputChange,
 }) => (
   <>
-    <InputField
-      id="companyName"
-      name="companyName"
-      label="Company Name"
-      value={formData.companyName}
-      onChange={onInputChange}
-      required
-      icon={Building}
-    />
-    <InputField
-      id="businessType"
-      name="businessType"
-      label="Business Type"
-      value={formData.businessType}
-      onChange={onInputChange}
-      required
-      icon={Briefcase}
-    />
-    <InputField
-      id="employeeCount"
-      name="employeeCount"
-      label="Number of Employees"
-      type="number"
-      value={formData.employeeCount}
-      onChange={onInputChange}
-      required
-      icon={Users}
-    />
+    {profileFields.map((field) => (
+      <InputField
+        key={field.id}
+        id={field.id}
+        name={field.name}
+        label={field.label}
+        type={field.type || "text"}
+        value={formData[field.name] || ""}
+        onChange={onInputChange}
+        required
+        icon={field.icon}
+      />
+    ))}
   </>
 );

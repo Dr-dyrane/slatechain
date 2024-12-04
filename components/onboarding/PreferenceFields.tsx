@@ -1,4 +1,3 @@
-
 import { Mail, Smartphone, Moon } from "lucide-react";
 import { SwitchField } from "../ui/switch-field";
 
@@ -7,31 +6,38 @@ interface PreferenceFieldsProps {
   onToggle: (key: string) => void;
 }
 
+const preferenceFields = [
+  {
+    id: "emailNotifications",
+    label: "Email Notifications",
+    icon: Mail,
+  },
+  {
+    id: "smsNotifications",
+    label: "SMS Notifications",
+    icon: Smartphone,
+  },
+  {
+    id: "darkMode",
+    label: "Dark Mode",
+    icon: Moon,
+  },
+];
+
 export const PreferenceFields: React.FC<PreferenceFieldsProps> = ({
   preferences,
   onToggle,
 }) => (
   <>
-    <SwitchField
-      id="emailNotifications"
-      label="Email Notifications"
-      checked={preferences.emailNotifications}
-      onToggle={() => onToggle("emailNotifications")}
-      icon={Mail}
-    />
-    <SwitchField
-      id="smsNotifications"
-      label="SMS Notifications"
-      checked={preferences.smsNotifications}
-      onToggle={() => onToggle("smsNotifications")}
-      icon={Smartphone}
-    />
-    <SwitchField
-      id="darkMode"
-      label="Dark Mode"
-      checked={preferences.darkMode}
-      onToggle={() => onToggle("darkMode")}
-      icon={Moon}
-    />
+    {preferenceFields.map((field) => (
+      <SwitchField
+        key={field.id}
+        id={field.id}
+        label={field.label}
+        checked={preferences[field.id]}
+        onToggle={() => onToggle(field.id)}
+        icon={field.icon}
+      />
+    ))}
   </>
 );
