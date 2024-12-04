@@ -12,7 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
 import { setCurrentStep, setRoleSpecificData } from '@/lib/slices/onboardingSlice'
-import { uploadDocument } from '@/lib/api/auth'
+import { updateKYC } from '@/lib/slices/kycSlice'
 import { AppDispatch } from '@/lib/store'
 import Link from 'next/link'
 
@@ -21,9 +21,11 @@ const steps = ['Basic Info', 'Role Selection', 'KYC Verification']
 export default function RegisterPage() {
   const [currentStep, setStep] = useState(0)
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
+    phoneNumber: '',
     role: '',
   })
   const [idDocument, setIdDocument] = useState<File | null>(null)
@@ -58,14 +60,22 @@ export default function RegisterPage() {
       setStep(currentStep + 1)
     } else {
       try {
-        const result = await dispatch(register(formData)).unwrap()
+        const registerData = {
+          ...formData,
+          name: `${formData.firstName} ${formData.lastName}`,
+        }
+        const result = await dispatch(register(registerData)).unwrap()
 
         // Handle file uploads
-        if (idDocument) {
-          await uploadDocument(idDocument, result.id, 'ID Document')
-        }
-        if (taxDocument && formData.role === 'supplier') {
-          await uploadDocument(taxDocument, result.id, 'Tax Document')
+        if (idDocument || taxDocument) {
+          const documents: { [key: string]: string } = {}
+          if (idDocument) {
+            documents['idDocument'] = await fileToBase64(idDocument)
+          }
+          if (taxDocument && formData.role === 'supplier') {
+            documents['taxDocument'] = await fileToBase64(taxDocument)
+          }
+          await dispatch(updateKYC({ userId: result.id, documents })).unwrap()
         }
 
         // Set initial onboarding data
@@ -87,17 +97,36 @@ export default function RegisterPage() {
     }
   }
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = error => reject(error)
+    })
+  }
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
         return (
           <>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="firstName">First Name</Label>
               <Input
-                id="name"
-                name="name"
-                value={formData.name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
                 onChange={handleInputChange}
                 required
               />
@@ -120,6 +149,17 @@ export default function RegisterPage() {
                 name="password"
                 type="password"
                 value={formData.password}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Input
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                value={formData.phoneNumber}
                 onChange={handleInputChange}
                 required
               />
