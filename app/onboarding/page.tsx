@@ -47,10 +47,10 @@ export default function OnboardingPage() {
       return acc;
     }, {} as { [key: string]: string | number | boolean });
 
-    dispatch(setRoleSpecificData(serializableData));
+    // dispatch(setRoleSpecificData(serializableData));
 
     if (currentStep < onboardingSteps.length - 1) {
-      await dispatch(saveProgress({ userId: user.id, stepId: currentStep }));
+      // await dispatch(saveProgress({ userId: user.id, stepId: currentStep }));
       dispatch(completeStep(currentStep));
       dispatch(setCurrentStep(currentStep + 1));
     } else {
