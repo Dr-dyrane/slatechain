@@ -1,11 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { WelcomeProps } from "@/lib/types/onboarding";
 
-interface WelcomeProps {
-  role: string;
-  name: string;
-}
 
-export function Welcome({ role, name }: WelcomeProps) {
+export function Welcome({ role, name, onComplete }: WelcomeProps) {
   const getRoleMessage = () => {
     switch (role) {
       case 'admin':

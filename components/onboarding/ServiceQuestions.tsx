@@ -3,11 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-
-interface ServiceQuestionsProps {
-  role: string;
-  onComplete: (data: any) => void;
-}
+import { ServiceQuestionsProps } from '@/lib/types/onboarding'
 
 export function ServiceQuestions({ role, onComplete }: ServiceQuestionsProps) {
   const [formData, setFormData] = useState({

@@ -105,9 +105,7 @@ import {
 		state.roleSpecificData = { ...state.roleSpecificData, ...action.payload };
 	  },
 	  completeOnboarding: (state) => {
-		if (state.completedSteps.length === state.totalSteps) {
-		  state.completed = true;
-		}
+		state.completed = true;
 	  },
 	  resetOnboarding: () => initialState,
 	  cancelOnboarding: (state) => {
@@ -138,7 +136,6 @@ import {
 		.addCase(saveProgress.fulfilled, (state, action: PayloadAction<string>) => {
 		  state.isLoading = false;
 		  state.error = null;
-		  console.log(action.payload); // Save success message
 		})
 		.addCase(saveProgress.rejected, (state, action) => {
 		  state.isLoading = false;

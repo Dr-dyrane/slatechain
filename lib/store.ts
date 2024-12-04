@@ -1,5 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice";
 import inventoryReducer from "./slices/inventorySlice";
@@ -23,7 +23,6 @@ const createRootReducer = () =>
     kyc: kycReducer,
   });
 
-// Function to create the store dynamically based on the user
 export const createStore = (userId: string | null) => {
   const persistConfig = createPersistConfig(userId);
   const rootReducer = createRootReducer();
@@ -34,7 +33,7 @@ export const createStore = (userId: string | null) => {
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: {
-          ignoredActions: ["persist/PERSIST"],
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
         },
       }),
   });
@@ -44,7 +43,6 @@ export const createStore = (userId: string | null) => {
   return { store, persistor };
 };
 
-// TypeScript types
 export type RootState = ReturnType<ReturnType<typeof createRootReducer>>;
 export type AppDispatch = ReturnType<typeof createStore>["store"]["dispatch"];
 

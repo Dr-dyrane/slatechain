@@ -3,11 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { ProfileSetupProps } from '@/lib/types/onboarding'
 
-interface ProfileSetupProps {
-    role: string;
-    onComplete: (data: { [key: string]: string | number | boolean }) => void;
-}
 
 export function ProfileSetup({ role, onComplete }: ProfileSetupProps) {
     const [formData, setFormData] = useState({

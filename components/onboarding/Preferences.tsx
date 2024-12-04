@@ -3,10 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
-
-interface PreferencesProps {
-  onComplete: (data: any) => void;
-}
+import { PreferencesProps } from '@/lib/types/onboarding'
 
 export function Preferences({ onComplete }: PreferencesProps) {
   const [preferences, setPreferences] = useState({
