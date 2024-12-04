@@ -28,7 +28,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
                     dispatch(resetOnboarding());
                 }
 
-                if (!onboardingState.completed && !onboardingState.cancelled && pathname !== "/onboarding") {
+                if (!onboardingState.completed && onboardingState.cancelled && pathname !== "/onboarding") {
                     router.push("/onboarding");
                 } else if (onboardingState.completed && ["/login", "/register", "/", "/onboarding"].includes(pathname)) {
                     router.push("/dashboard");

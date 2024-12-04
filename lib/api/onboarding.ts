@@ -1,28 +1,18 @@
-// lib/api/onboarding.ts
-import apiClient from "@/lib/api/apiClient"; // Import apiClient
+import apiClient from "./apiClient";
+import { OnboardingProgress } from "@/lib/types/user";
 
-// Fetch user progress
-export const fetchProgress = async (userId: string) => {
-  const endpoint = "/progress"; // Endpoint to fetch user progress
-  const method = "GET";
-  const response = await apiClient(endpoint, method, { userId });
-  return response; // Return mock data as the response
+export const fetchProgress = async (userId: string): Promise<OnboardingProgress> => {
+  const response = await apiClient<OnboardingProgress>("/onboarding/progress", "GET");
+  return response;
 };
 
-// Save step progress
-export const saveStepProgress = async (userId: string, stepId: number) => {
-  const endpoint = "/save-progress"; // Endpoint to save progress
-  const method = "POST";
-  const body = { userId, stepId };
-  const response = await apiClient(endpoint, method, body);
-  return response; // Return mock data as the response
+export const saveStepProgress = async (userId: string, stepId: number): Promise<{ message: string }> => {
+  const response = await apiClient<{ message: string }>("/onboarding/save", "POST", { userId, stepId });
+  return response;
 };
 
-// Complete onboarding
-export const completeOnboardingApi = async (userId: string) => {
-  const endpoint = "/complete-onboarding"; // Endpoint to complete onboarding
-  const method = "POST";
-  const body = { userId };
-  const response = await apiClient(endpoint, method, body);
-  return response; // Return mock data as the response
+export const completeOnboardingApi = async (userId: string): Promise<{ message: string }> => {
+  const response = await apiClient<{ message: string }>("/onboarding/complete", "POST", { userId });
+  return response;
 };
+

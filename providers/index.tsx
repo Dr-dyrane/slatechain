@@ -11,8 +11,8 @@ import { AuthWrapper } from "./AuthWrapper";
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [storeConfig, setStoreConfig] = useState<{
-    store: any;
-    persistor: any;
+    store: ReturnType<typeof createStore>["store"];
+    persistor: ReturnType<typeof createStore>["persistor"];
   } | null>(null);
 
   useEffect(() => {
@@ -45,3 +45,4 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
     </Provider>
   );
 };
+

@@ -5,41 +5,43 @@ import authReducer from "./slices/authSlice";
 import inventoryReducer from "./slices/inventorySlice";
 import ordersReducer from "./slices/ordersSlice";
 import onboardingReducer from "./slices/onboardingSlice";
+import kycReducer from "./slices/kycSlice";
 import { combineReducers } from "redux";
 
 const createPersistConfig = (userId: string | null) => ({
-	key: userId ? `root-${userId}` : "root-guest",
-	storage,
-	whitelist: ["auth", "onboarding"],
+  key: userId ? `root-${userId}` : "root-guest",
+  storage,
+  whitelist: ["auth", "onboarding", "kyc"],
 });
 
 const createRootReducer = () =>
-	combineReducers({
-		auth: authReducer,
-		inventory: inventoryReducer,
-		orders: ordersReducer,
-		onboarding: onboardingReducer,
-	});
+  combineReducers({
+    auth: authReducer,
+    inventory: inventoryReducer,
+    orders: ordersReducer,
+    onboarding: onboardingReducer,
+    kyc: kycReducer,
+  });
 
 // Function to create the store dynamically based on the user
 export const createStore = (userId: string | null) => {
-	const persistConfig = createPersistConfig(userId);
-	const rootReducer = createRootReducer();
-	const persistedReducer = persistReducer(persistConfig, rootReducer);
+  const persistConfig = createPersistConfig(userId);
+  const rootReducer = createRootReducer();
+  const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-	const store = configureStore({
-		reducer: persistedReducer,
-		middleware: (getDefaultMiddleware) =>
-			getDefaultMiddleware({
-				serializableCheck: {
-					ignoredActions: ["persist/PERSIST"],
-				},
-			}),
-	});
+  const store = configureStore({
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: ["persist/PERSIST"],
+        },
+      }),
+  });
 
-	const persistor = persistStore(store);
+  const persistor = persistStore(store);
 
-	return { store, persistor };
+  return { store, persistor };
 };
 
 // TypeScript types
