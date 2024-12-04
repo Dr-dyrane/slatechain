@@ -6,6 +6,7 @@ interface InputFieldProps {
   id: string;
   name: string;
   label: string;
+  type?: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
@@ -16,6 +17,7 @@ export const InputField: React.FC<InputFieldProps> = ({
   id,
   name,
   label,
+  type = "text",
   value,
   onChange,
   required = false,
@@ -29,6 +31,7 @@ export const InputField: React.FC<InputFieldProps> = ({
     <Input
       id={id}
       name={name}
+      type={type}
       value={value}
       onChange={onChange}
       required={required}
