@@ -31,7 +31,7 @@ export default function LoginPage() {
 
   const getErrorMessage = (error: AuthError | null): string => {
     if (error) {
-      return `${error.code}: ${error.message}`
+      return `${error?.code}: ${error?.message}`
     }
     return ''
   }
