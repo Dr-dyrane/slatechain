@@ -6,17 +6,16 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
-import { setCurrentStep, setRoleSpecificData } from '@/lib/slices/onboardingSlice'
-import { updateKYC } from '@/lib/slices/kycSlice'
 import { AppDispatch } from '@/lib/store'
 import Link from 'next/link'
+import { UserRole } from '@/lib/types'
 
-const steps = ['Basic Info', 'Role Selection', 'KYC Verification']
+const steps = ['Basic Info', 'Role Selection']
 
 export default function RegisterPage() {
   const [currentStep, setStep] = useState(0)
@@ -28,8 +27,6 @@ export default function RegisterPage() {
     phoneNumber: '',
     role: '',
   })
-  const [idDocument, setIdDocument] = useState<File | null>(null)
-  const [taxDocument, setTaxDocument] = useState<File | null>(null)
   const [error, setError] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
@@ -40,16 +37,6 @@ export default function RegisterPage() {
 
   const handleRoleChange = (value: string) => {
     setFormData({ ...formData, role: value })
-  }
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'idDocument' | 'taxDocument') => {
-    if (e.target.files && e.target.files[0]) {
-      if (field === 'idDocument') {
-        setIdDocument(e.target.files[0])
-      } else {
-        setTaxDocument(e.target.files[0])
-      }
-    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,26 +50,12 @@ export default function RegisterPage() {
         const registerData = {
           ...formData,
           name: `${formData.firstName} ${formData.lastName}`,
+          role: formData.role as UserRole, // Cast the role to UserRole
         }
         const result = await dispatch(register(registerData)).unwrap()
 
-        // Handle file uploads
-        if (idDocument || taxDocument) {
-          const documents: { [key: string]: string } = {}
-          if (idDocument) {
-            documents['idDocument'] = await fileToBase64(idDocument)
-          }
-          if (taxDocument && formData.role === 'supplier') {
-            documents['taxDocument'] = await fileToBase64(taxDocument)
-          }
-          await dispatch(updateKYC({ userId: result.id, documents })).unwrap()
-        }
-
-        // Set initial onboarding data
-        dispatch(setCurrentStep(0))
-        dispatch(setRoleSpecificData({ role: formData.role }))
-
-        router.push('/onboarding')
+        // Redirect to KYC page
+        router.push('/kyc')
       } catch (error) {
         setError('Registration failed. Please try again.')
       }
@@ -95,15 +68,6 @@ export default function RegisterPage() {
     } else {
       router.push('/')
     }
-  }
-
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.readAsDataURL(file)
-      reader.onload = () => resolve(reader.result as string)
-      reader.onerror = error => reject(error)
-    })
   }
 
   const renderStepContent = () => {
@@ -182,33 +146,6 @@ export default function RegisterPage() {
               </SelectContent>
             </Select>
           </div>
-        )
-      case 2:
-        return (
-          <>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="idDocument">ID Document</Label>
-              <Input
-                id="idDocument"
-                name="idDocument"
-                type="file"
-                onChange={(e) => handleFileUpload(e, 'idDocument')}
-                required
-              />
-            </div>
-            {formData.role === 'supplier' && (
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="taxDocument">Tax Document</Label>
-                <Input
-                  id="taxDocument"
-                  name="taxDocument"
-                  type="file"
-                  onChange={(e) => handleFileUpload(e, 'taxDocument')}
-                  required
-                />
-              </div>
-            )}
-          </>
         )
       default:
         return null
