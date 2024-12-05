@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation"
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { resumeOnboarding } from "@/lib/slices/onboardingSlice"
 import { Button } from "@/components/ui/button"
+import UserStatusAlert from "@/components/dashboard/UserStatusAlert"
 
 const cardData = [
   {
@@ -46,11 +47,15 @@ export default function Dashboard() {
   const inventory = useSelector((state: RootState) => state.inventory.items)
   const dispatch = useDispatch()
   const router = useRouter()
-  const onboardingState = useSelector((state: RootState) => state.onboarding)
+  const user = useSelector((state: RootState) => state.auth.user);
 
   const handleResumeOnboarding = () => {
     dispatch(resumeOnboarding())
     router.push('/onboarding')
+  }
+
+  const handleReviewKYC = () => {
+    router.push('/kyc')
   }
 
   useEffect(() => {
@@ -70,17 +75,13 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {onboardingState.cancelled && (
-        <Alert>
-          <AlertTitle>Incomplete Onboarding</AlertTitle>
-          <AlertDescription>
-            You haven't completed your onboarding process. This may limit your access to some features.
-            <Button variant="link" onClick={handleResumeOnboarding}>
-              Resume Onboarding
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      {user && <UserStatusAlert
+        kycStatus={user.kycStatus}
+        onboardingStatus={user.onboardingStatus}
+        onResumeOnboarding={handleResumeOnboarding}
+        onReviewKYC={handleReviewKYC}
+      />}
+
       <h1 className="text-3xl font-bold">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cardData.map((card, index) => (
