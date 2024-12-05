@@ -6,7 +6,15 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { fetchUserProgress, saveProgress, complete, setCurrentStep, completeStep, setRoleSpecificData, cancelOnboarding } from "@/lib/slices/onboardingSlice";
+import {
+  fetchProgress,
+  updateStep,
+  finishOnboarding,
+  setCurrentStep,
+  completeStep,
+  setRoleSpecificData,
+  cancelOnboarding,
+} from "@/lib/slices/onboardingSlice";
 import { Welcome } from "@/components/onboarding/Welcome";
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup";
 import { ServiceQuestions } from "@/components/onboarding/ServiceQuestions";
@@ -26,35 +34,28 @@ export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { userId, currentStep, completedSteps, roleSpecificData, isLoading, error } = useSelector((state: RootState) => state.onboarding);
+  const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding);
 
   useEffect(() => {
-    if (user && (!userId || userId !== user.id)) {
-      dispatch(fetchUserProgress(user.id));
+    if (user) {
+      dispatch(fetchProgress());
     }
-  }, [user, userId, dispatch]);
+  }, [user, dispatch]);
 
-  const handleNext = async (data: any) => {
-    if (!user?.id) {
-      console.error("User ID is missing. Unable to save progress or complete onboarding.");
+  const handleNext = async (data: Record<string, any>) => {
+    if (!user) {
+      console.error("User is missing. Unable to save progress or complete onboarding.");
       return;
     }
 
-    const serializableData = Object.entries(data).reduce((acc, [key, value]) => {
-      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
-        acc[key] = value;
-      }
-      return acc;
-    }, {} as { [key: string]: string | number | boolean });
-
-    // dispatch(setRoleSpecificData(serializableData));
+    dispatch(setRoleSpecificData(data));
 
     if (currentStep < onboardingSteps.length - 1) {
-      // await dispatch(saveProgress({ userId: user.id, stepId: currentStep }));
+      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data }));
       dispatch(completeStep(currentStep));
       dispatch(setCurrentStep(currentStep + 1));
     } else {
-      await dispatch(complete(user.id));
+      await dispatch(finishOnboarding());
       router.push("/dashboard");
     }
   };
@@ -72,7 +73,7 @@ export default function OnboardingPage() {
 
   const CurrentStepComponent = onboardingSteps[currentStep].component as React.ComponentType<OnboardingStepProps>;
 
-  if (!user) return null;
+  if (!user || completed || cancelled) return null;
 
   return (
     <div className="flex h-full items-center justify-center bg-none">
@@ -91,9 +92,7 @@ export default function OnboardingPage() {
         </CardHeader>
         <CardContent>
           <Progress value={(currentStep + 1) / onboardingSteps.length * 100} className="w-full mb-4" />
-          {isLoading && <p>Loading...</p>}
-          {error && <p className="text-red-500">{error}</p>}
-          {!isLoading && !error && CurrentStepComponent && (
+          {CurrentStepComponent && (
             <CurrentStepComponent
               role={user.role}
               name={user.name}
@@ -112,16 +111,16 @@ export default function OnboardingPage() {
           <Button
             variant="outline"
             onClick={handleBack}
-            disabled={currentStep === 0 || isLoading}
+            disabled={currentStep === 0}
           >
             Back
           </Button>
           {currentStep === onboardingSteps.length - 1 ? (
-            <Button onClick={() => handleNext({})} disabled={isLoading}>
+            <Button onClick={() => handleNext({})}>
               Finish
             </Button>
           ) : (
-            <Button onClick={() => handleNext(roleSpecificData)} disabled={isLoading}>
+            <Button onClick={() => handleNext(roleSpecificData)}>
               Next
             </Button>
           )}
