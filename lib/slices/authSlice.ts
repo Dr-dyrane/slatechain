@@ -37,8 +37,13 @@ export const login = createAsyncThunk<
 		localStorage.setItem("accessToken", response.accessToken);
 		localStorage.setItem("refreshToken", response.refreshToken);
 		return response;
-	} catch (error) {
-		return rejectWithValue(error as AuthError);
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: error.response?.status || "UNKNOWN_ERROR",
+			message:
+				error.response?.data?.message || error.message || "An error occurred",
+		};
+		return rejectWithValue(authError);
 	}
 });
 
@@ -52,8 +57,13 @@ export const register = createAsyncThunk<
 		localStorage.setItem("accessToken", response.accessToken);
 		localStorage.setItem("refreshToken", response.refreshToken);
 		return response;
-	} catch (error) {
-		return rejectWithValue(error as AuthError);
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: error.response?.status || "UNKNOWN_ERROR",
+			message:
+				error.response?.data?.message || error.message || "An error occurred",
+		};
+		return rejectWithValue(authError);
 	}
 });
 
@@ -67,8 +77,15 @@ export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 			}
 			localStorage.removeItem("accessToken");
 			localStorage.removeItem("refreshToken");
-		} catch (error) {
-			return rejectWithValue(error as AuthError);
+		} catch (error: any) {
+			const authError: AuthError = {
+				code: "LOGOUT_ERROR",
+				message:
+					error.response?.data?.message ||
+					error.message ||
+					"An error occurred during logout",
+			};
+			return rejectWithValue(authError);
 		}
 	}
 );
@@ -86,8 +103,15 @@ export const refreshToken = createAsyncThunk<
 		const response = await refreshAccessToken(auth.refreshToken);
 		localStorage.setItem("accessToken", response.accessToken);
 		return response;
-	} catch (error) {
-		return rejectWithValue(error as AuthError);
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "REFRESH_ERROR",
+			message:
+				error.response?.data?.message ||
+				error.message ||
+				"An error occurred while refreshing the token",
+		};
+		return rejectWithValue(authError);
 	}
 });
 
@@ -171,6 +195,9 @@ const authSlice = createSlice({
 					code: "REFRESH_ERROR",
 					message: "An error occurred while refreshing the token",
 				};
+				localStorage.removeItem("accessToken");
+				localStorage.removeItem("refreshToken");
+				return initialState;
 			});
 	},
 });
