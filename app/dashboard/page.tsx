@@ -75,6 +75,8 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+
       {user && <UserStatusAlert
         kycStatus={user.kycStatus}
         onboardingStatus={user.onboardingStatus}
@@ -82,7 +84,6 @@ export default function Dashboard() {
         onReviewKYC={handleReviewKYC}
       />}
 
-      <h1 className="text-3xl font-bold">Dashboard</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cardData.map((card, index) => (
           <Card key={index}>
