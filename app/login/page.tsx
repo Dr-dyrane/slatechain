@@ -12,13 +12,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AppDispatch, RootState } from '@/lib/store'
+import { AuthError } from '@/lib/types'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
-  const { error, isLoading } = useSelector((state: RootState) => state.auth)
+  const { error, loading } = useSelector((state: RootState) => state.auth)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,6 +27,13 @@ export default function LoginPage() {
     if (login.fulfilled.match(result)) {
       router.push('/dashboard')
     }
+  }
+
+  const getErrorMessage = (error: AuthError | null): string => {
+    if (error) {
+      return `${error.code}: ${error.message}`
+    }
+    return ''
   }
 
   return (
@@ -63,17 +71,17 @@ export default function LoginPage() {
           </form>
           {error && (
             <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
             </Alert>
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="flex w-full justify-between">
-            <Button variant="outline" asChild >
+            <Button variant="outline" asChild>
               <Link href="/">Cancel</Link>
             </Button>
-            <Button onClick={handleSubmit} disabled={isLoading} >
-              {isLoading ? 'Logging in...' : 'Login'}
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Logging in...' : 'Login'}
             </Button>
           </div>
 

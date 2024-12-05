@@ -17,6 +17,7 @@ export enum KYCStatus {
 
 // Onboarding Status
 export enum OnboardingStatus {
+	PENDING = "PENDING",
 	NOT_STARTED = "NOT_STARTED",
 	IN_PROGRESS = "IN_PROGRESS",
 	COMPLETED = "COMPLETED",
@@ -113,7 +114,7 @@ export interface OnboardingState {
 }
 
 export interface OnboardingStep {
-	id: string;
+	id: number;
 	title: string;
 	status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
 }

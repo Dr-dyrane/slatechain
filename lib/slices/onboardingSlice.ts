@@ -1,172 +1,159 @@
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
-	fetchProgress,
-	saveStepProgress,
-	completeOnboardingApi,
-  } from "@/lib/api/onboarding";
-  import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-  import { OnboardingProgress } from "@/lib/types/user";
-  
-  interface OnboardingState extends OnboardingProgress {
-	userId: string | null;
-	totalSteps: number;
-	roleSpecificData: {
-	  [key: string]: string | number | boolean;
-	};
-	completed: boolean;
-	cancelled: boolean;
-	error: string | null;
-	isLoading: boolean;
-  }
-  
-  const initialState: OnboardingState = {
-	userId: null,
+	OnboardingState,
+	OnboardingStep,
+	OnboardingProgress,
+} from "@/lib/types";
+import {
+	fetchOnboardingProgress,
+	startOnboarding,
+	updateOnboardingStep,
+	skipOnboardingStep,
+	completeOnboarding,
+} from "@/lib/api/onboarding";
+
+const initialState: OnboardingState = {
 	currentStep: 0,
 	totalSteps: 5,
 	completedSteps: [],
 	roleSpecificData: {},
 	completed: false,
 	cancelled: false,
-	error: null,
-	isLoading: false,
-  };
-  
-  export const fetchUserProgress = createAsyncThunk<
-	OnboardingProgress,
-	string,
-	{ rejectValue: string }
-  >(
+	userId: null,
+};
+
+export const fetchProgress = createAsyncThunk<OnboardingProgress>(
 	"onboarding/fetchProgress",
-	async (userId, { rejectWithValue }) => {
-	  try {
-		const response = await fetchProgress(userId);
-		return response;
-	  } catch (error) {
-		return rejectWithValue("Failed to fetch progress.");
-	  }
+	async (_, { rejectWithValue }) => {
+		try {
+			return await fetchOnboardingProgress();
+		} catch (error) {
+			return rejectWithValue((error as Error).message);
+		}
 	}
-  );
-  
-  export const saveProgress = createAsyncThunk<
-	string,
-	{ userId: string; stepId: number },
-	{ rejectValue: string }
-  >(
-	"onboarding/saveProgress",
-	async ({ userId, stepId }, { rejectWithValue }) => {
-	  try {
-		const response = await saveStepProgress(userId, stepId);
-		return response.message;
-	  } catch (error) {
-		return rejectWithValue("Failed to save progress.");
-	  }
+);
+
+export const startOnboardingProcess = createAsyncThunk<OnboardingProgress>(
+	"onboarding/start",
+	async (_, { rejectWithValue }) => {
+		try {
+			return await startOnboarding();
+		} catch (error) {
+			return rejectWithValue((error as Error).message);
+		}
 	}
-  );
-  
-  export const complete = createAsyncThunk<
-	string,
-	string,
-	{ rejectValue: string }
-  >(
-	"onboarding/complete",
-	async (userId, { rejectWithValue }) => {
-	  try {
-		const response = await completeOnboardingApi(userId);
-		return response.message;
-	  } catch (error) {
-		return rejectWithValue("Failed to complete onboarding.");
-	  }
+);
+
+export const updateStep = createAsyncThunk<
+	OnboardingStep,
+	{ stepId: number; status: string; data?: Record<string, any> }
+>(
+	"onboarding/updateStep",
+	async ({ stepId, status, data }, { rejectWithValue }) => {
+		try {
+			return await updateOnboardingStep(stepId, status, data);
+		} catch (error) {
+			return rejectWithValue((error as Error).message);
+		}
 	}
-  );
-  
-  const onboardingSlice = createSlice({
+);
+
+export const skipStep = createAsyncThunk<
+	OnboardingStep,
+	{ stepId: number; reason: string }
+>("onboarding/skipStep", async ({ stepId, reason }, { rejectWithValue }) => {
+	try {
+		return await skipOnboardingStep(stepId, reason);
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
+export const finishOnboarding = createAsyncThunk<{
+	success: boolean;
+	completedAt: string;
+}>("onboarding/complete", async (_, { rejectWithValue }) => {
+	try {
+		return await completeOnboarding();
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
+const onboardingSlice = createSlice({
 	name: "onboarding",
 	initialState,
 	reducers: {
-	  setUserId: (state, action: PayloadAction<string | null>) => {
-		state.userId = action.payload;
-	  },
-	  validateUserId: (state, action: PayloadAction<string>) => {
-		if (state.userId && state.userId !== action.payload) {
-		  Object.assign(state, initialState);
-		}
-	  },
-	  setCurrentStep: (state, action: PayloadAction<number>) => {
-		state.currentStep = action.payload;
-	  },
-	  completeStep: (state, action: PayloadAction<number>) => {
-		if (!state.completedSteps.includes(action.payload)) {
-		  state.completedSteps.push(action.payload);
-		}
-	  },
-	  setRoleSpecificData: (
-		state,
-		action: PayloadAction<{ [key: string]: string | number | boolean }>
-	  ) => {
-		state.roleSpecificData = { ...state.roleSpecificData, ...action.payload };
-	  },
-	  completeOnboarding: (state) => {
-		state.completed = true;
-	  },
-	  resetOnboarding: () => initialState,
-	  cancelOnboarding: (state) => {
-		state.cancelled = true;
-	  },
-	  resumeOnboarding: (state) => {
-		state.cancelled = false;
-	  },
+		setCurrentStep: (state, action: PayloadAction<number>) => {
+			state.currentStep = action.payload;
+		},
+		completeStep: (state, action: PayloadAction<number>) => {
+			if (!state.completedSteps.includes(action.payload)) {
+				state.completedSteps.push(action.payload);
+			}
+		},
+		setRoleSpecificData: (
+			state,
+			action: PayloadAction<Record<string, any>>
+		) => {
+			state.roleSpecificData = { ...state.roleSpecificData, ...action.payload };
+		},
+		cancelOnboarding: (state) => {
+			state.cancelled = true;
+		},
+		resumeOnboarding: (state) => {
+			state.cancelled = false;
+		},
+		resetOnboarding: () => initialState,
+		setUserId: (state, action: PayloadAction<string>) => {
+			state.userId = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
-	  builder
-		.addCase(fetchUserProgress.pending, (state) => {
-		  state.isLoading = true;
-		})
-		.addCase(fetchUserProgress.fulfilled, (state, action: PayloadAction<OnboardingProgress>) => {
-		  state.currentStep = action.payload.currentStep;
-		  state.completedSteps = action.payload.completedSteps;
-		  state.isLoading = false;
-		  state.error = null;
-		})
-		.addCase(fetchUserProgress.rejected, (state, action) => {
-		  state.isLoading = false;
-		  state.error = action.payload ?? "Failed to fetch progress.";
-		})
-		.addCase(saveProgress.pending, (state) => {
-		  state.isLoading = true;
-		})
-		.addCase(saveProgress.fulfilled, (state, action: PayloadAction<string>) => {
-		  state.isLoading = false;
-		  state.error = null;
-		})
-		.addCase(saveProgress.rejected, (state, action) => {
-		  state.isLoading = false;
-		  state.error = action.payload ?? "Failed to save progress.";
-		})
-		.addCase(complete.pending, (state) => {
-		  state.isLoading = true;
-		})
-		.addCase(complete.fulfilled, (state) => {
-		  state.completed = true;
-		  state.isLoading = false;
-		  state.error = null;
-		})
-		.addCase(complete.rejected, (state, action) => {
-		  state.isLoading = false;
-		  state.error = action.payload ?? "Failed to complete onboarding.";
-		});
+		builder
+			.addCase(fetchProgress.fulfilled, (state, action) => {
+				state.currentStep = action.payload.currentStep;
+				state.completedSteps = action.payload.completedSteps;
+				state.completed = action.payload.completed;
+			})
+			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
+				state.currentStep = action.payload.currentStep;
+				state.completedSteps = action.payload.completedSteps;
+				state.completed = action.payload.completed;
+			})
+			.addCase(updateStep.fulfilled, (state, action) => {
+				const stepIndex = state.completedSteps.findIndex(
+					(step) => step === action.payload.id
+				);
+				if (stepIndex === -1 && action.payload.status === "COMPLETED") {
+					state.completedSteps.push(action.payload.id);
+				}
+				if (action.payload.status === "IN_PROGRESS") {
+					state.currentStep = action.payload.id;
+				}
+			})
+			.addCase(skipStep.fulfilled, (state, action) => {
+				const stepIndex = state.completedSteps.findIndex(
+					(step) => step === action.payload.id
+				);
+				if (stepIndex === -1) {
+					state.completedSteps.push(action.payload.id);
+				}
+			})
+			.addCase(finishOnboarding.fulfilled, (state) => {
+				state.completed = true;
+			});
 	},
-  });
-  
-  export const {
-	setUserId,
-	validateUserId,
+});
+
+export const {
 	setCurrentStep,
 	completeStep,
 	setRoleSpecificData,
-	completeOnboarding,
-	resetOnboarding,
 	cancelOnboarding,
 	resumeOnboarding,
-  } = onboardingSlice.actions;
-  export default onboardingSlice.reducer;
-  
-  
+	resetOnboarding,
+	setUserId,
+} = onboardingSlice.actions;
+
+export default onboardingSlice.reducer;
