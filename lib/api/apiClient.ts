@@ -1,104 +1,100 @@
-import {
-	User,
-	AuthResponse,
-	KYCStatus,
-	OnboardingProgress,
-} from "@/lib/types/user";
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { mockApiResponses } from './mockData';
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.slatechain.com/v1';
 
-const apiClient = async <T>(
-	endpoint: string,
-	method: string = "GET",
-	body?: any
-): Promise<T> => {
-	const url = `${apiUrl}${endpoint}`;
+class ApiClient {
+  private axiosInstance: AxiosInstance;
 
-	const options: RequestInit = {
-		method,
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: body ? JSON.stringify(body) : null,
-	};
+  constructor() {
+    this.axiosInstance = axios.create({
+      baseURL: BASE_URL,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
 
-	// Simulate a delay to mimic an API call
-	await new Promise((resolve) => setTimeout(resolve, 1000));
+    this.axiosInstance.interceptors.request.use(
+      (config) => {
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+        return config;
+      },
+      (error) => Promise.reject(error)
+    );
 
-	// Mock responses for the endpoints
-	if (endpoint === "/auth/register" && method === "POST") {
-		const user: User = {
-			id: "1",
-			firstName: body.firstName,
-			lastName: body.lastName,
-			name: body.name,
-			email: body.email,
-			phoneNumber: body.phoneNumber,
-			role: "customer",
-			isEmailVerified: false,
-			isPhoneVerified: false,
-			kycStatus: "PENDING",
-			onboardingStatus: "PENDING",
-		};
-		return user as T;
-	}
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        const originalRequest = error.config;
+        if (error.response.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+          try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            const response = await this.axiosInstance.post('/auth/refresh', { refreshToken });
+            const { accessToken } = response.data;
+            localStorage.setItem('accessToken', accessToken);
+            originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+            return this.axiosInstance(originalRequest);
+          } catch (refreshError) {
+            // Handle refresh token failure (e.g., logout user)
+            return Promise.reject(refreshError);
+          }
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
 
-	if (endpoint === "/auth/login" && method === "POST") {
-		if (body.email === "test@example.com" && body.password === "password") {
-			const authResponse: AuthResponse = {
-				user: {
-					id: "1",
-					firstName: "John",
-					lastName: "Doe",
-					name: body.name,
-					email: body.email,
-					phoneNumber: "+1234567890",
-					role: "customer",
-					isEmailVerified: true,
-					isPhoneVerified: true,
-					kycStatus: "APPROVED",
-					onboardingStatus: "COMPLETED",
-				},
-				token: "mock-jwt-token",
-				refreshToken: "mock-refresh-token",
-			};
-			return authResponse as T;
-		} else {
-			throw new Error("Invalid email or password.");
-		}
-	}
+  async request<T>(method: string, url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    if (process.env.NODE_ENV === 'development') {
+      return this.mockRequest<T>(method, url, data);
+    }
 
-	if (endpoint === "/kyc/status" && method === "GET") {
-		const kycStatus: KYCStatus = {
-			status: "PENDING",
-			documents: {
-				identityProof: "identity-proof-url",
-				addressProof: "address-proof-url",
-			},
-		};
-		return kycStatus as T;
-	}
+    const response = await this.axiosInstance.request<T>({
+      method,
+      url,
+      data,
+      ...config,
+    });
+    return response.data;
+  }
 
-	if (endpoint === "/kyc/update" && method === "PUT") {
-		const updatedKycStatus: KYCStatus = {
-			status: "APPROVED",
-			documents: {
-				identityProof: "new-identity-proof-url",
-				addressProof: "new-address-proof-url",
-			},
-		};
-		return updatedKycStatus as T;
-	}
+  private mockRequest<T>(method: string, url: string, data?: any): Promise<T> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        const mockResponse = mockApiResponses[method.toLowerCase()]?.[url];
+        if (mockResponse) {
+          if (typeof mockResponse === 'function') {
+            resolve(mockResponse(data) as T);
+          } else {
+            resolve(mockResponse as T);
+          }
+        } else {
+          reject(new Error(`No mock data for ${method} ${url}`));
+        }
+      }, 500); // Simulate network delay
+    });
+  }
 
-	if (endpoint === "/onboarding/progress" && method === "GET") {
-		const onboardingProgress: OnboardingProgress = {
-			currentStep: 0,
-			completedSteps: [0],
-		};
-		return onboardingProgress as T;
-	}
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.request<T>('GET', url, undefined, config);
+  }
 
-	throw new Error("Endpoint not found.");
-};
+  async post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.request<T>('POST', url, data, config);
+  }
 
-export default apiClient;
+  async put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T> {
+    return this.request<T>('PUT', url, data, config);
+  }
+
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    return this.request<T>('DELETE', url, undefined, config);
+  }
+}
+
+export const apiClient = new ApiClient();
+

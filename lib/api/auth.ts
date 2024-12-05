@@ -1,18 +1,19 @@
-import apiClient from "./apiClient";
-import { User, AuthResponse } from "@/lib/types/user";
+import { apiClient } from './apiClient';
+import { User, AuthResponse } from '@/lib/types/user';
 
 export const loginUser = async (credentials: { email: string; password: string }): Promise<AuthResponse> => {
-  const response = await apiClient<AuthResponse>("/auth/login", "POST", credentials);
-  return response;
+  return apiClient.post<AuthResponse>('/auth/login', credentials);
 };
 
 export const registerUser = async (userData: Omit<User, "id" | "isEmailVerified" | "isPhoneVerified" | "kycStatus" | "onboardingStatus">): Promise<User> => {
-  const response = await apiClient<User>("/auth/register", "POST", userData);
-  return response;
+  return apiClient.post<User>('/auth/register', userData);
 };
 
-export const resetPassword = async (identifier: string): Promise<{ message: string }> => {
-  const response = await apiClient<{ message: string }>("/auth/reset", "POST", { identifier });
-  return response;
+export const logoutUser = async (refreshToken: string): Promise<void> => {
+  return apiClient.post('/auth/logout', { refreshToken });
+};
+
+export const refreshAccessToken = async (refreshToken: string): Promise<{ accessToken: string; expiresIn: number }> => {
+  return apiClient.post<{ accessToken: string; expiresIn: number }>('/auth/refresh', { refreshToken });
 };
 

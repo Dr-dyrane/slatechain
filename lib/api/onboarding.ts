@@ -1,18 +1,30 @@
-import apiClient from "./apiClient";
+import { apiClient } from "./apiClient";
 import { OnboardingProgress } from "@/lib/types/user";
 
-export const fetchProgress = async (userId: string): Promise<OnboardingProgress> => {
-  const response = await apiClient<OnboardingProgress>("/onboarding/progress", "GET");
-  return response;
+export const fetchOnboardingProgress =
+	async (): Promise<OnboardingProgress> => {
+		return apiClient.get<OnboardingProgress>("/onboarding/progress");
+	};
+
+export const startOnboarding = async (): Promise<OnboardingProgress> => {
+	return apiClient.post<OnboardingProgress>("/onboarding/start");
 };
 
-export const saveStepProgress = async (userId: string, stepId: number): Promise<{ message: string }> => {
-  const response = await apiClient<{ message: string }>("/onboarding/save", "POST", { userId, stepId });
-  return response;
+export const submitOnboardingStep = async (
+	stepId: number,
+	stepData: any
+): Promise<{ stepId: number; status: string }> => {
+	return apiClient.post<{ stepId: number; status: string }>(
+		"/onboarding/steps",
+		{ stepId, stepData }
+	);
 };
 
-export const completeOnboardingApi = async (userId: string): Promise<{ message: string }> => {
-  const response = await apiClient<{ message: string }>("/onboarding/complete", "POST", { userId });
-  return response;
+export const completeOnboarding = async (): Promise<{
+	success: boolean;
+	completedAt: string;
+}> => {
+	return apiClient.post<{ success: boolean; completedAt: string }>(
+		"/onboarding/complete"
+	);
 };
-
