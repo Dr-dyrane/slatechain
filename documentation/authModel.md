@@ -1,62 +1,88 @@
----
+### **User Authentication Model with Onboarding Changes**
 
-### **User Authentication and Onboarding Model Documentation**
-
----
-
-### **User Authentication Details**
-
-1. **User Authentication Data**:  
-   The `User` model includes authentication details such as `passwordHash`, `passwordSalt`, and token management (`authenticationToken`, `refreshToken`). These fields store critical information for secure authentication and are essential for both CRUD operations and user session management.
-
-2. **User CRUD Permissions (Role-Based Access Control)**:  
-   Each user role (e.g., `ADMIN`, `SUPPLIER`, `CUSTOMER`) has associated CRUD permissions (create, read, update, delete). These permissions will be enforced through the backend API, ensuring that only authorized users can perform the actions they are permitted to.
-
-3. **Password Management & Security**:  
-   Passwords are securely hashed using algorithms like bcrypt. The `passwordHash` and `passwordSalt` fields store the encrypted version of the password, and password validation is done through a secure process to ensure the integrity of user authentication.
-
-4. **Authentication Token Management**:  
-   After successful login, a JWT token is issued (`authenticationToken`), allowing stateless operations for secure routes. The `refreshToken` is used for long-term authentication, which can be used to refresh expired tokens.
-
-5. **Onboarding & KYC Status**:  
-   User onboarding involves verifying KYC status and tracking the progress. These details are also stored in the model to ensure seamless verification and monitoring throughout the user's lifecycle.
+To reflect the new structure where onboarding-related fields are separated into a dedicated **Onboarding** table, and to include the new `onboardingId` foreign key in the **User** table, here’s the updated data model:
 
 ---
 
-### **Updated Data Model Relationships and Handling**:
-
----
-
-#### **User Authentication Model**
+### **User Authentication Model**
 
 ```typescript
 interface User {
-  userId: UUID;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
+  userId: UUID;  // Unique user identifier
+  firstName: string;  // User's first name
+  lastName: string;  // User's last name
+  email: string;  // User's email address
+  phoneNumber: string;  // User's phone number
   passwordHash: string;  // Hashed password for authentication
-  passwordSalt: string;  // Salt used for password hashing (if needed)
-  role: RoleType;  // User role to define CRUD permissions
+  passwordSalt: string;  // Salt used for password hashing
+  role: RoleType;  // User's role (e.g., ADMIN, SUPPLIER, CUSTOMER)
   kycStatus: KYCStatus;  // KYC status (PENDING, APPROVED, REJECTED)
-  onboardingStatus: OnboardingStatus;  // Onboarding progress
-  companyDetails?: CompanyDetails;  // For roles like SUPPLIER
   createdAt: ISO8601DateTime;  // Account creation timestamp
   updatedAt: ISO8601DateTime;  // Last update timestamp
   lastLoginAt: ISO8601DateTime;  // Last login time
-
-  // Authentication-specific data
   authenticationToken?: string;  // JWT Token (stored temporarily in session/cookies)
   refreshToken?: string;  // Refresh token for long-term authentication
   isEmailVerified: boolean;  // To track if the user has verified their email
   isPhoneVerified: boolean;  // To track if the user has verified their phone number
+  onboardingId: UUID;  // Foreign key reference to the Onboarding table
+  onboardingStatus: 'IN_PROGRESS' | 'COMPLETED' | 'PENDING';  // User's onboarding status
+}
+```
+
+### **Onboarding Model (New Table)**
+
+```typescript
+interface Onboarding {
+  onboardingId: UUID;  // Unique onboarding identifier
+  userId: UUID;  // Reference to the user (foreign key from User table)
+  preferences: Record<string, any>;  // User preferences (e.g., language, notifications)
+  companyDetails?: CompanyDetails;  // Details specific to the user's company (e.g., for SUPPLIERS)
+  roleSpecificData: RoleSpecificData;  // Role-specific data (e.g., for SUPPLIERS, specific business data)
+  documents: KYCDocument[];  // KYC documents uploaded by the user
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';  // Onboarding status
+  createdAt: ISO8601DateTime;  // Onboarding creation timestamp
+  updatedAt: ISO8601DateTime;  // Last update timestamp of onboarding
+}
+
+interface CompanyDetails {
+  companyName: string;  // Name of the company (if applicable)
+  businessType: string;  // Type of business (if applicable)
+  employeeCount: number;  // Number of employees (if applicable)
+  productTypes: string[];  // Types of products offered (if applicable)
+  paymentMethod: string;  // Payment methods accepted (if applicable)
+  registrationNumber?: string;  // Optional: Business registration number
+  businessLicense?: string;  // Optional: Business license number
+}
+
+interface RoleSpecificData {
+  supplierData?: SupplierData;  // For SUPPLIERS: Data related to supplier's offerings
+  customerData?: CustomerData;  // For CUSTOMERS: Data related to customer preferences
+}
+
+interface SupplierData {
+  storeName: string;  // Name of the store (for SUPPLIERS)
+  productCategories: string[];  // Categories of products offered
+  paymentMethodsAccepted: string[];  // List of accepted payment methods
+}
+
+interface CustomerData {
+  preferredCategories: string[];  // Preferred product categories for customers
+  preferredPaymentMethods: string[];  // Preferred payment methods for customers
+}
+
+interface KYCDocument {
+  documentId: UUID;  // Unique document identifier
+  userId: UUID;  // Reference to the user
+  documentType: string;  // Type of document (e.g., ID card, utility bill)
+  documentUrl: string;  // URL to the uploaded document
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';  // Status of the document
+  uploadedAt: ISO8601DateTime;  // Timestamp when the document was uploaded
 }
 ```
 
 ---
 
-#### **Role-Based CRUD Permissions (RBAC)**
+### **Role-Based CRUD Permissions (RBAC)**
 
 ```typescript
 interface RolePermissions {
@@ -101,7 +127,22 @@ const rolePermissions: RolePermissions[] = [
 
 ---
 
-#### **Password Hashing & Validation (Backend Logic)**
+### **Key Changes and Their Impact**:
+
+1. **Onboarding Fields Moved**:  
+   - Fields like `preferences`, `companyDetails`, and `roleSpecificData` have been moved from the **User** table to a separate **Onboarding** table. This separation allows for better scalability, as onboarding data can now grow independently from user details.
+
+2. **Foreign Key Reference (onboardingId)**:  
+   - The `onboardingId` field in the **User** table references the **Onboarding** table, linking users to their onboarding data. This enables better data organization and avoids cluttering the **User** table with unnecessary fields.
+
+3. **Onboarding Status**:  
+   - The **User** table now directly stores `onboardingStatus` to track the user's progress in the onboarding process. The status can be one of `IN_PROGRESS`, `COMPLETED`, or `PENDING`.
+
+---
+
+### **Password Hashing & Validation (Backend Logic)**
+
+The password hashing and validation logic remains the same as in the previous model:
 
 ```typescript
 import bcrypt from 'bcryptjs';
@@ -122,11 +163,9 @@ async function validatePassword(password: string, hashedPassword: string, salt: 
 
 ---
 
-#### **JWT Authentication Flow**
+### **JWT Authentication Flow**
 
-1. **Login Flow:**
-   - After successful login, the backend generates and returns the JWT token (`authenticationToken`) along with a `refreshToken`.
-   - These tokens will be stored temporarily on the client-side (in session/cookies).
+The authentication flow (using JWT tokens) also remains unchanged, as the focus is primarily on the onboarding fields being moved to a new table, with `onboardingId` as the key link.
 
 ```typescript
 import jwt from 'jsonwebtoken';
@@ -153,42 +192,9 @@ function generateRefreshToken(user: User): string {
 }
 ```
 
-2. **Token Expiration Handling:**
-   - When the `authenticationToken` expires, a request is made with the `refreshToken` to obtain a new token.
-
 ---
 
-#### **Onboarding & KYC Verification Process**
-
-1. **Onboarding Steps**:
-   - The onboarding process is tracked with a status of `PENDING`, `IN_PROGRESS`, or `COMPLETED`.
-   - Each step may require KYC verification before moving to the next step.
-
-2. **KYC Verification**:
-   - User uploads documents for KYC verification (e.g., ID card, utility bill).
-   - The KYC status is tracked as `PENDING`, `APPROVED`, or `REJECTED`.
-
-```typescript
-interface KYCStatus {
-  userId: UUID;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';  // Track KYC status
-  documents: KYCDocument[];
-  remarks?: string;  // Optional remarks from the verification team
-}
-
-interface KYCDocument {
-  documentId: UUID;
-  userId: UUID;
-  documentType: string;  // Type of document (e.g., ID card, utility bill)
-  documentUrl: string;  // URL to the uploaded document
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';  // Status of the document
-  uploadedAt: ISO8601DateTime;
-}
-```
-
----
-
-### Complete Data Model Summary:
+### **Data Model Summary After Changes**
 
 ```typescript
 interface User {
@@ -201,8 +207,6 @@ interface User {
   passwordSalt: string;
   role: RoleType;
   kycStatus: KYCStatus;
-  onboardingStatus: OnboardingStatus;
-  companyDetails?: CompanyDetails;
   createdAt: ISO8601DateTime;
   updatedAt: ISO8601DateTime;
   lastLoginAt: ISO8601DateTime;
@@ -210,21 +214,48 @@ interface User {
   refreshToken?: string;
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
+  onboardingId: UUID;
+  onboardingStatus: 'IN_PROGRESS' | 'COMPLETED' | 'PENDING';
 }
 
-interface RolePermissions {
-  role: RoleType;
-  canCreate: boolean;
-  canRead: boolean;
-  canUpdate: boolean;
-  canDelete: boolean;
-}
-
-interface KYCStatus {
+interface Onboarding {
+  onboardingId: UUID;
   userId: UUID;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  preferences: Record<string, any>;
+  companyDetails?: CompanyDetails;
+  roleSpecificData: RoleSpecificData;
   documents: KYCDocument[];
-  remarks?: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  createdAt: ISO8601DateTime;
+  updatedAt: ISO8601DateTime;
+}
+
+interface CompanyDetails {
+  companyName: string;
+  businessType: string;
+  employeeCount: number;
+  productTypes: string[];
+  paymentMethod: string;
+  registrationNumber?: string;
+  businessLicense?: string;
+}
+
+interface RoleSpecificData {
+  supplierData?: SupplierData;
+  customerData?: Customer
+
+Data;
+}
+
+interface SupplierData {
+  storeName: string;
+  productCategories: string[];
+  paymentMethodsAccepted: string[];
+}
+
+interface CustomerData {
+  preferredCategories: string[];
+  preferredPaymentMethods: string[];
 }
 
 interface KYCDocument {
@@ -235,37 +266,4 @@ interface KYCDocument {
   status: 'PENDING' | 'APPROVED' | 'REJECTED';
   uploadedAt: ISO8601DateTime;
 }
-
-interface CompanyDetails {
-  companyName: string;
-  businessType: string;
-  employeeCount: number;
-  productTypes: string[];
-  paymentMethod: string;
-  teamOversight: string;
-  registrationNumber?: string;
-  businessLicense?: string;
-}
-
-interface OnboardingStep {
-  stepId: UUID;
-  type: OnboardingStepType;
-  userId: UUID;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
-  timestamp?: ISO8601DateTime;
-  requiresKYC: boolean;
-  additionalData?: Record<string, any>;
-}
 ```
-
----
-
-### **How Data is Handled and Passed to Backend**
-
-- **Authentication**: On the front end, the login process will store `authenticationToken` and `refreshToken` in the session/cookies. The backend will validate the user credentials, generate tokens, and return them.
-- **Role Permissions**: The backend enforces role-based permissions during CRUD operations to ensure users can only perform actions allowed by their role.
-- **Token Management**: The frontend uses the authentication token for secure routes and refresh tokens for long-term authentication. The backend provides a way to
-
- refresh the token when it expires.
-
----
