@@ -34,8 +34,16 @@ export const login = createAsyncThunk<
 >("auth/login", async (credentials, { rejectWithValue }) => {
 	try {
 		const response = await loginUser(credentials);
+
+		// Storing the tokens in localStorage
 		localStorage.setItem("accessToken", response.accessToken);
 		localStorage.setItem("refreshToken", response.refreshToken);
+
+		// Store the userId in localStorage
+		if (response.user && response.user.id) {
+			localStorage.setItem("userId", response.user.id);
+		}
+
 		return response;
 	} catch (error: any) {
 		const authError: AuthError = {
