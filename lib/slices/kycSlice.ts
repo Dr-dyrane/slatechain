@@ -1,53 +1,64 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { fetchKYCStatus, updateKYCStatus } from "@/lib/api/kyc";
-import { KYCStatus } from "@/lib/types/user";
-
-interface KYCState extends KYCStatus {
-  error: string | null;
-  isLoading: boolean;
-}
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { KYCState, KYCStatus, KYCSubmissionRequest, KYCDocument } from '@/lib/types';
+import { fetchKYCStatus, startKYCProcess, uploadKYCDocument, submitKYCData } from '@/lib/api/kyc';
 
 const initialState: KYCState = {
-  status: "PENDING",
-  documents: {},
+  status: KYCStatus.NOT_STARTED,
+  documents: [],
+  loading: false,
   error: null,
-  isLoading: false,
 };
 
-export const fetchKYC = createAsyncThunk<
-  KYCStatus,
-  string,
+export const fetchKYCStatusThunk = createAsyncThunk<
+  { status: KYCStatus; documents: KYCDocument[] },
+  void,
   { rejectValue: string }
->(
-  "kyc/fetchKYC",
-  async (userId, { rejectWithValue }) => {
-    try {
-      const response = await fetchKYCStatus(userId);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue("Failed to fetch KYC status.");
-    }
+>('kyc/fetchStatus', async (_, { rejectWithValue }) => {
+  try {
+    return await fetchKYCStatus();
+  } catch (error) {
+    return rejectWithValue((error as Error).message);
   }
-);
+});
 
-export const updateKYC = createAsyncThunk<
+export const startKYCProcessThunk = createAsyncThunk<
   KYCStatus,
-  { userId: string; documents: { [key: string]: string } },
+  void,
   { rejectValue: string }
->(
-  "kyc/updateKYC",
-  async (kycData, { rejectWithValue }) => {
-    try {
-      const response = await updateKYCStatus(kycData.userId, kycData.documents);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue("Failed to update KYC.");
-    }
+>('kyc/start', async (_, { rejectWithValue }) => {
+  try {
+    return await startKYCProcess();
+  } catch (error) {
+    return rejectWithValue((error as Error).message);
   }
-);
+});
+
+export const uploadDocumentThunk = createAsyncThunk<
+  KYCDocument,
+  { documentType: string; file: File },
+  { rejectValue: string }
+>('kyc/uploadDocument', async ({ documentType, file }, { rejectWithValue }) => {
+  try {
+    return await uploadKYCDocument(documentType, file);
+  } catch (error) {
+    return rejectWithValue((error as Error).message);
+  }
+});
+
+export const submitKYCDataThunk = createAsyncThunk<
+  { status: KYCStatus; referenceId: string },
+  KYCSubmissionRequest,
+  { rejectValue: string }
+>('kyc/submit', async (kycData, { rejectWithValue }) => {
+  try {
+    return await submitKYCData(kycData);
+  } catch (error) {
+    return rejectWithValue((error as Error).message);
+  }
+});
 
 const kycSlice = createSlice({
-  name: "kyc",
+  name: 'kyc',
   initialState,
   reducers: {
     clearError: (state) => {
@@ -56,31 +67,54 @@ const kycSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchKYC.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchKYC.fulfilled, (state, action: PayloadAction<KYCStatus>) => {
-        state.status = action.payload.status;
-        state.documents = action.payload.documents;
-        state.isLoading = false;
+      .addCase(fetchKYCStatusThunk.pending, (state) => {
+        state.loading = true;
         state.error = null;
       })
-      .addCase(fetchKYC.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to fetch KYC status.";
-      })
-      .addCase(updateKYC.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateKYC.fulfilled, (state, action: PayloadAction<KYCStatus>) => {
+      .addCase(fetchKYCStatusThunk.fulfilled, (state, action) => {
         state.status = action.payload.status;
         state.documents = action.payload.documents;
-        state.isLoading = false;
+        state.loading = false;
+      })
+      .addCase(fetchKYCStatusThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Failed to fetch KYC status';
+      })
+      .addCase(startKYCProcessThunk.pending, (state) => {
+        state.loading = true;
         state.error = null;
       })
-      .addCase(updateKYC.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload ?? "Failed to update KYC.";
+      .addCase(startKYCProcessThunk.fulfilled, (state, action) => {
+        state.status = action.payload;
+        state.loading = false;
+      })
+      .addCase(startKYCProcessThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Failed to start KYC process';
+      })
+      .addCase(uploadDocumentThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadDocumentThunk.fulfilled, (state, action) => {
+        state.documents.push(action.payload);
+        state.loading = false;
+      })
+      .addCase(uploadDocumentThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Failed to upload document';
+      })
+      .addCase(submitKYCDataThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(submitKYCDataThunk.fulfilled, (state, action) => {
+        state.status = action.payload.status;
+        state.loading = false;
+      })
+      .addCase(submitKYCDataThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? 'Failed to submit KYC data';
       });
   },
 });
