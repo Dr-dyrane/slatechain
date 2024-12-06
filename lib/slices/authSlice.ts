@@ -34,14 +34,14 @@ export const login = createAsyncThunk<
 	{ rejectValue: AuthError }
 >("auth/login", async (credentials, { rejectWithValue }) => {
 	try {
-		const result = await signIn("credentials", {
-			...credentials,
-			redirect: false,
-		});
+		// const result = await signIn("credentials", {
+		// 	...credentials,
+		// 	redirect: false,
+		// });
 
-		if (result?.error) {
-			throw new Error(result.error);
-		}
+		// if (result?.error) {
+		// 	throw new Error(result.error);
+		// }
 
 		const response = await loginUser(credentials);
 		return response;

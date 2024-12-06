@@ -71,5 +71,3 @@ const clearAuthTokens = () => {
 	localStorage.removeItem("accessToken");
 	localStorage.removeItem("refreshToken");
 };
-
-// Remove the interceptor setup from this file as it's already handled in apiClient.ts
