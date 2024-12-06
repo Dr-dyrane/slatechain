@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
 	AuthState,
-	User,
 	AuthError,
 	LoginRequest,
 	RegisterRequest,
@@ -108,6 +107,23 @@ export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 	}
 );
 
+export const refreshToken = createAsyncThunk<
+	AuthResponse,
+	void,
+	{ rejectValue: AuthError }
+>("auth/refreshToken", async (_, { rejectWithValue }) => {
+	try {
+		const response = await refreshAccessToken();
+		return response;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "REFRESH_TOKEN_ERROR",
+			message: error.message || "An error occurred while refreshing the token",
+		};
+		return rejectWithValue(authError);
+	}
+});
+
 const authSlice = createSlice({
 	name: "auth",
 	initialState,
@@ -192,6 +208,18 @@ const authSlice = createSlice({
 					code: "LOGOUT_ERROR",
 					message: "An error occurred during logout",
 				};
+			})
+			.addCase(refreshToken.fulfilled, (state, action) => {
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+			})
+			.addCase(refreshToken.rejected, (state, action) => {
+				state.error = action.payload || {
+					code: "REFRESH_TOKEN_ERROR",
+					message: "An error occurred while refreshing the token",
+				};
+				// Optionally, you can set isAuthenticated to false here to force re-login
+				state.isAuthenticated = false;
 			});
 	},
 });
