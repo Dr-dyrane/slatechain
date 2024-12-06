@@ -1,11 +1,12 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
+import { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
+import { RootState, AppDispatch } from '@/lib/store'
 import {
   fetchProgress,
   updateStep,
@@ -14,73 +15,92 @@ import {
   completeStep,
   setRoleSpecificData,
   cancelOnboarding,
-} from "@/lib/slices/onboardingSlice";
-import { Welcome } from "@/components/onboarding/Welcome";
-import { ProfileSetup } from "@/components/onboarding/ProfileSetup";
-import { ServiceQuestions } from "@/components/onboarding/ServiceQuestions";
-import { Preferences } from "@/components/onboarding/Preferences";
-import { AppDispatch, RootState } from "@/lib/store";
-import { OnboardingStepProps } from "@/lib/types/onboarding";
+} from '@/lib/slices/onboardingSlice'
+import { Welcome } from '@/components/onboarding/Welcome'
+import { ProfileSetup } from '@/components/onboarding/ProfileSetup'
+import { ServiceQuestions } from '@/components/onboarding/ServiceQuestions'
+import { Preferences } from '@/components/onboarding/Preferences'
+import { UserRole } from '@/lib/types'
 
-const onboardingSteps = [
-  { title: "Welcome", component: Welcome },
-  { title: "Profile Setup", component: ProfileSetup },
-  { title: "Service-Specific Questions", component: ServiceQuestions },
-  { title: "Preferences", component: Preferences },
-  { title: "Completion", component: null },
-];
+const getOnboardingSteps = (role: UserRole) => {
+  const commonSteps = [
+    { title: 'Welcome', component: Welcome },
+    { title: 'Profile Setup', component: ProfileSetup },
+    { title: 'Preferences', component: Preferences },
+  ]
+
+  const roleSpecificSteps = {
+    [UserRole.ADMIN]: [
+      { title: 'Admin Setup', component: ServiceQuestions },
+    ],
+    [UserRole.SUPPLIER]: [
+      { title: 'Supplier Questions', component: ServiceQuestions },
+    ],
+    [UserRole.MANAGER]: [
+      { title: 'Team Setup', component: ServiceQuestions },
+    ],
+    [UserRole.CUSTOMER]: [
+      { title: 'Customer Preferences', component: ServiceQuestions },
+    ],
+  }
+
+  return [...commonSteps, ...roleSpecificSteps[role], { title: 'Completion', component: null }]
+}
 
 export default function OnboardingPage() {
-  const dispatch = useDispatch<AppDispatch>();
-  const router = useRouter();
-  const { user } = useSelector((state: RootState) => state.auth);
-  const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding);
+  const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding)
+
+  const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>([])
 
   useEffect(() => {
     if (user) {
-      dispatch(fetchProgress());
+      dispatch(fetchProgress())
+      setOnboardingSteps(getOnboardingSteps(user.role))
     }
-  }, [user, dispatch]);
+  }, [user, dispatch])
 
   const handleNext = async (data: Record<string, any>) => {
     if (!user) {
-      console.error("User is missing. Unable to save progress or complete onboarding.");
-      return;
+      console.error("User is missing. Unable to save progress or complete onboarding.")
+      return
     }
 
-    dispatch(setRoleSpecificData(data));
+    dispatch(setRoleSpecificData(data))
 
     if (currentStep < onboardingSteps.length - 1) {
-      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data }));
-      dispatch(completeStep(currentStep));
-      dispatch(setCurrentStep(currentStep + 1));
+      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data }))
+      dispatch(completeStep(currentStep))
+      dispatch(setCurrentStep(currentStep + 1))
     } else {
-      await dispatch(finishOnboarding());
-      router.push("/dashboard");
+      await dispatch(finishOnboarding())
+      router.push('/dashboard')
     }
-  };
+  }
 
   const handleBack = () => {
     if (currentStep > 0) {
-      dispatch(setCurrentStep(currentStep - 1));
+      dispatch(setCurrentStep(currentStep - 1))
     }
-  };
+  }
 
   const handleCancel = () => {
-    dispatch(cancelOnboarding());
-    router.push("/dashboard");
-  };
+    dispatch(cancelOnboarding())
+    router.push('/dashboard')
+  }
 
-  const CurrentStepComponent = onboardingSteps[currentStep].component as React.ComponentType<OnboardingStepProps>;
+  if (!user || completed || cancelled) return null
 
-  if (!user || completed || cancelled) return null;
+  const CurrentStepComponent = onboardingSteps[currentStep]?.component
 
   return (
     <div className="flex h-full items-center justify-center bg-none">
       <Card className="w-[350px] sm:w-[500px]">
         <CardHeader className='flex flex-row justify-between'>
           <div>
-            <CardTitle>{onboardingSteps[currentStep].title}</CardTitle>
+            <CardTitle>{onboardingSteps[currentStep]?.title}</CardTitle>
             <CardDescription>Step {currentStep + 1} of {onboardingSteps.length}</CardDescription>
           </div>
           <Button
@@ -115,18 +135,12 @@ export default function OnboardingPage() {
           >
             Back
           </Button>
-          {currentStep === onboardingSteps.length - 1 ? (
-            <Button onClick={() => handleNext({})}>
-              Finish
-            </Button>
-          ) : (
-            <Button onClick={() => handleNext(roleSpecificData)}>
-              Next
-            </Button>
-          )}
+          <Button onClick={() => handleNext(currentStep === onboardingSteps.length - 1 ? {} : roleSpecificData)}>
+            {currentStep === onboardingSteps.length - 1 ? "Finish" : "Next"}
+          </Button>
         </CardFooter>
       </Card>
     </div>
-  );
+  )
 }
 
