@@ -6,10 +6,10 @@ const BASE_URL =
 
 class ApiClient {
 	private axiosInstance: AxiosInstance;
-	private isLive: boolean; // Configurable value for live or mock mode
+	private isLive: boolean;
 
 	constructor() {
-		this.isLive = false; // Default to mock mode; update later to switch to live mode
+		this.isLive = false;
 
 		this.axiosInstance = axios.create({
 			baseURL: BASE_URL,
@@ -18,7 +18,10 @@ class ApiClient {
 			},
 		});
 
-		// Request interceptor to add Authorization header
+		this.setupInterceptors();
+	}
+
+	private setupInterceptors() {
 		this.axiosInstance.interceptors.request.use(
 			(config) => {
 				const token = localStorage.getItem("accessToken");
@@ -30,7 +33,6 @@ class ApiClient {
 			(error) => Promise.reject(error)
 		);
 
-		// Response interceptor for handling token refresh
 		this.axiosInstance.interceptors.response.use(
 			(response) => response,
 			async (error) => {
@@ -47,12 +49,10 @@ class ApiClient {
 						originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
-						// Handle refresh token failure (e.g., logout user)
 						return Promise.reject(refreshError);
 					}
 				}
 
-				// Use mock data on failure if not in live mode
 				if (!this.isLive) {
 					return this.mockRequest(
 						originalRequest.method,
@@ -66,7 +66,6 @@ class ApiClient {
 		);
 	}
 
-	// Setter for toggling live mode
 	setLiveMode(value: boolean) {
 		this.isLive = value;
 	}
@@ -104,7 +103,7 @@ class ApiClient {
 				} else {
 					reject(new Error(`No mock data for ${method} ${url}`));
 				}
-			}, 500); // Simulate network delay
+			}, 500);
 		});
 	}
 

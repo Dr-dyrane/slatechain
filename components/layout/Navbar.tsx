@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "@/lib/store";
+import { AppDispatch, RootState } from "@/lib/store";
 import { logout } from "@/lib/slices/authSlice";
 import { CircleUserRound, LogOut, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,11 @@ export function Navbar() {
   const { theme, setTheme } = useTheme();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter()
 
-  const handleLogout = () => {
-    dispatch(logout());
+  const handleLogout = async () => {
+    await dispatch(logout());
     router.push('/login')
   };
 
@@ -47,7 +47,7 @@ export function Navbar() {
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
               <Button variant="destructive" className="border-red-600 hover:bg-red-100 hover:text-red-600" onClick={handleLogout}>
-                <LogOut className="block md:hidden"/>
+                <LogOut className="block md:hidden" />
                 <span className="hidden md:block ml-1">Logout
                 </span>
               </Button>

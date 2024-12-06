@@ -1,10 +1,9 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { login } from '@/lib/slices/authSlice'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +11,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AppDispatch, RootState } from '@/lib/store'
-import { AuthError } from '@/lib/types'
+import { login, googleLogin, resetLoading } from '@/lib/slices/authSlice'
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -20,6 +20,12 @@ export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { error, loading } = useSelector((state: RootState) => state.auth)
+
+  useEffect(() => {
+    return () => {
+      dispatch(resetLoading());
+    };
+  }, [dispatch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,11 +35,8 @@ export default function LoginPage() {
     }
   }
 
-  const getErrorMessage = (error: AuthError | null): string => {
-    if (error) {
-      return `${error?.code}: ${error?.message}`
-    }
-    return ''
+  const handleGoogleSignIn = () => {
+    dispatch(googleLogin())
   }
 
   return (
@@ -71,7 +74,7 @@ export default function LoginPage() {
           </form>
           {error && (
             <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+              <AlertDescription>{error.message}</AlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -84,7 +87,9 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </div>
-
+          <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full">
+            Sign in with Google
+          </GoogleSignInButton>
           <div className="text-sm text-center">
             Don't have an account?{" "}
             <Link href="/register" className="text-primary hover:underline">
