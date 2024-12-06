@@ -28,22 +28,24 @@ export function Layout({ children }: LayoutProps) {
   const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href));
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex h-screen overflow-hidden flex-col">
       {/* Only render the Navbar, Sidebar, Footer, and BottomNav if not on the excluded routes */}
       {layoutRequired && <Navbar />}
-      <div className="flex flex-1">
+      <div className="flex flex-1 overflow-hidden">
         {/* Only render Sidebar if not on the excluded routes */}
         {layoutRequired && (
           <aside className="hidden w-64 md:block">
             <Sidebar items={sidebarItems} />
           </aside>
         )}
-        <main
-          className={`flex-1 border bg-secondary/35 overflow-scroll ${layoutRequired ? "md:rounded-2xl p-6 pb-20 md:pb-6" : "p-0"
-            }`}
-        >
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main
+            className={`flex-1 border bg-secondary/35 overflow-scroll ${layoutRequired ? "md:rounded-2xl p-6 pb-20 md:pb-6" : "p-0"
+              }`}
+          >
+            {children}
+          </main>
+        </div>
         {/* Only render RightBar if not on the excluded routes */}
         {layoutRequired && <RightBar />}
       </div>
