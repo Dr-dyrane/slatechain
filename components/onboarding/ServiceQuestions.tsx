@@ -1,11 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { RoleSpecificQuestions } from "./RoleSpecificQuestions";
-import { ServiceQuestionsProps } from "@/lib/types/onboarding";
+import { UserRole } from "@/lib/types";
 
-export function ServiceQuestions({ role, onComplete }: ServiceQuestionsProps) {
-  const [formData, setFormData] = useState({
+interface ServiceQuestionsProps {
+  role: UserRole;
+  onComplete: (data: Record<string, any>) => void;
+  data?: Record<string, any>;
+}
+
+export function ServiceQuestions({ role, onComplete, data }: ServiceQuestionsProps) {
+  const [formData, setFormData] = useState(data || {
     productTypes: "",
     paymentMethod: "",
     teamOversight: "",
@@ -14,13 +19,14 @@ export function ServiceQuestions({ role, onComplete }: ServiceQuestionsProps) {
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const updatedData = { ...formData, [e.target.name]: e.target.value };
+    setFormData(updatedData);
+    onComplete(updatedData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
     onComplete(formData);
-  };
+  }, []);
 
   return (
     <Card>
@@ -28,17 +34,15 @@ export function ServiceQuestions({ role, onComplete }: ServiceQuestionsProps) {
         <CardTitle>Service-Specific Questions</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <RoleSpecificQuestions
             role={role}
             formData={formData}
             onInputChange={handleInputChange}
           />
-          <Button type="submit" className="w-full">
-            Submit
-          </Button>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );
 }
+

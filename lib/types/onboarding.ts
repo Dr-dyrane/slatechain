@@ -1,5 +1,7 @@
+import { UserRole } from ".";
+
 export interface OnboardingStepProps {
-    role: string;
+    role: UserRole;
     name?: string;
     onComplete: (data: any) => Promise<void>;
     data?: { [key: string]: string | number | boolean };

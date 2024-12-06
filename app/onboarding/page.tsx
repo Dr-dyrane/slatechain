@@ -54,6 +54,7 @@ export default function OnboardingPage() {
   const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding)
 
   const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>([])
+  const [stepData, setStepData] = useState<Record<string, any>>({})
 
   useEffect(() => {
     if (user) {
@@ -62,16 +63,20 @@ export default function OnboardingPage() {
     }
   }, [user, dispatch])
 
-  const handleNext = async (data: Record<string, any>) => {
+  const handleStepComplete = (data: Record<string, any>) => {
+    setStepData({ ...stepData, ...data })
+  }
+
+  const handleNext = async () => {
     if (!user) {
       console.error("User is missing. Unable to save progress or complete onboarding.")
       return
     }
 
-    dispatch(setRoleSpecificData(data))
+    dispatch(setRoleSpecificData(stepData))
 
     if (currentStep < onboardingSteps.length - 1) {
-      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data }))
+      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data: stepData }))
       dispatch(completeStep(currentStep))
       dispatch(setCurrentStep(currentStep + 1))
     } else {
@@ -116,7 +121,7 @@ export default function OnboardingPage() {
             <CurrentStepComponent
               role={user.role}
               name={user.name}
-              onComplete={handleNext}
+              onComplete={handleStepComplete}
               data={roleSpecificData}
             />
           )}
@@ -135,8 +140,8 @@ export default function OnboardingPage() {
           >
             Back
           </Button>
-          <Button onClick={() => handleNext(currentStep === onboardingSteps.length - 1 ? {} : roleSpecificData)}>
-            {currentStep === onboardingSteps.length - 1 ? "Finish" : "Next"}
+          <Button onClick={handleNext}>
+            {currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
           </Button>
         </CardFooter>
       </Card>

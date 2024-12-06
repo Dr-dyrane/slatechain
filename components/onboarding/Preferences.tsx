@@ -1,27 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { PreferenceFields } from "./PreferenceFields";
-import { PreferencesProps } from "@/lib/types/onboarding";
+import { UserRole } from "@/lib/types";
 
-export function Preferences({ onComplete }: PreferencesProps) {
-  const [preferences, setPreferences] = useState({
+interface PreferencesProps {
+  role: UserRole;
+  onComplete: (data: Record<string, any>) => void;
+  data?: Record<string, any>;
+}
+
+export function Preferences({ role, onComplete, data }: PreferencesProps) {
+  const [preferences, setPreferences] = useState(data || {
     emailNotifications: true,
     smsNotifications: false,
     darkMode: false,
   });
 
   const handleToggle = (key: string) => {
-    setPreferences((prev) => ({
-      ...prev,
-      [key]: !prev[key as keyof typeof prev],
-    }));
+    const updatedPreferences = {
+      ...preferences,
+      [key]: !preferences[key as keyof typeof preferences],
+    };
+    setPreferences(updatedPreferences);
+    onComplete(updatedPreferences);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
     onComplete(preferences);
-  };
+  }, []);
 
   return (
     <Card>
@@ -29,13 +35,11 @@ export function Preferences({ onComplete }: PreferencesProps) {
         <CardTitle>Preferences</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
           <PreferenceFields preferences={preferences} onToggle={handleToggle} />
-          <Button type="submit" className="w-full">
-            Complete
-          </Button>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );
 }
+

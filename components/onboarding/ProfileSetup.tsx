@@ -1,24 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { ProfileFields } from "./ProfileFields";
-import { ProfileSetupProps } from "@/lib/types/onboarding";
+import { UserRole } from "@/lib/types";
 
-export function ProfileSetup({ role, onComplete }: ProfileSetupProps) {
-    const [formData, setFormData] = useState({
+interface ProfileSetupProps {
+    role: UserRole;
+    onComplete: (data: Record<string, any>) => void;
+    data?: Record<string, any>;
+}
+
+export function ProfileSetup({ role, onComplete, data }: ProfileSetupProps) {
+    const [formData, setFormData] = useState(data || {
         companyName: "",
         businessType: "",
         employeeCount: "",
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        const updatedData = { ...formData, [e.target.name]: e.target.value };
+        setFormData(updatedData);
+        onComplete(updatedData);
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    useEffect(() => {
         onComplete(formData);
-    };
+    }, []);
 
     return (
         <Card>
@@ -26,13 +32,11 @@ export function ProfileSetup({ role, onComplete }: ProfileSetupProps) {
                 <CardTitle>Profile Setup</CardTitle>
             </CardHeader>
             <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-4">
                     <ProfileFields formData={formData} onInputChange={handleInputChange} />
-                    <Button type="submit" className="w-full">
-                        Submit
-                    </Button>
-                </form>
+                </div>
             </CardContent>
         </Card>
     );
 }
+
