@@ -1,9 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { mockApiResponses } from "./mockData";
 import { tokenManager } from "../helpers/tokenManager";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../store";
-import { logout, setTokens } from "../slices/authSlice";
 
 
 const BASE_URL =
@@ -37,7 +34,6 @@ class ApiClient {
 			},
 			(error) => Promise.reject(error)
 		);
-		const dispatch = useDispatch<AppDispatch>();
 
 		this.axiosInstance.interceptors.response.use(
 			(response) => response,
@@ -51,13 +47,11 @@ class ApiClient {
 							refreshToken,
 						});
 						tokenManager.setTokens(data.accessToken, data.refreshToken);
-						dispatch(setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken }));
 
 						originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
 						tokenManager.clearTokens();
-						dispatch(logout());
 						return Promise.reject(refreshError);
 					}
 				}
