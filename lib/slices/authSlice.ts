@@ -12,9 +12,9 @@ import {
 	loginUser,
 	registerUser,
 	logoutUser,
-	refreshAccessToken,
 } from "@/lib/api/auth";
 import { signIn, signOut } from "next-auth/react";
+import { tokenManager } from "../helpers/tokenManager";
 
 const initialState: AuthState = {
 	user: null,
@@ -107,22 +107,6 @@ export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 	}
 );
 
-export const refreshToken = createAsyncThunk<
-	AuthResponse,
-	void,
-	{ rejectValue: AuthError }
->("auth/refreshToken", async (_, { rejectWithValue }) => {
-	try {
-		const response = await refreshAccessToken();
-		return response;
-	} catch (error: any) {
-		const authError: AuthError = {
-			code: "REFRESH_TOKEN_ERROR",
-			message: error.message || "An error occurred while refreshing the token",
-		};
-		return rejectWithValue(authError);
-	}
-});
 
 const authSlice = createSlice({
 	name: "auth",
@@ -145,6 +129,18 @@ const authSlice = createSlice({
 		},
 		resetLoading: (state) => {
 			state.loading = false;
+		},
+		setTokens: (
+			state,
+			action: PayloadAction<{ accessToken: string; refreshToken: string }>
+		) => {
+			state.isAuthenticated = true;
+			state.accessToken = action.payload.accessToken;
+			state.refreshToken = action.payload.refreshToken;
+			tokenManager.setTokens(
+				action.payload.accessToken,
+				action.payload.refreshToken
+			);
 		},
 	},
 	extraReducers: (builder) => {
@@ -209,18 +205,6 @@ const authSlice = createSlice({
 					message: "An error occurred during logout",
 				};
 			})
-			.addCase(refreshToken.fulfilled, (state, action) => {
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
-			})
-			.addCase(refreshToken.rejected, (state, action) => {
-				state.error = action.payload || {
-					code: "REFRESH_TOKEN_ERROR",
-					message: "An error occurred while refreshing the token",
-				};
-				// Optionally, you can set isAuthenticated to false here to force re-login
-				state.isAuthenticated = false;
-			});
 	},
 });
 
@@ -230,5 +214,6 @@ export const {
 	setKYCStatus,
 	setOnboardingStatus,
 	resetLoading,
+	setTokens,
 } = authSlice.actions;
 export default authSlice.reducer;

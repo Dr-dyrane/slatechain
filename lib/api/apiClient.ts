@@ -1,5 +1,10 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { mockApiResponses } from "./mockData";
+import { tokenManager } from "../helpers/tokenManager";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "../store";
+import { logout, setTokens } from "../slices/authSlice";
+
 
 const BASE_URL =
 	process.env.NEXT_PUBLIC_API_URL || "https://api.slatechain.com/v1";
@@ -24,7 +29,7 @@ class ApiClient {
 	private setupInterceptors() {
 		this.axiosInstance.interceptors.request.use(
 			(config) => {
-				const token = localStorage.getItem("accessToken");
+				const token = tokenManager.getAccessToken();
 				if (token) {
 					config.headers["Authorization"] = `Bearer ${token}`;
 				}
@@ -32,6 +37,7 @@ class ApiClient {
 			},
 			(error) => Promise.reject(error)
 		);
+		const dispatch = useDispatch<AppDispatch>();
 
 		this.axiosInstance.interceptors.response.use(
 			(response) => response,
@@ -40,15 +46,18 @@ class ApiClient {
 				if (error.response?.status === 401 && !originalRequest._retry) {
 					originalRequest._retry = true;
 					try {
-						const refreshToken = localStorage.getItem("refreshToken");
-						const response = await this.axiosInstance.post("/auth/refresh", {
+						const refreshToken = tokenManager.getRefreshToken();
+						const {data} = await this.axiosInstance.post("/auth/refresh", {
 							refreshToken,
 						});
-						const { accessToken } = response.data;
-						localStorage.setItem("accessToken", accessToken);
-						originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
+						tokenManager.setTokens(data.accessToken, data.refreshToken);
+						dispatch(setTokens({ accessToken: data.accessToken, refreshToken: data.refreshToken }));
+
+						originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
+						tokenManager.clearTokens();
+						dispatch(logout());
 						return Promise.reject(refreshError);
 					}
 				}
