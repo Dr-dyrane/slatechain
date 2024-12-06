@@ -1,49 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import { RootState } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
-import { resumeOnboarding, resetOnboarding } from "@/lib/slices/onboardingSlice";
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
-    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-    const authUserId = useSelector((state: RootState) => state.auth.user?.id);
-    const onboardingUserId = useSelector((state: RootState) => state.onboarding.userId);
-    const onboardingState = useSelector((state: RootState) => state.onboarding);
-
     const router = useRouter();
     const pathname = usePathname();
+
+    // Redux state selector
+    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+
     const [isChecking, setIsChecking] = useState(true);
-    const dispatch = useDispatch();
 
     useEffect(() => {
-        const checkAuth = async () => {
+        const handleRouting = () => {
             setIsChecking(true);
 
-            if (isAuthenticated) {
-                // Reset onboarding state if user IDs don't match
-                if (onboardingUserId && onboardingUserId !== authUserId) {
-                    dispatch(resetOnboarding());
-                }
+            const publicPages = ["/", "/login", "/register"];
+            const isPublicPage = publicPages.includes(pathname);
 
-                if (!onboardingState.completed && onboardingState.cancelled && pathname !== "/onboarding") {
-                    router.push("/onboarding");
-                } else if (onboardingState.completed && ["/login", "/register", "/", "/onboarding"].includes(pathname)) {
-                    router.push("/dashboard");
-                } else if (onboardingState.cancelled && pathname === "/onboarding") {
-                    dispatch(resumeOnboarding());
-                }
-            } else if (!isAuthenticated && (pathname.startsWith("/dashboard") || pathname === "/onboarding")) {
+            if (isAuthenticated && isPublicPage) {
+                // Redirect authenticated users away from public pages
+                router.push("/dashboard");
+            } else if (!isAuthenticated && !isPublicPage) {
+                // Redirect unauthenticated users away from non-public pages
                 router.push("/login");
             }
 
             setIsChecking(false);
         };
 
-        checkAuth();
-    }, [isAuthenticated, authUserId, onboardingUserId, pathname, router, onboardingState, dispatch]);
+        handleRouting();
+    }, [isAuthenticated, pathname, router]);
 
     if (isChecking) {
         return <LayoutLoader />;
