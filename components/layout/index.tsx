@@ -22,20 +22,28 @@ export const sidebarItems = [
 ];
 
 export function Layout({ children }: LayoutProps) {
-  const pathname = usePathname();  // Get the current route/pathname
+  const pathname = usePathname();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   // Check if the current route matches one of the sidebar item hrefs
   const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href));
 
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
   return (
     <div className="flex h-screen overflow-hidden flex-col">
-      {/* Only render the Navbar, Sidebar, Footer, and BottomNav if not on the excluded routes */}
       {layoutRequired && <Navbar />}
       <div className="flex flex-1 overflow-hidden">
-        {/* Only render Sidebar if not on the excluded routes */}
         {layoutRequired && (
-          <aside className="hidden w-64 md:block">
-            <Sidebar items={sidebarItems} />
+          <aside className={`hidden md:block transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-20" : "w-64"
+            }`}>
+            <Sidebar
+              items={sidebarItems}
+              isCollapsed={isSidebarCollapsed}
+              toggleSidebar={toggleSidebar}
+            />
           </aside>
         )}
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -55,3 +63,4 @@ export function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+
