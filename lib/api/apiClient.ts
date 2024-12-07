@@ -2,9 +2,16 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { mockApiResponses } from "./mockData";
 import { tokenManager } from "../helpers/tokenManager";
 
-
 const BASE_URL =
 	process.env.NEXT_PUBLIC_API_URL || "https://api.slatechain.com/v1";
+
+// Custom error for logout
+class LogoutError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = "LogoutError";
+	}
+}
 
 class ApiClient {
 	private axiosInstance: AxiosInstance;
@@ -43,16 +50,19 @@ class ApiClient {
 					originalRequest._retry = true;
 					try {
 						const refreshToken = tokenManager.getRefreshToken();
-						const {data} = await this.axiosInstance.post("/auth/refresh", {
+						const { data } = await this.axiosInstance.post("/auth/refresh", {
 							refreshToken,
 						});
 						tokenManager.setTokens(data.accessToken, data.refreshToken);
 
-						originalRequest.headers["Authorization"] = `Bearer ${data.accessToken}`;
+						originalRequest.headers[
+							"Authorization"
+						] = `Bearer ${data.accessToken}`;
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
 						tokenManager.clearTokens();
-						return Promise.reject(refreshError);
+						throw new LogoutError("Session expired, please login again");
+						//return Promise.reject(refreshError);
 					}
 				}
 
@@ -136,3 +146,4 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
+export { LogoutError };
