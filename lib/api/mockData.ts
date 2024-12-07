@@ -85,6 +85,24 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		}),
 	},
 	get: {
+		"/auth/me": {
+            user: {
+                id: "12345",
+                firstName: "John",
+                lastName: "Doe",
+                name: "John Doe",
+                email: "johndoe@example.com",
+                phoneNumber: "123-456-7890",
+                role: "customer", // UserRole.CUSTOMER
+                isEmailVerified: true,
+                isPhoneVerified: true,
+                kycStatus: "APPROVED", // KYCStatus.APPROVED
+                onboardingStatus: "COMPLETED", // OnboardingStatus.COMPLETED
+                avatarUrl: "https://example.com/avatar.jpg",
+            },
+            accessToken: "mock-access-token",
+            refreshToken: "mock-refresh-token",
+        },
 		"/users/me": (): User => ({
 			id: "user-123",
 			firstName: "John",
