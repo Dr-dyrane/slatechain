@@ -8,11 +8,7 @@ import {
 	OnboardingStatus,
 	AuthResponse,
 } from "@/lib/types";
-import {
-	loginUser,
-	registerUser,
-	logoutUser,
-} from "@/lib/api/auth";
+import { loginUser, registerUser, logoutUser, getUserData } from "@/lib/api/auth";
 import { signIn, signOut } from "next-auth/react";
 import { tokenManager } from "../helpers/tokenManager";
 
@@ -55,12 +51,18 @@ export const login = createAsyncThunk<
 });
 
 export const googleLogin = createAsyncThunk<
-	void,
+	AuthResponse,
 	void,
 	{ rejectValue: AuthError }
 >("auth/googleLogin", async (_, { rejectWithValue }) => {
 	try {
-		await signIn("google", { callbackUrl: "/dashboard" });
+		const result = await signIn("google", { redirect: false });
+		if (result?.error) {
+			throw new Error(result.error);
+		}
+		// Fetch user data from your backend
+		const userData = await getUserData();		
+		return userData;
 	} catch (error: any) {
 		const authError: AuthError = {
 			code: "GOOGLE_LOGIN_ERROR",
@@ -169,6 +171,15 @@ const authSlice = createSlice({
 				state.loading = true;
 				state.error = null;
 			})
+			.addCase(googleLogin.fulfilled, (state, action) => {
+				state.user = action.payload.user;
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+				state.isAuthenticated = true;
+				state.loading = false;
+				state.kycStatus = action.payload.user.kycStatus;
+				state.onboardingStatus = action.payload.user.onboardingStatus;
+			})
 			.addCase(googleLogin.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload || {
@@ -204,7 +215,7 @@ const authSlice = createSlice({
 					code: "LOGOUT_ERROR",
 					message: "An error occurred during logout",
 				};
-			})
+			});
 	},
 });
 

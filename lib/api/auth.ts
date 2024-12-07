@@ -37,3 +37,9 @@ export const updateUserProfile = async (
 ): Promise<User> => {
 	return apiClient.put<User>("/users/me/profile", profileData);
 };
+
+// New function to get user data
+export const getUserData = async (): Promise<AuthResponse> => {
+	return apiClient.get<AuthResponse>("/auth/me");
+};
+
