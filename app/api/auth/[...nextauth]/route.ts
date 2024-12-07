@@ -3,6 +3,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextAuthOptions } from "next-auth";
 import { loginUser } from "@/lib/api/auth";
+import { tokenManager } from "@/lib/helpers/tokenManager";
 
 export const authOptions: NextAuthOptions = {
 	providers: [
@@ -42,14 +43,19 @@ export const authOptions: NextAuthOptions = {
 				token.id = user.id;
 				token.accessToken = user.accessToken;
 				token.refreshToken = user.refreshToken;
+
+				// Store tokens in localStorage via tokenManager if both are available
+				if (user.accessToken && user.refreshToken) {
+					tokenManager.setTokens(user.accessToken, user.refreshToken);
+				}
 			}
 			return token;
 		},
 		async session({ session, token }) {
 			if (session.user) {
 				session.user.id = token.id;
-				session.user.accessToken = token.accessToken as string;
-				session.user.refreshToken = token.refreshToken as string;
+				session.user.accessToken = token.accessToken ?? "";  // Fallback to empty string if undefined
+				session.user.refreshToken = token.refreshToken ?? "";  // Fallback to empty string if undefined
 			}
 			return session;
 		},
