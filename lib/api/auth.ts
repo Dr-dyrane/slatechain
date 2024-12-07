@@ -25,7 +25,7 @@ export const registerUser = async (
 };
 
 export const logoutUser = async (): Promise<void> => {
-	const refreshToken = localStorage.getItem("refreshToken");
+	const refreshToken = tokenManager.getAccessToken();
 	if (refreshToken) {
 		await apiClient.post("/auth/logout", { refreshToken });
 	}
@@ -42,4 +42,3 @@ export const updateUserProfile = async (
 export const getUserData = async (): Promise<AuthResponse> => {
 	return apiClient.get<AuthResponse>("/auth/me");
 };
-
