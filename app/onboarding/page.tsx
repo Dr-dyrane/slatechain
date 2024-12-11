@@ -21,6 +21,8 @@ import { ProfileSetup } from '@/components/onboarding/ProfileSetup'
 import { ServiceQuestions } from '@/components/onboarding/ServiceQuestions'
 import { Preferences } from '@/components/onboarding/Preferences'
 import { UserRole } from '@/lib/types'
+import { AlertCircle } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 const getOnboardingSteps = (role: UserRole) => {
   const commonSteps = [
@@ -47,6 +49,26 @@ const getOnboardingSteps = (role: UserRole) => {
   return [...commonSteps, ...(role ? roleSpecificSteps[role] || [] : []), { title: 'Completion', component: null }]
 }
 
+const ErrorState = ({ message, onRetry, onCancel }: { message: string, onRetry: () => void, onCancel: () => void }) => (
+  <Card className="w-[350px] sm:w-[500px]">
+    <CardHeader>
+      <CardTitle>Onboarding Unavailable</CardTitle>
+      <CardDescription>We encountered an issue while loading your onboarding process.</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>{message}</AlertDescription>
+      </Alert>
+    </CardContent>
+    <CardFooter className="flex justify-between">
+      <Button variant='outline' onClick={onCancel}>Back</Button>
+      <Button onClick={onRetry}>Retry</Button>
+    </CardFooter>
+  </Card>
+)
+
 export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
@@ -59,10 +81,7 @@ export default function OnboardingPage() {
   useEffect(() => {
     if (user) {
       dispatch(fetchProgress())
-      // console.log(user)
       setOnboardingSteps(getOnboardingSteps(user.role))
-      // console.log(onboardingSteps)
-      // console.log(user.role)
     }
   }, [user, dispatch])
 
@@ -99,7 +118,25 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  if (!user || completed || cancelled) return <p>Loading or onboarding cancelled. Please try again.</p>;
+  const handleRetry = () => {
+    if (user) {
+      dispatch(fetchProgress())
+    } else {
+      router.push('/login')
+    }
+  }
+
+  if (!user || completed || cancelled) {
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <ErrorState
+          message={!user ? "User information not found. Please log in and try again." : "Onboarding process is not available at the moment."}
+          onRetry={handleRetry}
+          onCancel={handleCancel}
+        />
+      </div>
+    )
+  }
 
   const CurrentStepComponent = onboardingSteps[currentStep]?.component
 
