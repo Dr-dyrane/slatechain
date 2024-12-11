@@ -44,7 +44,7 @@ const getOnboardingSteps = (role: UserRole) => {
     ],
   }
 
-  return [...commonSteps, ...roleSpecificSteps[role], { title: 'Completion', component: null }]
+  return [...commonSteps, ...(role ? roleSpecificSteps[role] || [] : []), { title: 'Completion', component: null }]
 }
 
 export default function OnboardingPage() {
@@ -53,13 +53,16 @@ export default function OnboardingPage() {
   const { user } = useSelector((state: RootState) => state.auth)
   const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding)
 
-  const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>([])
+  const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>(user ? getOnboardingSteps(user.role) : [])
   const [stepData, setStepData] = useState<Record<string, any>>({})
 
   useEffect(() => {
     if (user) {
       dispatch(fetchProgress())
+      // console.log(user)
       setOnboardingSteps(getOnboardingSteps(user.role))
+      // console.log(onboardingSteps)
+      // console.log(user.role)
     }
   }, [user, dispatch])
 
@@ -96,7 +99,7 @@ export default function OnboardingPage() {
     router.push('/dashboard')
   }
 
-  if (!user || completed || cancelled) return null
+  if (!user || completed || cancelled) return <p>Loading or onboarding cancelled. Please try again.</p>;
 
   const CurrentStepComponent = onboardingSteps[currentStep]?.component
 

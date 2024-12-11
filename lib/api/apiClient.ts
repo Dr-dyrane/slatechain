@@ -2,8 +2,9 @@ import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
 import { mockApiResponses } from "./mockData";
 import { tokenManager } from "../helpers/tokenManager";
 
-const BASE_URL =
-	process.env.NEXT_PUBLIC_API_URL || "https://api.slatechain.com/v1";
+const BASE_URL = "https://0961-102-89-47-252.ngrok-free.app/api/v1";
+// process.env.NEXT_PUBLIC_API_URL ||
+// "https://api.slatechain.com/v1";
 
 // Custom error for logout
 class LogoutError extends Error {
@@ -18,7 +19,7 @@ class ApiClient {
 	private isLive: boolean;
 
 	constructor() {
-		this.isLive = false;
+		this.isLive = true;
 
 		this.axiosInstance = axios.create({
 			baseURL: BASE_URL,

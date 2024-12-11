@@ -9,13 +9,14 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
 import { AppDispatch } from '@/lib/store'
 import Link from 'next/link'
 import { UserRole } from '@/lib/types'
 
-const steps = ['Basic Info', 'Role Selection']
+// const steps = ['Basic Info', 'Role Selection']
+const steps = ['Basic Info']
 
 export default function RegisterPage() {
   const [currentStep, setStep] = useState(0)
@@ -25,7 +26,7 @@ export default function RegisterPage() {
     email: '',
     password: '',
     phoneNumber: '',
-    role: '',
+    role: 'customer',
   })
   const [error, setError] = useState('')
   const dispatch = useDispatch<AppDispatch>()
@@ -35,9 +36,9 @@ export default function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  const handleRoleChange = (value: string) => {
-    setFormData({ ...formData, role: value })
-  }
+  // const handleRoleChange = (value: string) => {
+  //   setFormData({ ...formData, role: value })
+  // }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +56,8 @@ export default function RegisterPage() {
         const result = await dispatch(register(registerData)).unwrap()
 
         // Redirect to KYC page
-        router.push('/kyc')
+        // router.push('/kyc')
+        router.push('/dashboard')
       } catch (error) {
         setError('Registration failed. Please try again.')
       }
@@ -130,23 +132,23 @@ export default function RegisterPage() {
             </div>
           </>
         )
-      case 1:
-        return (
-          <div className="flex flex-col space-y-1.5">
-            <Label htmlFor="role">Role</Label>
-            <Select value={formData.role} onValueChange={handleRoleChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your role" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="supplier">Supplier</SelectItem>
-                <SelectItem value="manager">Manager</SelectItem>
-                <SelectItem value="customer">Customer</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        )
+      // case 1:
+      //   return (
+      //     <div className="flex flex-col space-y-1.5">
+      //       <Label htmlFor="role">Role</Label>
+      //       <Select value={formData.role} onValueChange={handleRoleChange}>
+      //         <SelectTrigger>
+      //           <SelectValue placeholder="Select your role" />
+      //         </SelectTrigger>
+      //         <SelectContent>
+      //           <SelectItem value="admin">Admin</SelectItem>
+      //           <SelectItem value="supplier">Supplier</SelectItem>
+      //           <SelectItem value="manager">Manager</SelectItem>
+      //           <SelectItem value="customer">Customer</SelectItem>
+      //         </SelectContent>
+      //       </Select>
+      //     </div>
+      //   )
       default:
         return null
     }
