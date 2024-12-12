@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,7 +11,7 @@ import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
-import { AppDispatch } from '@/lib/store'
+import { AppDispatch, RootState } from '@/lib/store'
 import Link from 'next/link'
 import { UserRole } from '@/lib/types'
 
@@ -28,8 +28,8 @@ export default function RegisterPage() {
     phoneNumber: '',
     role: 'customer',
   })
-  const [error, setError] = useState('')
   const dispatch = useDispatch<AppDispatch>()
+  const { error, loading } = useSelector((state: RootState) => state.auth)
   const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,25 +42,24 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
 
     if (currentStep < steps.length - 1) {
       setStep(currentStep + 1)
     } else {
-      try {
-        const registerData = {
-          ...formData,
-          name: `${formData.firstName} ${formData.lastName}`,
-          role: formData.role as UserRole, // Cast the role to UserRole
-        }
-        const result = await dispatch(register(registerData)).unwrap()
 
-        // Redirect to KYC page
-        // router.push('/kyc')
-        router.push('/dashboard')
-      } catch (error) {
-        setError('Registration failed. Please try again.')
+      const registerData = {
+        ...formData,
+        name: `${formData.firstName} ${formData.lastName}`,
+        role: formData.role as UserRole, // Cast the role to UserRole
       }
+      const result = await dispatch(register(registerData)).unwrap()
+
+      // Redirect to KYC page
+      // router.push('/kyc')
+      if (register.fulfilled.match(result)) {
+        router.push('/dashboard')
+      }
+
     }
   }
 
@@ -170,7 +169,7 @@ export default function RegisterPage() {
           </form>
           {error && (
             <Alert variant="destructive" className="mt-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>{error.message}</AlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -182,8 +181,8 @@ export default function RegisterPage() {
             >
               {currentStep === 0 ? 'Cancel' : 'Back'}
             </Button>
-            <Button onClick={handleSubmit}>
-              {currentStep === steps.length - 1 ? 'Register' : 'Next'}
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? 'Registering...' : currentStep === steps.length - 1 ? 'Register' : 'Next'}
             </Button>
           </div>
           <div className="text-sm text-center">
