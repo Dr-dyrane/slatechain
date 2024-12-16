@@ -77,10 +77,11 @@ export default function OnboardingPage() {
 
   const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>(user ? getOnboardingSteps(user.role) : [])
   const [stepData, setStepData] = useState<Record<string, any>>({})
+  const isComplete = user?.onboardingStatus === 'COMPLETED' || completed
+
 
   useEffect(() => {
     if (user) {
-      dispatch(fetchProgress())
       setOnboardingSteps(getOnboardingSteps(user.role))
     }
   }, [user, dispatch])
@@ -126,16 +127,22 @@ export default function OnboardingPage() {
     }
   }
 
-  if (!user || completed || cancelled) {
+  if (!user || isComplete) {
     return (
       <div className="flex h-full items-center justify-center bg-none">
         <ErrorState
-          message={!user ? "User information not found. Please log in and try again." : "Onboarding process is not available at the moment."}
+          message={
+            !user
+              ? "User information not found. Please log in and try again."
+              : isComplete
+                ? "Onboarding process is already completed."
+                : "Onboarding process has been cancelled."
+          }
           onRetry={handleRetry}
           onCancel={handleCancel}
         />
       </div>
-    )
+    );
   }
 
   const CurrentStepComponent = onboardingSteps[currentStep]?.component
