@@ -62,7 +62,8 @@ export const googleLogin = createAsyncThunk<
 	{ rejectValue: AuthError }
 >("auth/google", async (_, { rejectWithValue }) => {
 	try {
-		const response = await googleCallback();
+		// const response = await googleCallback();
+		const response = await loginUser({ email: "", password: "" });
 		return response;
 	} catch (error: any) {
 		const authError: AuthError = {
