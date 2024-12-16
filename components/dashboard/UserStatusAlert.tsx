@@ -42,7 +42,7 @@ const StatusAlert: React.FC<StatusAlertProps> = ({
                 <Button
                     variant={buttonVariant}
                     size="sm"
-                   // onClick={onButtonClick}
+                   onClick={onButtonClick}
                     className={`mt-2 ${status !== "approved"
                         ? "border-yellow-200 text-foreground bg-yellow-50 hover:bg-yellow-100 hover:text-yellow-900 dark:bg-muted dark:border-muted dark:hover:bg-muted/70 dark:hover:text-yellow-300"
                         : ""}`}
