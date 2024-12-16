@@ -1,3 +1,5 @@
+// src/lib/api/mockData.ts
+
 import {
 	AuthResponse,
 	User,
@@ -7,6 +9,7 @@ import {
 	UserRole,
 	OnboardingStatus,
 	OnboardingStep,
+	InventoryItem,
 } from "@/lib/types";
 
 export const mockApiResponses: Record<string, Record<string, any>> = {
@@ -83,26 +86,30 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			success: true,
 			completedAt: new Date().toISOString(),
 		}),
+		"/inventory": (data: Omit<InventoryItem, "id">): InventoryItem => ({
+			...data,
+			id: Math.random(),
+		}),
 	},
 	get: {
 		"/auth/me": {
-            user: {
-                id: "12345",
-                firstName: "John",
-                lastName: "Doe",
-                name: "John Doe",
-                email: "johndoe@example.com",
-                phoneNumber: "123-456-7890",
-                role: "customer", // UserRole.CUSTOMER
-                isEmailVerified: true,
-                isPhoneVerified: true,
-                kycStatus: "APPROVED", // KYCStatus.APPROVED
-                onboardingStatus: "COMPLETED", // OnboardingStatus.COMPLETED
-                avatarUrl: "https://example.com/avatar.jpg",
-            },
-            accessToken: "mock-access-token",
-            refreshToken: "mock-refresh-token",
-        },
+			user: {
+				id: "12345",
+				firstName: "John",
+				lastName: "Doe",
+				name: "John Doe",
+				email: "johndoe@example.com",
+				phoneNumber: "123-456-7890",
+				role: "customer", // UserRole.CUSTOMER
+				isEmailVerified: true,
+				isPhoneVerified: true,
+				kycStatus: "APPROVED", // KYCStatus.APPROVED
+				onboardingStatus: "COMPLETED", // OnboardingStatus.COMPLETED
+				avatarUrl: "https://example.com/avatar.jpg",
+			},
+			accessToken: "mock-access-token",
+			refreshToken: "mock-refresh-token",
+		},
 		"/users/me": (): User => ({
 			id: "user-123",
 			firstName: "John",
@@ -140,11 +147,59 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			completedSteps: [0, 1],
 			completed: false,
 		}),
+		"/inventory": (): InventoryItem[] => [
+			{
+				id: 1,
+				name: "Product A",
+				sku: "SKU001",
+				quantity: 100,
+				location: "Warehouse 1",
+				price: 10,
+				category: "Electronics",
+				supplierId: "user-123",
+			},
+			{
+				id: 2,
+				name: "Product B",
+				sku: "SKU002",
+				quantity: 150,
+				location: "Warehouse 2",
+				price: 20,
+				category: "Clothing",
+				supplierId: "user-123",
+			},
+			{
+				id: 3,
+				name: "Product C",
+				sku: "SKU003",
+				quantity: 75,
+				location: "Warehouse 1",
+				price: 30,
+				category: "Books",
+				supplierId: "user-123",
+			},
+			{
+				id: 4,
+				name: "Product D",
+				sku: "SKU004",
+				quantity: 200,
+				location: "Warehouse 2",
+				price: 50,
+				category: "Other",
+				supplierId: "user-456",
+			},
+		],
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
 			...mockApiResponses.get["/users/me"](),
 			...data,
 		}),
+		"/inventory/:id": (data: InventoryItem): InventoryItem => {
+			return data;
+		},
+	},
+	delete: {
+		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
 	},
 };
