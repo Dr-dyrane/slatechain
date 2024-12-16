@@ -1,12 +1,11 @@
+// src/app/inventory/page.tsx
 "use client"
 
-import { useEffect } from "react"
-import { useSelector, useDispatch } from "react-redux"
+import { useSelector } from "react-redux"
 import { DataTable } from "@/components/DataTable"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from 'lucide-react'
 import { RootState } from "@/lib/store"
-import { setInventory } from "@/lib/slices/inventorySlice"
 
 export const columns = [
   {
@@ -29,22 +28,6 @@ export const columns = [
 
 export default function InventoryPage() {
   const inventory = useSelector((state: RootState) => state.inventory.items)
-  const dispatch = useDispatch()
-
-  useEffect(() => {
-    // Simulated API call
-    const fetchInventory = async () => {
-      // In a real application, this would be an API call
-      const data = [
-        { id: 1, name: "Product A", sku: "SKU001", quantity: 100, location: "Warehouse 1" },
-        { id: 2, name: "Product B", sku: "SKU002", quantity: 150, location: "Warehouse 2" },
-        { id: 3, name: "Product C", sku: "SKU003", quantity: 75, location: "Warehouse 1" },
-      ]
-      dispatch(setInventory(data))
-    }
-
-    fetchInventory()
-  }, [dispatch])
 
   return (
     <div className="space-y-4">

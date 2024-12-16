@@ -10,6 +10,8 @@ import {
 	OnboardingStatus,
 	OnboardingStep,
 	InventoryItem,
+	Order,
+	OrderItem,
 } from "@/lib/types";
 
 export const mockApiResponses: Record<string, Record<string, any>> = {
@@ -89,6 +91,15 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/inventory": (data: Omit<InventoryItem, "id">): InventoryItem => ({
 			...data,
 			id: Math.random(),
+		}),
+		"/orders": (
+			data: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">
+		): Order => ({
+			...data,
+			id: Math.random(),
+			orderNumber: `ORD${Math.floor(10000 + Math.random() * 90000)}`,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
 		}),
 	},
 	get: {
@@ -189,6 +200,73 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				supplierId: "user-456",
 			},
 		],
+		"/orders": (): Order[] => [
+			{
+				id: 1,
+				orderNumber: "ORD12345",
+				customerId: "user-123",
+				items: [
+					{
+						productId: "product-1",
+						quantity: 2,
+						price: 100,
+					},
+					{
+						productId: "product-2",
+						quantity: 1,
+						price: 50,
+					},
+				],
+				totalAmount: 250,
+				status: "PROCESSING",
+				createdAt: "2024-07-26T10:00:00Z",
+				updatedAt: "2024-07-26T10:30:00Z",
+			},
+			{
+				id: 2,
+				orderNumber: "ORD67890",
+				customerId: "user-456",
+				items: [
+					{
+						productId: "product-3",
+						quantity: 3,
+						price: 20,
+					},
+					{
+						productId: "product-4",
+						quantity: 1,
+						price: 30,
+					},
+				],
+				totalAmount: 90,
+				status: "PENDING",
+				createdAt: "2024-07-27T14:00:00Z",
+				updatedAt: "2024-07-27T14:15:00Z",
+			},
+			{
+				id: 3,
+				orderNumber: "ORD67910",
+				customerId: "user-789",
+				items: [
+					{
+						productId: "product-5",
+						quantity: 3,
+						price: 20,
+					},
+					{
+						productId: "product-6",
+						quantity: 1,
+						price: 30,
+					},
+				],
+				totalAmount: 60,
+				status: "PENDING",
+				createdAt: "2024-07-27T14:00:00Z",
+				updatedAt: "2024-07-27T14:15:00Z",
+			},
+		],
+		"/orders/:id": (id: number): Order =>
+			mockApiResponses.get["/orders"]().find((order: Order) => order.id === id),
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -198,8 +276,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/inventory/:id": (data: InventoryItem): InventoryItem => {
 			return data;
 		},
+		"/orders/:id": (data: Order): Order => {
+			return data;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
+		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 	},
 };

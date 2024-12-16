@@ -3,7 +3,7 @@ import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, 
 import storage from "redux-persist/lib/storage";
 import authReducer from "./slices/authSlice";
 import inventoryReducer from "./slices/inventorySlice";
-import ordersReducer from "./slices/ordersSlice";
+import ordersReducer from "./slices/orderSlice";
 import onboardingReducer from "./slices/onboardingSlice";
 import kycReducer from "./slices/kycSlice";
 import { combineReducers } from "redux";

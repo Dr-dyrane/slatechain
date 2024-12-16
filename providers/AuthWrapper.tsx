@@ -1,3 +1,4 @@
+// src/components/layout/authWrapper.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +8,7 @@ import { useSession } from "next-auth/react";
 import { RootState, AppDispatch } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
 import { setUser } from "@/lib/slices/authSlice";
+import { initializeApp } from "@/lib/helpers/appInitializer"; // Import the helper
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -15,6 +17,10 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     const { data: session, status } = useSession();
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+    // const authState = useSelector((state: RootState) => state.auth);
+    // const onboardingState = useSelector((state: RootState) => state.onboarding);
+    // const inventoryState = useSelector((state: RootState) => state.inventory);
+    // const kycState = useSelector((state: RootState) => state.kyc);
 
     const [isChecking, setIsChecking] = useState(true);
 
@@ -23,6 +29,12 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             dispatch(setUser(session.user as any));
         }
     }, [status, session, dispatch]);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            initializeApp(dispatch);
+        }
+    }, [isAuthenticated]);
 
     useEffect(() => {
         const handleRouting = () => {
@@ -49,4 +61,3 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     return <>{children}</>;
 }
-

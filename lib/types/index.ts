@@ -180,10 +180,11 @@ export interface UserPreferences {
 
 // Inventory (for Supplier role)
 export interface InventoryItem {
-	id: string;
+	id: number;
 	name: string;
 	sku: string;
 	quantity: number;
+	location?: string;
 	price: number;
 	category: string;
 	supplierId: string;
@@ -191,7 +192,7 @@ export interface InventoryItem {
 
 // Order
 export interface Order {
-	id: string;
+	id: number;
 	orderNumber: string;
 	customerId: string;
 	items: OrderItem[];

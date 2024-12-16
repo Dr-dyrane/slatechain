@@ -24,6 +24,12 @@ export const registerUser = async (
 	return response;
 };
 
+export const googleCallback = async (): Promise<AuthResponse> => {
+	const response = await apiClient.post<AuthResponse>("/auth/google"); // changed endpoint
+	tokenManager.setTokens(response.accessToken, response.refreshToken); //Set tokens here
+	return response;
+};
+
 export const logoutUser = async (): Promise<void> => {
 	const refreshToken = tokenManager.getAccessToken();
 	if (refreshToken) {

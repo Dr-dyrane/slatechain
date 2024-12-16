@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx
 "use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -6,12 +7,8 @@ import { columns } from "../inventory/page"
 import { DataTable } from "@/components/DataTable"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
-import { useEffect } from "react"
-import { setInventory } from "@/lib/slices/inventorySlice"
 import { useRouter } from "next/navigation"
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { resumeOnboarding } from "@/lib/slices/onboardingSlice"
-import { Button } from "@/components/ui/button"
 import UserStatusAlert from "@/components/dashboard/UserStatusAlert"
 import Sparkline from "@/components/chart/Sparkline"
 import CircularProgress from "@/components/chart/CircularProgress"
@@ -94,21 +91,6 @@ export default function Dashboard() {
   const handleReviewKYC = () => {
     router.push('/kyc')
   }
-
-  useEffect(() => {
-    // Simulated API call
-    const fetchInventory = async () => {
-      // In a real application, this would be an API call
-      const data = [
-        { id: 1, name: "Product A", sku: "SKU001", quantity: 100, location: "Warehouse 1" },
-        { id: 2, name: "Product B", sku: "SKU002", quantity: 150, location: "Warehouse 2" },
-        { id: 3, name: "Product C", sku: "SKU003", quantity: 75, location: "Warehouse 1" },
-      ]
-      dispatch(setInventory(data))
-    }
-
-    fetchInventory()
-  }, [dispatch])
 
   return (
     <div className="space-y-6">

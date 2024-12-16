@@ -1,21 +1,11 @@
+// src/app/orders/page.tsx
 "use client"
 
-import { useEffect } from "react"
-import { useSelector, useDispatch } from "react-redux"
+import { useSelector } from "react-redux"
 import { DataTable } from "@/components/DataTable"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from 'lucide-react'
 import { RootState } from "@/lib/store"
-import { setOrders } from "@/lib/slices/ordersSlice"
-
-// Define the type for each row
-interface Order {
-    id: number
-    orderNumber: string
-    customer: string
-    status: string
-    total: number
-}
 
 const columns = [
     {
@@ -24,45 +14,39 @@ const columns = [
     },
     {
         accessorKey: "name",
-        header: "Customer",
+        header: "Customer ID",
     },
     {
         accessorKey: "status",
         header: "Status",
     },
     {
-        accessorKey: "total",
+        accessorKey: "totalAmount",
         header: "Total",
-        cell: ({ row }: { row: { getValue: (columnId: string) => any } }) => {
-            const amount = parseFloat(row.getValue("total"))
-            const formatted = new Intl.NumberFormat("en-US", {
-                style: "currency",
+         cell: ({ row }: { row: { getValue: (columnId: string) => any } }) => {
+            const amount = parseFloat(row.getValue("totalAmount"))
+             const formatted = new Intl.NumberFormat("en-US", {
+                 style: "currency",
                 currency: "USD",
             }).format(amount)
-            return <div className="font-medium">{formatted}</div>
-        },
+           return <div className="font-medium">{formatted}</div>
+         },
     },
-]
+];
+
+
 
 export default function OrdersPage() {
-    const orders = useSelector((state: RootState) => state.orders.orders)
-    const dispatch = useDispatch()
+    const orders = useSelector((state: RootState) => state.orders.items)
 
-    useEffect(() => {
-        // Simulated API call
-        const fetchOrders = async () => {
-            // In a real application, this would be an API call
-            const data = [
-                { id: 1, orderNumber: "ORD001", name: "John Doe", status: "Pending", total: 1500 },
-                { id: 2, orderNumber: "ORD002", name: "Jane Smith", status: "Shipped", total: 2300 },
-                { id: 3, orderNumber: "ORD003", name: "Bob Johnson", status: "Delivered", total: 1800 },
-            ]
-            dispatch(setOrders(data))
-        }
 
-        fetchOrders()
-    }, [dispatch])
-
+    const formattedOrders = orders.map(order => ({
+        id: order.id,
+        orderNumber: order.orderNumber,
+        name: order.customerId,
+        status: order.status,
+        totalAmount: order.totalAmount,
+    }))
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -71,7 +55,7 @@ export default function OrdersPage() {
                     <PlusIcon className="mr-2 h-4 w-4" /> Create Order
                 </Button>
             </div>
-            <DataTable columns={columns} data={orders} />
+             <DataTable columns={columns} data={formattedOrders as any} />
         </div>
     )
 }

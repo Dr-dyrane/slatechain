@@ -8,7 +8,13 @@ import {
 	OnboardingStatus,
 	AuthResponse,
 } from "@/lib/types";
-import { loginUser, registerUser, logoutUser, getUserData } from "@/lib/api/auth";
+import {
+	loginUser,
+	registerUser,
+	logoutUser,
+	getUserData,
+	googleCallback,
+} from "@/lib/api/auth";
 import { signIn, signOut } from "next-auth/react";
 import { tokenManager } from "../helpers/tokenManager";
 
@@ -54,15 +60,10 @@ export const googleLogin = createAsyncThunk<
 	AuthResponse,
 	void,
 	{ rejectValue: AuthError }
->("auth/googleLogin", async (_, { rejectWithValue }) => {
+>("auth/google", async (_, { rejectWithValue }) => {
 	try {
-		const result = await signIn("google", { redirect: false });
-		if (result?.error) {
-			throw new Error(result.error);
-		}
-		// Fetch user data from your backend
-		const userData = await getUserData();		
-		return userData;
+		const response = await googleCallback();
+		return response;
 	} catch (error: any) {
 		const authError: AuthError = {
 			code: "GOOGLE_LOGIN_ERROR",
@@ -108,7 +109,6 @@ export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 		}
 	}
 );
-
 
 const authSlice = createSlice({
 	name: "auth",
