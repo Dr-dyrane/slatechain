@@ -90,13 +90,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		}),
 		"/inventory": (data: Omit<InventoryItem, "id">): InventoryItem => ({
 			...data,
-			id: Math.random(),
+			id: Math.floor(Math.random() * 100),
 		}),
 		"/orders": (
 			data: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">
 		): Order => ({
 			...data,
-			id: Math.random(),
+			id: Math.floor(Math.random() * 100),
 			orderNumber: `ORD${Math.floor(10000 + Math.random() * 90000)}`,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
@@ -128,14 +128,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			name: "John Doe",
 			email: "john@example.com",
 			phoneNumber: "+1234567890",
-			role: UserRole.CUSTOMER,
+			role: UserRole.SUPPLIER,
 			isEmailVerified: true,
 			isPhoneVerified: false,
 			kycStatus: KYCStatus.PENDING_REVIEW,
 			onboardingStatus: OnboardingStatus.IN_PROGRESS,
 		}),
 		"/kyc/status": (): { status: KYCStatus; documents: KYCDocument[] } => ({
-			status: KYCStatus.IN_PROGRESS,
+			status: KYCStatus.PENDING_REVIEW,
 			documents: [
 				{
 					id: "doc-1",
@@ -225,7 +225,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			{
 				id: 2,
 				orderNumber: "ORD67890",
-				customerId: "user-456",
+				customerId: "user-123",
 				items: [
 					{
 						productId: "product-3",
@@ -246,7 +246,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			{
 				id: 3,
 				orderNumber: "ORD67910",
-				customerId: "user-789",
+				customerId: "user-123",
 				items: [
 					{
 						productId: "product-5",
