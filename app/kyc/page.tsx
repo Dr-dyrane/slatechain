@@ -1,4 +1,5 @@
-"use client"
+// src/app/kyc/page.tsx
+"use client";
 
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
@@ -14,11 +15,16 @@ import { AdminKYCForm } from '@/components/kyc/AdminKYCForm'
 import { SupplierKYCForm } from '@/components/kyc/SupplierKYCForm'
 import { ManagerKYCForm } from '@/components/kyc/ManagerKYCForm'
 import { CustomerKYCForm } from '@/components/kyc/CustomerKYCForm'
+import LayoutLoader from "@/components/layout/loading";
+import { ErrorState } from '@/components/ui/error';
+
 
 export default function KYCPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { user } = useSelector((state: RootState) => state.auth)
+  const { status: kycStatus, loading, error: kycError } = useSelector((state: RootState) => state.kyc);
+
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     fullName: '',
@@ -36,7 +42,8 @@ export default function KYCPage() {
     if (!user) {
       router.push('/login')
     }
-  }, [user, router])
+  }, [user, router]);
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -118,7 +125,83 @@ export default function KYCPage() {
     }
   }
 
-  if (!user) return null
+  if (loading) {
+    return <LayoutLoader />
+  }
+
+  if (kycError) {
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <ErrorState
+          message="There was an error loading your KYC, please try again later"
+          onRetry={() => router.refresh()}
+          onCancel={() => router.push("/dashboard")}
+        />
+      </div>
+    )
+  }
+
+  if (kycStatus === KYCStatus.APPROVED) {
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-center">KYC Status</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Alert variant="default">
+              <AlertDescription>Your KYC has been approved</AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+
+  if (kycStatus === KYCStatus.REJECTED) {
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-center">KYC Status</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Alert variant="destructive">
+              <AlertDescription>Your KYC has been rejected</AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
+
+
+  if (kycStatus === KYCStatus.PENDING_REVIEW) {
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <Card className="w-full max-w-lg">
+          <CardHeader>
+            <CardTitle className="text-center">KYC Status</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center">
+            <Alert variant="default">
+              <AlertDescription>Your KYC is pending review</AlertDescription>
+            </Alert>
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-full items-center justify-center bg-none">
@@ -147,7 +230,7 @@ export default function KYCPage() {
                   className="mt-1 rounded-md bg-muted p-2"
                 />
               </div>
-              {user.role === UserRole.SUPPLIER && (
+              {user?.role === UserRole.SUPPLIER && (
                 <div className="flex flex-col space-y-1.5">
                   <label htmlFor="taxDocument" className="text-sm font-medium">
                     Tax Document
@@ -180,4 +263,3 @@ export default function KYCPage() {
     </div>
   )
 }
-

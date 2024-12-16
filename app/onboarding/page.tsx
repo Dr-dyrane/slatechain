@@ -21,8 +21,8 @@ import { ProfileSetup } from '@/components/onboarding/ProfileSetup'
 import { ServiceQuestions } from '@/components/onboarding/ServiceQuestions'
 import { Preferences } from '@/components/onboarding/Preferences'
 import { UserRole } from '@/lib/types'
-import { AlertCircle } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { ErrorState } from '@/components/ui/error'
+
 
 const getOnboardingSteps = (role: UserRole) => {
   const commonSteps = [
@@ -49,25 +49,6 @@ const getOnboardingSteps = (role: UserRole) => {
   return [...commonSteps, ...(role ? roleSpecificSteps[role] || [] : []), { title: 'Completion', component: null }]
 }
 
-const ErrorState = ({ message, onRetry, onCancel }: { message: string, onRetry: () => void, onCancel: () => void }) => (
-  <Card className="w-[350px] sm:w-[500px]">
-    <CardHeader>
-      <CardTitle>Onboarding Unavailable</CardTitle>
-      <CardDescription>We encountered an issue while loading your onboarding process.</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>Error</AlertTitle>
-        <AlertDescription>{message}</AlertDescription>
-      </Alert>
-    </CardContent>
-    <CardFooter className="flex justify-between">
-      <Button variant='outline' onClick={onCancel}>Back</Button>
-      <Button onClick={onRetry}>Retry</Button>
-    </CardFooter>
-  </Card>
-)
 
 export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>()
