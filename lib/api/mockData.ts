@@ -279,6 +279,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				trackingNumber: "TN12345",
 				carrier: "DHL",
 				status: "IN_TRANSIT",
+				destination: "Los Angeles",
 				estimatedDeliveryDate: "2024-08-01T12:00:00Z",
 			},
 			{
@@ -287,6 +288,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				trackingNumber: "TN67890",
 				carrier: "FedEx",
 				status: "DELIVERED",
+				destination: "Miami",
 				estimatedDeliveryDate: "2024-07-29T10:00:00Z",
 				actualDeliveryDate: "2024-07-29T09:45:00Z",
 			},
@@ -296,6 +298,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				trackingNumber: "TN11223",
 				carrier: "USPS",
 				status: "PREPARING",
+				destination: "Boston",
 				estimatedDeliveryDate: "2024-08-05T12:00:00Z",
 			},
 		],

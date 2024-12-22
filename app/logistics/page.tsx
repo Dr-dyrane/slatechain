@@ -20,6 +20,17 @@ export default function LogisticsPage() {
     }
   }, [shipments])
 
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }
+    return new Date(dateString).toLocaleDateString('en-US', options)
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold">Logistics and Shipment Tracking</h1>
@@ -49,8 +60,8 @@ export default function LogisticsPage() {
                     }`}
                   onClick={() => setSelectedShipment(shipment)}
                 >
-                  <div className="font-medium">{shipment.trackingNumber}</div>
-                  <div className="text-sm text-muted-foreground">{shipment.status}</div>
+                  <div className="font-medium text-sm">{shipment.trackingNumber}</div>
+                  <div className="text-xs text-muted-foreground">{shipment.status}</div>
                 </li>
               ))}
             </ul>
@@ -75,7 +86,11 @@ export default function LogisticsPage() {
               />
               <div className="flex items-center">
                 <Truck className="mr-2" />
-                <span>{selectedShipment.estimatedDeliveryDate}</span>
+                <div>
+                  <div className="flex flex-col">
+                    <span className='text-sm'> {formatDate(selectedShipment.estimatedDeliveryDate)}</span>
+                    <span className='text-xs italic text-right'>{selectedShipment.destination}</span></div>
+                </div>
               </div>
             </div>
             <div className="text-sm text-muted-foreground">

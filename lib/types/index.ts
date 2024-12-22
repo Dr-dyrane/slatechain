@@ -215,6 +215,7 @@ export interface Shipment {
 	trackingNumber: string;
 	carrier: string;
 	status: "PREPARING" | "IN_TRANSIT" | "DELIVERED";
+	destination?: string; // Added destination
 	estimatedDeliveryDate: string;
 	actualDeliveryDate?: string;
 }
