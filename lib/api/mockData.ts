@@ -12,6 +12,7 @@ import {
 	InventoryItem,
 	Order,
 	OrderItem,
+	Shipment,
 } from "@/lib/types";
 
 export const mockApiResponses: Record<string, Record<string, any>> = {
@@ -100,6 +101,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			orderNumber: `ORD${Math.floor(10000 + Math.random() * 90000)}`,
 			createdAt: new Date().toISOString(),
 			updatedAt: new Date().toISOString(),
+		}),
+		"/shipments": (data: Omit<Shipment, "id">): Shipment => ({
+			...data,
+			id: Math.floor(Math.random() * 100).toString(),
 		}),
 	},
 	get: {
@@ -267,6 +272,33 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		],
 		"/orders/:id": (id: number): Order =>
 			mockApiResponses.get["/orders"]().find((order: Order) => order.id === id),
+		"/shipments": (): Shipment[] => [
+			{
+				id: "1",
+				orderId: "1",
+				trackingNumber: "TN12345",
+				carrier: "DHL",
+				status: "IN_TRANSIT",
+				estimatedDeliveryDate: "2024-08-01T12:00:00Z",
+			},
+			{
+				id: "2",
+				orderId: "2",
+				trackingNumber: "TN67890",
+				carrier: "FedEx",
+				status: "DELIVERED",
+				estimatedDeliveryDate: "2024-07-29T10:00:00Z",
+				actualDeliveryDate: "2024-07-29T09:45:00Z",
+			},
+			{
+				id: "3",
+				orderId: "3",
+				trackingNumber: "TN11223",
+				carrier: "USPS",
+				status: "PREPARING",
+				estimatedDeliveryDate: "2024-08-05T12:00:00Z",
+			},
+		],
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -279,9 +311,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/orders/:id": (data: Order): Order => {
 			return data;
 		},
+		"/shipments/:id": (data: Shipment): Shipment => {
+			return data;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
+		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 	},
 };

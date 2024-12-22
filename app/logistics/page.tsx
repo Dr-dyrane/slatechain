@@ -1,18 +1,24 @@
+// src/app/logistics/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from 'react'
+import { useSelector } from 'react-redux'
 import { MapPin, Truck } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Progress } from "@/components/ui/progress"
+import { RootState } from "@/lib/store";
+import { Shipment } from '@/lib/types'
 
-const shipments = [
-  { id: 1, orderNumber: "ORD001", status: "In Transit", origin: "New York", destination: "Los Angeles", progress: 65 },
-  { id: 2, orderNumber: "ORD002", status: "Delivered", origin: "Chicago", destination: "Miami", progress: 100 },
-  { id: 3, orderNumber: "ORD003", status: "Preparing", origin: "Seattle", destination: "Boston", progress: 10 },
-]
 
 export default function LogisticsPage() {
-  const [selectedShipment, setSelectedShipment] = useState(shipments[0])
+  const shipments = useSelector((state: RootState) => state.shipment.items);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+
+  useEffect(() => {
+    if (shipments.length > 0) {
+      setSelectedShipment(shipments[0])
+    }
+  }, [shipments])
 
   return (
     <div className="space-y-4">
@@ -39,12 +45,11 @@ export default function LogisticsPage() {
               {shipments.map((shipment) => (
                 <li
                   key={shipment.id}
-                  className={`p-2 rounded-md cursor-pointer ${
-                    selectedShipment.id === shipment.id ? "bg-primary/10" : "hover:bg-muted"
-                  }`}
+                  className={`p-2 rounded-md cursor-pointer ${selectedShipment?.id === shipment.id ? "bg-primary/10" : "hover:bg-muted"
+                    }`}
                   onClick={() => setSelectedShipment(shipment)}
                 >
-                  <div className="font-medium">{shipment.orderNumber}</div>
+                  <div className="font-medium">{shipment.trackingNumber}</div>
                   <div className="text-sm text-muted-foreground">{shipment.status}</div>
                 </li>
               ))}
@@ -56,18 +61,21 @@ export default function LogisticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Shipment Details</CardTitle>
-            <CardDescription>Order #{selectedShipment.orderNumber}</CardDescription>
+            <CardDescription>Order #{selectedShipment.orderId}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
                 <MapPin className="mr-2" />
-                <span>{selectedShipment.origin}</span>
+                <span>{selectedShipment.carrier}</span>
               </div>
-              <Progress value={selectedShipment.progress} className="w-1/3" />
+              <Progress
+                value={selectedShipment.status === "DELIVERED" ? 100 : selectedShipment.status === "IN_TRANSIT" ? 65 : 10}
+                className="w-1/3"
+              />
               <div className="flex items-center">
                 <Truck className="mr-2" />
-                <span>{selectedShipment.destination}</span>
+                <span>{selectedShipment.estimatedDeliveryDate}</span>
               </div>
             </div>
             <div className="text-sm text-muted-foreground">
