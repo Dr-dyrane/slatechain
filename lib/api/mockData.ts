@@ -13,6 +13,7 @@ import {
 	Order,
 	OrderItem,
 	Shipment,
+	Supplier,
 } from "@/lib/types";
 
 export const mockApiResponses: Record<string, Record<string, any>> = {
@@ -103,6 +104,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			updatedAt: new Date().toISOString(),
 		}),
 		"/shipments": (data: Omit<Shipment, "id">): Shipment => ({
+			...data,
+			id: Math.floor(Math.random() * 100).toString(),
+		}),
+		"/suppliers": (data: Omit<Supplier, "id">): Supplier => ({
 			...data,
 			id: Math.floor(Math.random() * 100).toString(),
 		}),
@@ -302,6 +307,38 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				estimatedDeliveryDate: "2024-08-05T12:00:00Z",
 			},
 		],
+		"/suppliers": (): Supplier[] => [
+			{
+				id: "1",
+				name: "Acme Corp",
+				contactPerson: "Jane Smith",
+				email: "jane.smith@acmecorp.com",
+				phoneNumber: "+15551112222",
+				address: "123 Main St, Anytown",
+				rating: 4.5,
+				status: "ACTIVE",
+			},
+			{
+				id: "2",
+				name: "Beta Industries",
+				contactPerson: "Bob Johnson",
+				email: "bob.johnson@betaindustries.com",
+				phoneNumber: "+15553334444",
+				address: "456 Elm St, Somecity",
+				rating: 3.8,
+				status: "ACTIVE",
+			},
+			{
+				id: "3",
+				name: "Gamma Supplies",
+				contactPerson: "Alice Brown",
+				email: "alice.brown@gammasupplies.com",
+				phoneNumber: "+15555556666",
+				address: "789 Oak St, Othertown",
+				rating: 4.2,
+				status: "INACTIVE",
+			},
+		],
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -317,10 +354,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/shipments/:id": (data: Shipment): Shipment => {
 			return data;
 		},
+		"/suppliers/:id": (data: Supplier): Supplier => {
+			return data;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
 	},
 };

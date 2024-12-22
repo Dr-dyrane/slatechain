@@ -16,6 +16,7 @@ import ordersReducer from "./slices/orderSlice";
 import onboardingReducer from "./slices/onboardingSlice";
 import shipmentReducer from "./slices/shipmentSlice";
 import kycReducer from "./slices/kycSlice";
+import supplierReducer from "./slices/supplierSlice";
 import { combineReducers } from "redux";
 
 const createPersistConfig = (userId: string | null) => ({
@@ -32,6 +33,7 @@ const createRootReducer = () =>
 		onboarding: onboardingReducer,
 		kyc: kycReducer,
 		shipment: shipmentReducer,
+		supplier: supplierReducer,
 	});
 
 export const createStore = (userId: string | null) => {

@@ -1,27 +1,27 @@
+// src/app/suppliers/page.tsx
 "use client"
 
 import { useState } from "react"
+import { useSelector } from "react-redux"
 import { DataTable } from "@/components/DataTable"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlusIcon, MessageSquare, FileText } from 'lucide-react'
+import { RootState } from "@/lib/store";
 
 const supplierColumns = [
   { accessorKey: "name", header: "Name" },
-  { accessorKey: "category", header: "Category" },
+  { accessorKey: "contactPerson", header: "Contact Person" },
   { accessorKey: "rating", header: "Rating" },
   { accessorKey: "status", header: "Status" },
 ]
 
-const supplierData = [
-  { id: 1, name: "Acme Corp", category: "Electronics", rating: 4.5, status: "Active" },
-  { id: 2, name: "Beta Industries", category: "Textiles", rating: 3.8, status: "Active" },
-  { id: 3, name: "Gamma Supplies", category: "Raw Materials", rating: 4.2, status: "Inactive" },
-]
 
 export default function SuppliersPage() {
   const [activeTab, setActiveTab] = useState("list")
+  const suppliers = useSelector((state: RootState) => state.supplier.items);
+
 
   return (
     <div className="space-y-4">
@@ -44,7 +44,7 @@ export default function SuppliersPage() {
               <CardDescription>Manage your supplier relationships</CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable columns={supplierColumns} data={supplierData} />
+              <DataTable columns={supplierColumns} data={suppliers as any} />
             </CardContent>
           </Card>
         </TabsContent>

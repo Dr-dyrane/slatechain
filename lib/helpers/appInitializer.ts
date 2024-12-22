@@ -5,6 +5,7 @@ import { fetchOrders } from "@/lib/slices/orderSlice"; // Example for orders sli
 import { fetchProgress } from "../slices/onboardingSlice";
 import { fetchKYCStatusThunk } from "../slices/kycSlice";
 import { fetchShipments } from "../slices/shipmentSlice";
+import { fetchSuppliers } from "../slices/supplierSlice";
 // Import other slices and actions that you want to initialize
 // import {  AuthResponse } from "@/lib/types";
 // import { setTokens } from "@/lib/slices/authSlice";
@@ -16,6 +17,7 @@ export const initializeApp = async (dispatch: AppDispatch) => {
 	dispatch(fetchProgress())
 	dispatch(fetchKYCStatusThunk())
 	dispatch(fetchShipments())
+	dispatch(fetchSuppliers())
 	// Dispatch other slice actions
 	console.log("App Initialized: Data fetch started");
 };
