@@ -1,3 +1,4 @@
+// src/components/layout/Navbar.tsx
 "use client";
 
 import * as React from "react";
@@ -6,7 +7,7 @@ import { useTheme } from "next-themes";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store";
 import { logout } from "@/lib/slices/authSlice";
-import { CircleUserRound, LogOut, MoonIcon, SunIcon } from "lucide-react";
+import { CircleUserRound, MoonIcon, SunIcon, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
 import { useRouter } from "next/navigation";
@@ -43,12 +44,12 @@ export function Navbar() {
           {isAuthenticated ? (
             <>
               <Button variant="outline" onClick={() => router.push('/profile')}>
-                <CircleUserRound />
+                <CircleUserRound size={20}/>
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
-              <Button variant="destructive" className="border-red-600 hover:bg-red-100 hover:text-red-600" onClick={handleLogout}>
-                <LogOut className="block md:hidden" />
-                <span className="hidden md:block ml-1">Logout
+              <Button variant="outline" onClick={() => router.push('/settings')} >
+                <Settings className="h-5 w-5" />
+                <span className="hidden md:block ml-1">Settings
                 </span>
               </Button>
 

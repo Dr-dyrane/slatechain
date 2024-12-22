@@ -18,7 +18,7 @@ export const sidebarItems = [
   { href: "/orders", title: "Orders" },
   { href: "/logistics", title: "Logistics" },
   { href: "/suppliers", title: "Suppliers" },
-  { href: "/settings", title: "Settings" },
+  // { href: "/settings", title: "Settings" },
 ];
 
 export function Layout({ children }: LayoutProps) {
@@ -26,7 +26,7 @@ export function Layout({ children }: LayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   // Check if the current route matches one of the sidebar item hrefs
-  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile";
+  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);

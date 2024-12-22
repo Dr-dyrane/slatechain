@@ -157,7 +157,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="space-y-4 p-4">
+        <div className="space-y-4">
             <h1 className="text-3xl font-bold">User Profile</h1>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
