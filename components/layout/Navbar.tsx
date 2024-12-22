@@ -42,7 +42,7 @@ export function Navbar() {
           </Button>
           {isAuthenticated ? (
             <>
-              <Button variant="outline">
+              <Button variant="outline" onClick={() => router.push('/profile')}>
                 <CircleUserRound />
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>

@@ -1,3 +1,4 @@
+// src/lib/slices/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
 	AuthState,
@@ -7,6 +8,7 @@ import {
 	KYCStatus,
 	OnboardingStatus,
 	AuthResponse,
+	User,
 } from "@/lib/types";
 import {
 	loginUser,
@@ -14,6 +16,7 @@ import {
 	logoutUser,
 	getUserData,
 	googleCallback,
+	updateUserProfile,
 } from "@/lib/api/auth";
 import { signIn, signOut } from "next-auth/react";
 import { tokenManager } from "../helpers/tokenManager";
@@ -28,6 +31,22 @@ const initialState: AuthState = {
 	kycStatus: KYCStatus.NOT_STARTED,
 	onboardingStatus: OnboardingStatus.NOT_STARTED,
 };
+export const fetchUser = createAsyncThunk<
+	AuthResponse,
+	void,
+	{ rejectValue: AuthError }
+>("auth/fetchUser", async (_, { rejectWithValue }) => {
+	try {
+		const userData = await getUserData();
+		return userData;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "GOOGLE_LOGIN_ERROR",
+			message: error.message || "An error occurred fetching user information",
+		};
+		return rejectWithValue(authError);
+	}
+});
 
 export const login = createAsyncThunk<
 	AuthResponse,
@@ -35,15 +54,6 @@ export const login = createAsyncThunk<
 	{ rejectValue: AuthError }
 >("auth/login", async (credentials, { rejectWithValue }) => {
 	try {
-		// const result = await signIn("credentials", {
-		// 	...credentials,
-		// 	redirect: false,
-		// });
-
-		// if (result?.error) {
-		// 	throw new Error(result.error);
-		// }
-
 		const response = await loginUser(credentials);
 		return response;
 	} catch (error: any) {
@@ -62,8 +72,7 @@ export const googleLogin = createAsyncThunk<
 	{ rejectValue: AuthError }
 >("auth/google", async (_, { rejectWithValue }) => {
 	try {
-		// const response = await googleCallback();
-		const response = await loginUser({ email: "", password: "" });
+		const response = await googleCallback();
 		return response;
 	} catch (error: any) {
 		const authError: AuthError = {
@@ -118,11 +127,15 @@ const authSlice = createSlice({
 		clearError: (state) => {
 			state.error = null;
 		},
-		setUser: (state, action: PayloadAction<AuthResponse>) => {
-			state.user = action.payload.user;
+		setUser: (state, action: PayloadAction<any>) => {
+			state.user = action.payload;
 			state.isAuthenticated = true;
-			state.accessToken = action.payload.accessToken;
-			state.refreshToken = action.payload.refreshToken;
+			state.kycStatus = action.payload.kycStatus;
+			state.onboardingStatus = action.payload.onboardingStatus;
+			if (action.payload.accessToken) {
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+			}
 		},
 		setKYCStatus: (state, action: PayloadAction<KYCStatus>) => {
 			state.kycStatus = action.payload;
@@ -148,6 +161,21 @@ const authSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
+			.addCase(fetchUser.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(fetchUser.fulfilled, (state, action) => {
+				state.loading = false;
+				state.user = action.payload.user;
+			})
+			.addCase(fetchUser.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "UNKNOWN_ERROR",
+					message: "An unknown error occurred",
+				};
+			})
 			.addCase(login.pending, (state) => {
 				state.loading = true;
 				state.error = null;

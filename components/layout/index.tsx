@@ -26,7 +26,7 @@ export function Layout({ children }: LayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   // Check if the current route matches one of the sidebar item hrefs
-  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href));
+  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile";
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
