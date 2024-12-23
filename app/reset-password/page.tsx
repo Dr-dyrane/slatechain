@@ -23,6 +23,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import LayoutLoader from "@/components/layout/loading";
 import { toast } from "sonner";
+import { Eye, EyeOff } from 'lucide-react'
 
 const resetPasswordSchema = z.object({
     code: z.string().min(6, "Code should be 6 characters long"),
@@ -43,6 +44,9 @@ export default function ResetPasswordPage() {
     const email = searchParams.get("email");
     const { loading, error } = useSelector((state: RootState) => state.auth)
     const [resetSuccessful, setResetSuccessful] = useState(false);
+    const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+    const [confirmNewPasswordVisible, setConfirmNewPasswordVisible] = useState(false)
+
     const {
         register,
         handleSubmit,
@@ -72,6 +76,14 @@ export default function ResetPasswordPage() {
             toast.error(err.message || 'There was an error with the password reset process please try again')
         }
     }
+    const toggleNewPasswordVisibility = () => {
+        setNewPasswordVisible(!newPasswordVisible);
+    };
+    const toggleConfirmNewPasswordVisibility = () => {
+        setConfirmNewPasswordVisible(!confirmNewPasswordVisible);
+    };
+
+
     if (loading) {
         return <LayoutLoader />
     }
@@ -129,26 +141,56 @@ export default function ResetPasswordPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="newPassword">New Password</Label>
-                            <Input
-                                id="newPassword"
-                                type='password'
-                                placeholder='New Password'
-                                {...register("newPassword")}
-                                className="input-focus input-hover"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="newPassword"
+                                    type={newPasswordVisible ? "text" : "password"}
+                                    placeholder='New Password'
+                                    {...register("newPassword")}
+                                    className="input-focus input-hover pr-10"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                                    onClick={toggleNewPasswordVisibility}
+                                >
+                                    {newPasswordVisible ? (
+                                        <EyeOff className="h-5 w-5 text-muted-foreground" />
+                                    ) : (
+                                        <Eye className="h-5 w-5 text-muted-foreground" />
+                                    )}
+                                </Button>
+                            </div>
                             {errors.newPassword && (
                                 <p className="text-sm text-red-500">{errors.newPassword.message}</p>
                             )}
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
-                            <Input
-                                id="confirmNewPassword"
-                                type='password'
-                                placeholder='Confirm New Password'
-                                {...register("confirmNewPassword")}
-                                className="input-focus input-hover"
-                            />
+                            <div className="relative">
+                                <Input
+                                    id="confirmNewPassword"
+                                    type={confirmNewPasswordVisible ? "text" : "password"}
+                                    placeholder='Confirm New Password'
+                                    {...register("confirmNewPassword")}
+                                    className="input-focus input-hover pr-10"
+                                />
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                                    onClick={toggleConfirmNewPasswordVisibility}
+                                >
+                                    {confirmNewPasswordVisible ? (
+                                        <EyeOff className="h-5 w-5 text-muted-foreground" />
+                                    ) : (
+                                        <Eye className="h-5 w-5 text-muted-foreground" />
+                                    )}
+                                </Button>
+                            </div>
                             {errors.confirmNewPassword && (
                                 <p className="text-sm text-red-500">{errors.confirmNewPassword.message}</p>
                             )}
