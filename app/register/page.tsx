@@ -1,22 +1,23 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
-import { Logo } from '@/components/Logo'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { register } from '@/lib/slices/authSlice'
-import { AppDispatch, RootState } from '@/lib/store'
-import Link from 'next/link'
-import { UserRole } from '@/lib/types'
-import { z } from 'zod'
-import { Eye, EyeOff, Check, X } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Logo } from '@/components/Logo';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { register } from '@/lib/slices/authSlice';
+import { AppDispatch, RootState } from '@/lib/store';
+import Link from 'next/link';
+import { UserRole } from '@/lib/types';
+import { z } from 'zod';
+import { Eye, EyeOff, Check, X, User, Mail, Lock, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
-const steps = ['Basic Info']
+const steps = ['Basic Info'];
 
 // Zod schema for validation
 const registerSchema = z.object({
@@ -27,17 +28,17 @@ const registerSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   confirmPassword: z.string().min(8, 'Confirm password is required'),
-  phoneNumber: z.string(), // Add phoneNumber to the schema
-  role: z.enum(['customer', 'admin', 'staff']).default('customer') // Add role to the schema
+  phoneNumber: z.string(),
+  role: z.enum(['customer', 'admin', 'staff']).default('customer')
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword']
-})
+});
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function RegisterPage() {
-  const [currentStep, setStep] = useState(0)
+  const [currentStep, setStep] = useState(0);
   const [formData, setFormData] = useState<RegisterFormValues>({
     firstName: '',
     lastName: '',
@@ -46,30 +47,30 @@ export default function RegisterPage() {
     confirmPassword: '',
     phoneNumber: '',
     role: 'customer',
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const dispatch = useDispatch<AppDispatch>()
-  const { error, loading } = useSelector((state: RootState) => state.auth)
-  const router = useRouter()
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const dispatch = useDispatch<AppDispatch>();
+  const { error, loading } = useSelector((state: RootState) => state.auth);
+  const router = useRouter();
 
   const [passwordStrength, setPasswordStrength] = useState<{ hasUppercase: boolean; hasLowercase: boolean; hasNumber: boolean; isLongEnough: boolean } | null>(null);
-  const [passwordsMatch, setPasswordsMatch] = useState(false)
+  const [passwordsMatch, setPasswordsMatch] = useState(false);
   const [formErrors, setFormErrors] = useState<z.ZodError | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    setFormErrors(null); // Clear errors on input change
-  }
+    setFormErrors(null);
+  };
 
   const handlePasswordVisibility = () => {
-    setShowPassword(!showPassword)
-  }
+    setShowPassword(!showPassword);
+  };
 
   const handleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword)
-  }
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   useEffect(() => {
     if (formData.password) {
@@ -88,25 +89,25 @@ export default function RegisterPage() {
   }, [formData.confirmPassword, formData.password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     setFormErrors(null);
 
     try {
       // Validate form data using Zod
-      registerSchema.parse(formData)
+      registerSchema.parse(formData);
 
       if (currentStep < steps.length - 1) {
-        setStep(currentStep + 1)
+        setStep(currentStep + 1);
       } else {
         const registerData = {
           ...formData,
           name: `${formData.firstName} ${formData.lastName}`,
-          role: formData.role as UserRole, // Cast the role to UserRole
-        }
-        const result = await dispatch(register(registerData)).unwrap()
+          role: formData.role as UserRole,
+        };
+        const result = await dispatch(register(registerData)).unwrap();
 
         if (register.fulfilled.match(result)) {
-          router.push('/dashboard')
+          router.push('/dashboard');
         }
       }
     } catch (err) {
@@ -115,15 +116,15 @@ export default function RegisterPage() {
         setFormErrors(err);
       }
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setStep(currentStep - 1)
+      setStep(currentStep - 1);
     } else {
-      router.push('/')
+      router.push('/');
     }
-  }
+  };
 
   const validatePasswordStrength = (password: string) => {
     const hasUppercase = /[A-Z]/.test(password);
@@ -131,7 +132,7 @@ export default function RegisterPage() {
     const hasNumber = /[0-9]/.test(password);
     const isLongEnough = password.length >= 8;
     return { hasUppercase, hasLowercase, hasNumber, isLongEnough };
-  }
+  };
 
   const getFieldError = (fieldName: keyof RegisterFormValues) => {
     return formErrors?.flatten().fieldErrors[fieldName]?.[0];
@@ -143,7 +144,20 @@ export default function RegisterPage() {
         return (
           <>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="firstName">First Name</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="firstName" className='flex items-center gap-1'>
+                      <User className="h-4 w-4 text-muted-foreground" /> First Name
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Enter your first name
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <Input
                 id="firstName"
                 name="firstName"
@@ -154,7 +168,20 @@ export default function RegisterPage() {
               {getFieldError('firstName') && <p className="text-sm text-red-500">{getFieldError('firstName')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="lastName" className='flex items-center gap-1'>
+                      <User className="h-4 w-4 text-muted-foreground" /> Last Name
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Enter your last name
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <Input
                 id="lastName"
                 name="lastName"
@@ -165,7 +192,20 @@ export default function RegisterPage() {
               {getFieldError('lastName') && <p className="text-sm text-red-500">{getFieldError('lastName')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="email" className='flex items-center gap-1'>
+                      <Mail className="h-4 w-4 text-muted-foreground" /> Email
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Enter your email address
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <Input
                 id="email"
                 name="email"
@@ -177,7 +217,20 @@ export default function RegisterPage() {
               {getFieldError('email') && <p className="text-sm text-red-500">{getFieldError('email')}</p>}
             </div>
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="password" className='flex items-center gap-1'>
+                      <Lock className="h-4 w-4 text-muted-foreground" /> Password
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Enter your new account password
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <div className="relative">
                 <Input
                   id="password"
@@ -216,10 +269,23 @@ export default function RegisterPage() {
                   </p>
                 </div>
               )}
-               {getFieldError('password') && <p className="text-sm text-red-500">{getFieldError('password')}</p>}
+              {getFieldError('password') && <p className="text-sm text-red-500">{getFieldError('password')}</p>}
             </div>
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="confirmPassword" className='flex items-center gap-1'>
+                      <Lock className="h-4 w-4 text-muted-foreground" /> Confirm Password
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Confirm your new account password
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <div className="relative">
                 <Input
                   id="confirmPassword"
@@ -247,10 +313,23 @@ export default function RegisterPage() {
               {!passwordsMatch && formData.confirmPassword && formData.password && (
                 <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
               )}
-               {getFieldError('confirmPassword') && <p className="text-sm text-red-500">{getFieldError('confirmPassword')}</p>}
+              {getFieldError('confirmPassword') && <p className="text-sm text-red-500">{getFieldError('confirmPassword')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="phoneNumber">Phone Number</Label>
+              <Tooltip.Provider>
+                <Tooltip.Root>
+                  <Tooltip.Trigger asChild>
+                    <Label htmlFor="phoneNumber" className='flex items-center gap-1'>
+                      <Phone className="h-4 w-4 text-muted-foreground" /> Phone Number
+                    </Label>
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                      Enter your phone number
+                    </Tooltip.Content>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+              </Tooltip.Provider>
               <Input
                 id="phoneNumber"
                 name="phoneNumber"
@@ -259,14 +338,14 @@ export default function RegisterPage() {
                 onChange={handleInputChange}
                 required
               />
-               {getFieldError('phoneNumber') && <p className="text-sm text-red-500">{getFieldError('phoneNumber')}</p>}
+              {getFieldError('phoneNumber') && <p className="text-sm text-red-500">{getFieldError('phoneNumber')}</p>}
             </div>
           </>
-        )
+        );
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen h-auto p-8 items-center justify-center bg-none">
@@ -289,15 +368,18 @@ export default function RegisterPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex justify-between w-full">
+          <div className="flex justify-between w-full items-center">
             <Button
               variant="outline"
               onClick={handleBack}
+              className="gap-1"
             >
+              <ArrowLeft size={16} />
               {currentStep === 0 ? 'Cancel' : 'Back'}
             </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
+            <Button onClick={handleSubmit} disabled={loading} className="gap-1">
               {loading ? 'Registering...' : currentStep === steps.length - 1 ? 'Register' : 'Next'}
+              <ArrowRight size={16} />
             </Button>
           </div>
           <div className="text-sm text-center">
@@ -309,5 +391,5 @@ export default function RegisterPage() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
