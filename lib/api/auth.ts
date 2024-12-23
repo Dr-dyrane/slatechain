@@ -1,6 +1,13 @@
+// src/lib/api/auth.ts
 import { tokenManager } from "../helpers/tokenManager";
 import { apiClient } from "./apiClient";
-import { User, AuthResponse, LoginRequest, RegisterRequest } from "@/lib/types";
+import {
+	User,
+	AuthResponse,
+	LoginRequest,
+	RegisterRequest,
+	PasswordChangeFormData,
+} from "@/lib/types";
 
 export const loginUser = async (
 	credentials: LoginRequest
@@ -44,7 +51,29 @@ export const updateUserProfile = async (
 	return apiClient.put<User>("/users/me/profile", profileData);
 };
 
-// New function to get user data
+export const changeUserPassword = async (
+	passwordData: PasswordChangeFormData
+): Promise<void> => {
+	await apiClient.post("/auth/password/change", passwordData);
+};
+
+export const sendPasswordResetEmail = async (
+	email: string
+): Promise<string> => {
+	const response = await apiClient.post<{ code: string }>(
+		"/auth/password/forgot",
+		{ email }
+	);
+	return response.code;
+};
+
+export const resetPassword = async (
+	code: string,
+	newPassword: string
+): Promise<void> => {
+	await apiClient.post("/auth/password/reset", { code, newPassword });
+};
+
 export const getUserData = async (): Promise<AuthResponse> => {
 	return apiClient.get<AuthResponse>("/auth/me");
 };

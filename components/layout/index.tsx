@@ -26,6 +26,7 @@ export function Layout({ children }: LayoutProps) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
 
   // Check if the current route matches one of the sidebar item hrefs
+  // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar
   const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
 
   const toggleSidebar = () => {

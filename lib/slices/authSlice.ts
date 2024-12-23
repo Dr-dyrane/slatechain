@@ -9,6 +9,7 @@ import {
 	OnboardingStatus,
 	AuthResponse,
 	User,
+	PasswordChangeFormData,
 } from "@/lib/types";
 import {
 	loginUser,
@@ -16,10 +17,14 @@ import {
 	logoutUser,
 	getUserData,
 	googleCallback,
+	changeUserPassword,
+	sendPasswordResetEmail,
+	resetPassword,
 	updateUserProfile,
 } from "@/lib/api/auth";
 import { signIn, signOut } from "next-auth/react";
 import { tokenManager } from "../helpers/tokenManager";
+import { toast } from "sonner";
 
 const initialState: AuthState = {
 	user: null,
@@ -31,6 +36,7 @@ const initialState: AuthState = {
 	kycStatus: KYCStatus.NOT_STARTED,
 	onboardingStatus: OnboardingStatus.NOT_STARTED,
 };
+
 export const fetchUser = createAsyncThunk<
 	AuthResponse,
 	void,
@@ -43,6 +49,60 @@ export const fetchUser = createAsyncThunk<
 		const authError: AuthError = {
 			code: "GOOGLE_LOGIN_ERROR",
 			message: error.message || "An error occurred fetching user information",
+		};
+		return rejectWithValue(authError);
+	}
+});
+export const resetUserPassword = createAsyncThunk<
+	void,
+	{ code: string; newPassword: string },
+	{ rejectValue: AuthError }
+>(
+	"auth/resetUserPassword",
+	async ({ code, newPassword }, { rejectWithValue }) => {
+		try {
+			await resetPassword(code, newPassword);
+			toast.success(
+				"Password reset successful, please log in with your new password"
+			);
+		} catch (error: any) {
+			const authError: AuthError = {
+				code: "GOOGLE_LOGIN_ERROR",
+				message: error.message || "An error occurred reseting the password",
+			};
+			return rejectWithValue(authError);
+		}
+	}
+);
+
+export const sendResetEmail = createAsyncThunk<
+	string,
+	string,
+	{ rejectValue: AuthError }
+>("auth/sendResetEmail", async (email, { rejectWithValue }) => {
+	try {
+		const resetCode = await sendPasswordResetEmail(email);
+		return resetCode;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "GOOGLE_LOGIN_ERROR",
+			message: error.message || "An error occurred sending email",
+		};
+		return rejectWithValue(authError);
+	}
+});
+
+export const changePassword = createAsyncThunk<
+	void,
+	PasswordChangeFormData,
+	{ rejectValue: AuthError }
+>("auth/changePassword", async (passwordData, { rejectWithValue }) => {
+	try {
+		await changeUserPassword(passwordData);
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "GOOGLE_LOGIN_ERROR",
+			message: error.message || "An error occurred during password change",
 		};
 		return rejectWithValue(authError);
 	}
@@ -172,10 +232,47 @@ const authSlice = createSlice({
 			.addCase(fetchUser.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload || {
-					code: "UNKNOWN_ERROR",
-					message: "An unknown error occurred",
+					code: "FETCH_USER_ERROR",
+					message: "Failed to fetch user information",
 				};
 			})
+			.addCase(resetUserPassword.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(resetUserPassword.fulfilled, (state, action) => {
+				state.loading = false;
+				// toast.success("Password reset successful, please log in with your new password"); // moved to the page
+			})
+			.addCase(resetUserPassword.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as AuthError;
+			})
+			.addCase(sendResetEmail.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(sendResetEmail.fulfilled, (state, action) => {
+				state.loading = false;
+				// toast.success('A reset email has been sent, please check you inbox');
+			})
+			.addCase(sendResetEmail.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as AuthError;
+			})
+			.addCase(changePassword.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(changePassword.fulfilled, (state, action) => {
+				state.loading = false;
+				//toast.success('Password Changed successfully'); //moved to page
+			})
+			.addCase(changePassword.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as AuthError;
+			})
+
 			.addCase(login.pending, (state) => {
 				state.loading = true;
 				state.error = null;

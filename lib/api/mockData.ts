@@ -1,5 +1,4 @@
 // src/lib/api/mockData.ts
-
 import {
 	AuthResponse,
 	User,
@@ -61,6 +60,11 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			refreshToken: "new_mock_refresh_token",
 		}),
 		"/auth/logout": () => ({ success: true }),
+		"/auth/google": (): AuthResponse => ({
+			user: mockApiResponses.get["/users/me"](),
+			accessToken: "new_mock_access_token",
+			refreshToken: "new_mock_refresh_token",
+		}),
 		"/kyc/start": (): KYCStatus => KYCStatus.IN_PROGRESS,
 		"/kyc/documents": (data: FormData): KYCDocument => ({
 			id: "doc-123",
@@ -111,6 +115,18 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			...data,
 			id: Math.floor(Math.random() * 100).toString(),
 		}),
+		"/auth/password/change": (data: any) => {
+			return { success: true };
+		},
+		"/auth/password/forgot": (data: any) => {
+			return {
+				success: true,
+				code: Math.floor(100000 + Math.random() * 900000).toString(),
+			};
+		},
+		"/auth/password/reset": () => {
+			return { success: true };
+		},
 	},
 	get: {
 		"/auth/me": {
@@ -131,21 +147,9 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			accessToken: "mock-access-token",
 			refreshToken: "mock-refresh-token",
 		},
-		"/users/me": (): User => ({
-			id: "user-123",
-			firstName: "John",
-			lastName: "Doe",
-			name: "John Doe",
-			email: "john@example.com",
-			phoneNumber: "+1234567890",
-			role: UserRole.SUPPLIER,
-			isEmailVerified: true,
-			isPhoneVerified: false,
-			kycStatus: KYCStatus.PENDING_REVIEW,
-			onboardingStatus: OnboardingStatus.IN_PROGRESS,
-		}),
+		"/users/me": (): User => mockApiResponses.get["/auth/me"].user,
 		"/kyc/status": (): { status: KYCStatus; documents: KYCDocument[] } => ({
-			status: KYCStatus.PENDING_REVIEW,
+			status: KYCStatus.IN_PROGRESS,
 			documents: [
 				{
 					id: "doc-1",

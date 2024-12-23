@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState, AppDispatch } from "@/lib/store";
-import { User, OnboardingStatus, KYCStatus } from "@/lib/types";
+import { User, OnboardingStatus, KYCStatus, PasswordChangeFormData } from "@/lib/types";
 import {
     Card,
     CardContent,
@@ -24,8 +24,8 @@ import {
     Pencil,
     ChevronRight,
     LayoutDashboard,
-    CheckCircle,
-    Clock
+    Clock,
+    CheckCircle
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -35,16 +35,17 @@ import {
     TabsList,
     TabsTrigger,
 } from "@/components/ui/tabs";
-import { updateUserProfile } from "@/lib/api/auth"
+import { updateUserProfile, changeUserPassword } from "@/lib/api/auth"
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/input"
 import { toast } from 'sonner'
-import { setUser } from "@/lib/slices/authSlice";
+import { setUser, fetchUser, changePassword } from "@/lib/slices/authSlice";
 import Link from "next/link";
+
 import { ErrorState } from "@/components/ui/error";
-import ProfileSkeleton from "./loading";
+import ProfileSkeleton  from "./loading";
 
 
 const profileFormSchema = z.object({
@@ -54,8 +55,17 @@ const profileFormSchema = z.object({
     phoneNumber: z.string().min(7, "Phone number is invalid")
 });
 
-type ProfileFormValues = z.infer<typeof profileFormSchema>;
+const passwordFormSchema = z.object({
+    currentPassword: z.string().min(8, "Current password should be a minimum of 8 characters"),
+    newPassword: z.string().min(8, "New password should be a minimum of 8 characters"),
+    confirmNewPassword: z.string().min(8, "Confirm new password should be a minimum of 8 characters")
+}).refine((data) => data.newPassword === data.confirmNewPassword, {
+    message: 'New passwords must match',
+    path: ['confirmNewPassword']
+});
 
+type ProfileFormValues = z.infer<typeof profileFormSchema>;
+type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export default function ProfilePage() {
     const user = useSelector((state: RootState) => state.auth.user);
@@ -63,6 +73,7 @@ export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState("dashboard")
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
+
 
     const {
         register,
@@ -78,6 +89,13 @@ export default function ProfilePage() {
             phoneNumber: user?.phoneNumber || "",
         },
     });
+    const {
+        register: registerPassword,
+        handleSubmit: handlePasswordSubmit,
+        formState: { errors: passwordErrors },
+    } = useForm<PasswordFormValues>({
+        resolver: zodResolver(passwordFormSchema),
+    });
 
     if (!user) {
         return null;
@@ -86,7 +104,6 @@ export default function ProfilePage() {
     if (authLoading) {
         return <ProfileSkeleton />
     }
-
     if (authError) {
         return (
             <div className="flex h-full items-center justify-center bg-none">
@@ -138,6 +155,7 @@ export default function ProfilePage() {
             KYC: {user.kycStatus} <Link href={"/kyc"} className="text-sm text-muted-foreground hover:underline ml-1">(Review)</Link></div>
     }
 
+
     const onSubmit = async (data: ProfileFormValues) => {
         try {
             const updatedUser = await updateUserProfile({
@@ -156,14 +174,25 @@ export default function ProfilePage() {
             });
         }
     }
+    const onPasswordChangeSubmit = async (data: PasswordChangeFormData) => {
+        try {
+            await dispatch(changePassword(data)).unwrap()
+            reset()
+        } catch (error: any) {
+            toast.error('Failed to change password, please try again later', {
+                duration: 5000
+            });
+        }
+    }
 
     return (
         <div className="space-y-4">
             <h1 className="text-3xl font-bold">User Profile</h1>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList>
+                <TabsList className="w-full md:w-auto justify-between md:justify-start">
                     <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                     <TabsTrigger value="edit">Edit Profile</TabsTrigger>
+                    <TabsTrigger value="password">Password</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
                     <Card>
@@ -207,7 +236,6 @@ export default function ProfilePage() {
                             {renderKycStatus()}
                         </CardFooter>
                     </Card>
-
                 </TabsContent>
                 <TabsContent value="edit">
                     <Card>
@@ -245,8 +273,42 @@ export default function ProfilePage() {
                                         <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
                                     )}
                                 </div>
-
                                 <Button type="submit" className="w-full mt-4">Update Profile</Button>
+                            </form>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="password">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Change Password</CardTitle>
+                            <CardDescription>Change your account password</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <form onSubmit={handlePasswordSubmit(onPasswordChangeSubmit)} className='space-y-4'>
+                                <div className="space-y-2">
+                                    <label htmlFor="currentPassword" className="text-sm font-medium">Current Password</label>
+                                    <Input {...registerPassword("currentPassword")} type="password" placeholder="Current Password" className='input-focus input-hover' />
+                                    {passwordErrors.currentPassword && (
+                                        <p className="text-sm text-red-500">{passwordErrors.currentPassword.message}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="newPassword" className="text-sm font-medium">New Password</label>
+                                    <Input {...registerPassword("newPassword")} type="password" placeholder="New Password" className='input-focus input-hover' />
+                                    {passwordErrors.newPassword && (
+                                        <p className="text-sm text-red-500">{passwordErrors.newPassword.message}</p>
+                                    )}
+                                </div>
+                                <div className="space-y-2">
+                                    <label htmlFor="confirmNewPassword" className="text-sm font-medium">Confirm New Password</label>
+                                    <Input {...registerPassword("confirmNewPassword")} type="password" placeholder="Confirm New Password" className='input-focus input-hover' />
+                                    {passwordErrors.confirmNewPassword && (
+                                        <p className="text-sm text-red-500">{passwordErrors.confirmNewPassword.message}</p>
+                                    )}
+                                </div>
+
+                                <Button type="submit" className="w-full mt-4">Change Password</Button>
                             </form>
                         </CardContent>
                     </Card>

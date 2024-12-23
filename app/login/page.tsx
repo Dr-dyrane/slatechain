@@ -1,3 +1,4 @@
+// src/app/login/page.tsx
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -11,14 +12,16 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { AppDispatch, RootState } from '@/lib/store'
-import { login, googleLogin, resetLoading } from '@/lib/slices/authSlice'
+import { login, googleLogin, resetLoading, sendResetEmail } from '@/lib/slices/authSlice'
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button'
+import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
+  const [showForgotPassowrd, setShowForgotPassowrd] = useState(false);
   const { error, loading } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
@@ -26,6 +29,11 @@ export default function LoginPage() {
       dispatch(resetLoading());
     };
   }, [dispatch]);
+
+  const handleForgotPassword = async () => {
+    setShowForgotPassowrd(true)
+  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,14 +87,14 @@ export default function LoginPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex w-full justify-between">
-            <Button variant="outline" asChild>
-              <Link href="/">Cancel</Link>
-            </Button>
+          <div className="flex justify-between w-full">
+            <Button variant='link' size={'sm'} onClick={handleForgotPassword}>Forgot password?</Button>
             <Button onClick={handleSubmit} disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </div>
+
+
           <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full">
             Sign in with Google
           </GoogleSignInButton>
@@ -103,7 +111,7 @@ export default function LoginPage() {
           </div>
         </CardFooter>
       </Card>
+      <ForgotPasswordModal isOpen={showForgotPassowrd} onClose={() => setShowForgotPassowrd(false)} />
     </div>
   )
 }
-
