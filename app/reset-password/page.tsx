@@ -1,4 +1,3 @@
-// src/app/auth/reset-password/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -108,7 +107,6 @@ export default function ResetPasswordPage() {
         setConfirmNewPasswordVisible(!confirmNewPasswordVisible);
     };
 
-
     const validatePasswordStrength = (password: string) => {
         const hasUppercase = /[A-Z]/.test(password);
         const hasLowercase = /[a-z]/.test(password);
@@ -116,9 +114,6 @@ export default function ResetPasswordPage() {
         const isLongEnough = password.length >= 8;
         return { hasUppercase, hasLowercase, hasNumber, isLongEnough };
     }
-
-
-
 
     if (loading) {
         return <LayoutLoader />
@@ -153,13 +148,12 @@ export default function ResetPasswordPage() {
         )
     }
 
-
     return (
         <div className="flex h-auto min-h-screen p-8 items-center justify-center bg-none">
             <Card className="w-[350px]">
                 <CardHeader className="text-center">
                     <Logo />
-                    <CardTitle className="text-2xl mt-2">SlateChain - Reset Password</CardTitle>
+                    <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
                     <CardDescription>Enter a code and your new password to reset your account.</CardDescription>
                 </CardHeader>
                 <CardContent>
