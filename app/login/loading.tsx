@@ -1,9 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton";
 
-const Skeleton = ({ className }) => (
-	<div className={`animate-pulse bg-gray-200 rounded-lg ${className}`}></div>
-);
 
 const AuthLoading = () => {
 	return (
