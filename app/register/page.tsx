@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
@@ -14,29 +14,29 @@ import { AppDispatch, RootState } from '@/lib/store'
 import Link from 'next/link'
 import { UserRole } from '@/lib/types'
 import { z } from 'zod'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Check, X } from 'lucide-react'
 
 const steps = ['Basic Info']
 
-// Zod schema for validation
+// Zod schema for validation (without password specifics initially)
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
-  confirmPassword: z.string().min(8, 'Confirm password is required')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  confirmPassword: z.string().min(8, 'Confirm password is required'),
+  phoneNumber: z.string(), // Add phoneNumber to the schema
+  role: z.enum(['customer', 'admin', 'staff']).default('customer') // Add role to the schema
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
   path: ['confirmPassword']
 })
 
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
 export default function RegisterPage() {
   const [currentStep, setStep] = useState(0)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<RegisterFormValues>({
     firstName: '',
     lastName: '',
     email: '',
@@ -51,8 +51,12 @@ export default function RegisterPage() {
   const { error, loading } = useSelector((state: RootState) => state.auth)
   const router = useRouter()
 
+  const [passwordStrength, setPasswordStrength] = useState<{ hasUppercase: boolean; hasLowercase: boolean; hasNumber: boolean; isLongEnough: boolean } | null>(null);
+  const [passwordsMatch, setPasswordsMatch] = useState(false)
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   }
 
   const handlePasswordVisibility = () => {
@@ -62,6 +66,22 @@ export default function RegisterPage() {
   const handleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword)
   }
+
+  useEffect(() => {
+    if (formData.password) {
+      setPasswordStrength(validatePasswordStrength(formData.password));
+    } else {
+      setPasswordStrength(null);
+    }
+  }, [formData.password]);
+
+  useEffect(() => {
+    if (formData.confirmPassword && formData.password) {
+      setPasswordsMatch(formData.password === formData.confirmPassword);
+    } else {
+      setPasswordsMatch(false);
+    }
+  }, [formData.confirmPassword, formData.password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,9 +104,9 @@ export default function RegisterPage() {
           router.push('/dashboard')
         }
       }
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.error('Validation failed', error.errors)
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        console.error('Validation failed', err.errors)
       }
     }
   }
@@ -97,6 +117,14 @@ export default function RegisterPage() {
     } else {
       router.push('/')
     }
+  }
+
+  const validatePasswordStrength = (password: string) => {
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const isLongEnough = password.length >= 8;
+    return { hasUppercase, hasLowercase, hasNumber, isLongEnough };
   }
 
   const renderStepContent = () => {
@@ -135,7 +163,7 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            <div className="flex flex-col space-y-1.5">
+            <div className="flex flex-col space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Input
@@ -152,11 +180,31 @@ export default function RegisterPage() {
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2"
                 >
-                  {showPassword ? <EyeOff size={16} className='text-muted-foreground'/> : <Eye size={16} className='text-muted-foreground'/>}
+                  {showPassword ? <EyeOff size={16} className='text-muted-foreground' /> : <Eye size={16} className='text-muted-foreground' />}
                 </Button>
               </div>
+              {passwordStrength && (
+                <div className="space-y-1 mt-3 bg-muted p-2 rounded-md">
+                  <p className={`text-sm ${passwordStrength.isLongEnough ? 'text-green-500' : 'text-red-500'}`}>
+                    {passwordStrength.isLongEnough ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                    At least 8 characters
+                  </p>
+                  <p className={`text-sm ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-red-500'}`}>
+                    {passwordStrength.hasUppercase ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                    Contains uppercase letter
+                  </p>
+                  <p className={`text-sm ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-red-500'}`}>
+                    {passwordStrength.hasLowercase ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                    Contains lowercase letter
+                  </p>
+                  <p className={`text-sm ${passwordStrength.hasNumber ? 'text-green-500' : 'text-red-500'}`}>
+                    {passwordStrength.hasNumber ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                    Contains number
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="flex flex-col space-y-1.5">
+            <div className="flex flex-col space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <div className="relative">
                 <Input
@@ -173,9 +221,18 @@ export default function RegisterPage() {
                   size="icon"
                   className="absolute right-2 top-1/2 -translate-y-1/2"
                 >
-                  {showConfirmPassword ? <EyeOff size={16}className='text-muted-foreground'/> : <Eye size={16} className='text-muted-foreground'/>}
+                  {showConfirmPassword ? <EyeOff size={16} className='text-muted-foreground' /> : <Eye size={16} className='text-muted-foreground' />}
                 </Button>
               </div>
+              {formData.password && formData.confirmPassword && passwordsMatch && (
+                <p className="text-sm text-green-500 flex items-center mt-1">
+                  <Check className="inline mr-1" />
+                  Passwords match
+                </p>
+              )}
+              {!passwordsMatch && formData.confirmPassword && formData.password && (
+                <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
+              )}
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="phoneNumber">Phone Number</Label>
