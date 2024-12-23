@@ -185,7 +185,7 @@ export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 	async (_, { rejectWithValue }) => {
 		try {
 			await logoutUser();
-			await signOut({ callbackUrl: "/login" });
+		//	await signOut({ callbackUrl: "/login" });
 		} catch (error: any) {
 			const authError: AuthError = {
 				code: "LOGOUT_ERROR",
