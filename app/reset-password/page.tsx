@@ -23,11 +23,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import LayoutLoader from "@/components/layout/loading";
 import { toast } from "sonner";
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Check, X } from 'lucide-react'
+import { Logo } from "@/components/Logo";
 
 const resetPasswordSchema = z.object({
     code: z.string().min(6, "Code should be 6 characters long"),
-    newPassword: z.string().min(8, "New password should be a minimum of 8 characters"),
+    newPassword: z.string().min(8, "New password should be a minimum of 8 characters")
+        .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+        .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+        .regex(/[0-9]/, "Password must contain at least one number"),
     confirmNewPassword: z.string().min(8, "Confirm new password should be a minimum of 8 characters")
 }).refine((data) => data.newPassword === data.confirmNewPassword, {
     message: 'New passwords must match',
@@ -45,16 +49,22 @@ export default function ResetPasswordPage() {
     const { loading, error } = useSelector((state: RootState) => state.auth)
     const [resetSuccessful, setResetSuccessful] = useState(false);
     const [newPasswordVisible, setNewPasswordVisible] = useState(false);
-    const [confirmNewPasswordVisible, setConfirmNewPasswordVisible] = useState(false)
-
+    const [confirmNewPasswordVisible, setConfirmNewPasswordVisible] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState<{ hasUppercase: boolean; hasLowercase: boolean; hasNumber: boolean; isLongEnough: boolean } | null>(null);
+    const [passwordsMatch, setPasswordsMatch] = useState(false)
     const {
         register,
         handleSubmit,
-        formState: { errors },
+        formState: { errors, isValid },
+        watch,
+        trigger
     } = useForm<ResetFormValues>({
         resolver: zodResolver(resetPasswordSchema),
+        mode: "onChange"
     });
 
+    const newPasswordValue = watch("newPassword");
+    const confirmNewPasswordValue = watch("confirmNewPassword");
 
     useEffect(() => {
         if (!token && !email) {
@@ -62,6 +72,20 @@ export default function ResetPasswordPage() {
         }
     }, [token, router, email]);
 
+    useEffect(() => {
+        if (newPasswordValue) {
+            setPasswordStrength(validatePasswordStrength(newPasswordValue));
+            trigger("newPassword")
+        }
+    }, [newPasswordValue, trigger])
+
+    useEffect(() => {
+        if (confirmNewPasswordValue && newPasswordValue) {
+            setPasswordsMatch(newPasswordValue === confirmNewPasswordValue);
+            trigger("confirmNewPassword");
+        }
+
+    }, [confirmNewPasswordValue, newPasswordValue, trigger])
 
     const onSubmit = async (data: ResetFormValues) => {
         try {
@@ -82,6 +106,17 @@ export default function ResetPasswordPage() {
     const toggleConfirmNewPasswordVisibility = () => {
         setConfirmNewPasswordVisible(!confirmNewPasswordVisible);
     };
+
+
+    const validatePasswordStrength = (password: string) => {
+        const hasUppercase = /[A-Z]/.test(password);
+        const hasLowercase = /[a-z]/.test(password);
+        const hasNumber = /[0-9]/.test(password);
+        const isLongEnough = password.length >= 8;
+        return { hasUppercase, hasLowercase, hasNumber, isLongEnough };
+    }
+
+
 
 
     if (loading) {
@@ -119,10 +154,11 @@ export default function ResetPasswordPage() {
 
 
     return (
-        <div className="flex h-full items-center justify-center bg-none">
+        <div className="flex h-auto min-h-screen p-8 items-center justify-center bg-none">
             <Card className="w-[350px]">
                 <CardHeader className="text-center">
-                    <CardTitle className="text-2xl mt-2">Reset Password</CardTitle>
+                    <Logo />
+                    <CardTitle className="text-2xl mt-2">SlateChain - Reset Password</CardTitle>
                     <CardDescription>Enter a code and your new password to reset your account.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -148,6 +184,7 @@ export default function ResetPasswordPage() {
                                     placeholder='New Password'
                                     {...register("newPassword")}
                                     className="input-focus input-hover pr-10"
+                                    onChange={() => trigger("newPassword")}
                                 />
                                 <Button
                                     type="button"
@@ -163,6 +200,26 @@ export default function ResetPasswordPage() {
                                     )}
                                 </Button>
                             </div>
+                            {passwordStrength && (
+                                <div className="space-y-1 mt-3 bg-muted p-2 rounded-md">
+                                    <p className={`text-sm ${passwordStrength.isLongEnough ? 'text-green-500' : 'text-red-500'}`}>
+                                        {passwordStrength.isLongEnough ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                                        At least 8 characters
+                                    </p>
+                                    <p className={`text-sm ${passwordStrength.hasUppercase ? 'text-green-500' : 'text-red-500'}`}>
+                                        {passwordStrength.hasUppercase ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                                        Contains uppercase letter
+                                    </p>
+                                    <p className={`text-sm ${passwordStrength.hasLowercase ? 'text-green-500' : 'text-red-500'}`}>
+                                        {passwordStrength.hasLowercase ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                                        Contains lowercase letter
+                                    </p>
+                                    <p className={`text-sm ${passwordStrength.hasNumber ? 'text-green-500' : 'text-red-500'}`}>
+                                        {passwordStrength.hasNumber ? <Check className="inline mr-1" /> : <X className="inline mr-1" />}
+                                        Contains number
+                                    </p>
+                                </div>
+                            )}
                             {errors.newPassword && (
                                 <p className="text-sm text-red-500">{errors.newPassword.message}</p>
                             )}
@@ -176,6 +233,7 @@ export default function ResetPasswordPage() {
                                     placeholder='Confirm New Password'
                                     {...register("confirmNewPassword")}
                                     className="input-focus input-hover pr-10"
+                                    onChange={() => trigger("confirmNewPassword")}
                                 />
                                 <Button
                                     type="button"
@@ -194,8 +252,14 @@ export default function ResetPasswordPage() {
                             {errors.confirmNewPassword && (
                                 <p className="text-sm text-red-500">{errors.confirmNewPassword.message}</p>
                             )}
+                            {newPasswordValue && confirmNewPasswordValue && passwordsMatch && (
+                                <p className="text-sm text-green-500 flex items-center">
+                                    <Check className="inline mr-1" />
+                                    Passwords match
+                                </p>
+                            )}
                         </div>
-                        <Button type="submit" className='mt-4 w-full' disabled={loading}>
+                        <Button type="submit" className='mt-4 w-full' disabled={loading || !isValid}>
                             {loading ? "Reseting..." : "Reset Password"}
                         </Button>
                         {error && (
@@ -203,7 +267,6 @@ export default function ResetPasswordPage() {
                                 <AlertDescription>{error.message}</AlertDescription>
                             </Alert>
                         )}
-
                     </form>
                 </CardContent>
                 <CardFooter>
