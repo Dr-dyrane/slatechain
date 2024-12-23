@@ -24,6 +24,7 @@ import { z } from "zod";
 import LayoutLoader from "@/components/layout/loading";
 import { toast } from "sonner";
 import { Eye, EyeOff, Check, X } from 'lucide-react'
+import Link from "next/link";
 import { Logo } from "@/components/Logo";
 
 const resetPasswordSchema = z.object({
@@ -269,8 +270,14 @@ export default function ResetPasswordPage() {
                         )}
                     </form>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="flex flex-row gap-4 items-center">
                     <Button variant='link' size={'sm'} onClick={() => router.push('/login')}>Cancel</Button>
+                    <div className="text-sm text-center">
+                        Don't have an account?{" "}
+                        <Link href="/register" className="text-primary hover:underline">
+                            Sign up
+                        </Link>
+                    </div>
                 </CardFooter>
             </Card>
         </div>
