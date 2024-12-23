@@ -9,14 +9,30 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Logo } from '@/components/Logo'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { register } from '@/lib/slices/authSlice'
 import { AppDispatch, RootState } from '@/lib/store'
 import Link from 'next/link'
 import { UserRole } from '@/lib/types'
+import { z } from 'zod'
+import { Eye, EyeOff } from 'lucide-react'
 
-// const steps = ['Basic Info', 'Role Selection']
 const steps = ['Basic Info']
+
+// Zod schema for validation
+const registerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Invalid email address'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
+  confirmPassword: z.string().min(8, 'Confirm password is required')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword']
+})
 
 export default function RegisterPage() {
   const [currentStep, setStep] = useState(0)
@@ -25,9 +41,12 @@ export default function RegisterPage() {
     lastName: '',
     email: '',
     password: '',
+    confirmPassword: '',
     phoneNumber: '',
     role: 'customer',
   })
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const dispatch = useDispatch<AppDispatch>()
   const { error, loading } = useSelector((state: RootState) => state.auth)
   const router = useRouter()
@@ -36,30 +55,39 @@ export default function RegisterPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value })
   }
 
-  // const handleRoleChange = (value: string) => {
-  //   setFormData({ ...formData, role: value })
-  // }
+  const handlePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const handleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (currentStep < steps.length - 1) {
-      setStep(currentStep + 1)
-    } else {
+    try {
+      // Validate form data using Zod
+      registerSchema.parse(formData)
 
-      const registerData = {
-        ...formData,
-        name: `${formData.firstName} ${formData.lastName}`,
-        role: formData.role as UserRole, // Cast the role to UserRole
+      if (currentStep < steps.length - 1) {
+        setStep(currentStep + 1)
+      } else {
+        const registerData = {
+          ...formData,
+          name: `${formData.firstName} ${formData.lastName}`,
+          role: formData.role as UserRole, // Cast the role to UserRole
+        }
+        const result = await dispatch(register(registerData)).unwrap()
+
+        if (register.fulfilled.match(result)) {
+          router.push('/dashboard')
+        }
       }
-      const result = await dispatch(register(registerData)).unwrap()
-
-      // Redirect to KYC page
-      // router.push('/kyc')
-      if (register.fulfilled.match(result)) {
-        router.push('/dashboard')
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error('Validation failed', error.errors)
       }
-
     }
   }
 
@@ -109,14 +137,45 @@ export default function RegisterPage() {
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  required
+                />
+                <Button
+                  variant="ghost"
+                  onClick={handlePasswordVisibility}
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                >
+                  {showPassword ? <EyeOff size={16} className='text-muted-foreground'/> : <Eye size={16} className='text-muted-foreground'/>}
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  required
+                />
+                <Button
+                  variant="ghost"
+                  onClick={handleConfirmPasswordVisibility}
+                  size="icon"
+                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                >
+                  {showConfirmPassword ? <EyeOff size={16}className='text-muted-foreground'/> : <Eye size={16} className='text-muted-foreground'/>}
+                </Button>
+              </div>
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -131,30 +190,13 @@ export default function RegisterPage() {
             </div>
           </>
         )
-      // case 1:
-      //   return (
-      //     <div className="flex flex-col space-y-1.5">
-      //       <Label htmlFor="role">Role</Label>
-      //       <Select value={formData.role} onValueChange={handleRoleChange}>
-      //         <SelectTrigger>
-      //           <SelectValue placeholder="Select your role" />
-      //         </SelectTrigger>
-      //         <SelectContent>
-      //           <SelectItem value="admin">Admin</SelectItem>
-      //           <SelectItem value="supplier">Supplier</SelectItem>
-      //           <SelectItem value="manager">Manager</SelectItem>
-      //           <SelectItem value="customer">Customer</SelectItem>
-      //         </SelectContent>
-      //       </Select>
-      //     </div>
-      //   )
       default:
         return null
     }
   }
 
   return (
-    <div className="flex h-full items-center justify-center bg-none">
+    <div className="flex min-h-screen h-auto p-8 items-center justify-center bg-none">
       <Card className="w-[350px] sm:w-[400px]">
         <CardHeader className='text-center'>
           <Logo />
@@ -196,4 +238,3 @@ export default function RegisterPage() {
     </div>
   )
 }
-
