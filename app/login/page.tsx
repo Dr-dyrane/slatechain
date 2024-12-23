@@ -152,7 +152,7 @@ export default function LoginPage() {
             Sign in with Google
           </GoogleSignInButton>
           <div className="text-sm text-center">
-            Don't have an account?{" "}
+            Don't have a chain?{" "}
             <Link href="/register" className="text-primary hover:underline">
               Sign up
             </Link>

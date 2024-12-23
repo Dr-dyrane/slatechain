@@ -22,9 +22,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import LayoutLoader from "@/components/layout/loading";
 import { toast } from "sonner";
-import { Eye, EyeOff, Check, X } from 'lucide-react'
+import { Eye, EyeOff, Check, X, Lock, Code, ArrowRight } from 'lucide-react'
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
+import * as Tooltip from '@radix-ui/react-tooltip';
+
 
 const resetPasswordSchema = z.object({
     code: z.string().min(6, "Code should be 6 characters long"),
@@ -159,7 +161,20 @@ export default function ResetPasswordPage() {
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="code">Code</Label>
+                            <Tooltip.Provider>
+                                <Tooltip.Root>
+                                    <Tooltip.Trigger asChild>
+                                        <Label htmlFor="code" className='flex items-center gap-1'>
+                                            <Code className="h-4 w-4 text-muted-foreground" /> Code
+                                        </Label>
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                        <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                            Enter the code you received in your email
+                                        </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                </Tooltip.Root>
+                            </Tooltip.Provider>
                             <Input
                                 id="code"
                                 placeholder='Enter Code'
@@ -171,7 +186,20 @@ export default function ResetPasswordPage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="newPassword">New Password</Label>
+                            <Tooltip.Provider>
+                                <Tooltip.Root>
+                                    <Tooltip.Trigger asChild>
+                                        <Label htmlFor="newPassword" className='flex items-center gap-1'>
+                                            <Lock className="h-4 w-4 text-muted-foreground" /> New Password
+                                        </Label>
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                        <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                            Enter your new account password
+                                        </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                </Tooltip.Root>
+                            </Tooltip.Provider>
                             <div className="relative">
                                 <Input
                                     id="newPassword"
@@ -220,7 +248,20 @@ export default function ResetPasswordPage() {
                             )}
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="confirmNewPassword">Confirm New Password</Label>
+                            <Tooltip.Provider>
+                                <Tooltip.Root>
+                                    <Tooltip.Trigger asChild>
+                                        <Label htmlFor="confirmNewPassword" className='flex items-center gap-1'>
+                                            <Lock className="h-4 w-4 text-muted-foreground" /> Confirm New Password
+                                        </Label>
+                                    </Tooltip.Trigger>
+                                    <Tooltip.Portal>
+                                        <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                            Confirm your new password
+                                        </Tooltip.Content>
+                                    </Tooltip.Portal>
+                                </Tooltip.Root>
+                            </Tooltip.Provider>
                             <div className="relative">
                                 <Input
                                     id="confirmNewPassword"
@@ -254,8 +295,8 @@ export default function ResetPasswordPage() {
                                 </p>
                             )}
                         </div>
-                        <Button type="submit" className='mt-4 w-full' disabled={loading || !isValid}>
-                            {loading ? "Reseting..." : "Reset Password"}
+                        <Button type="submit" className='mt-4 w-full flex items-center justify-center gap-2' disabled={loading || !isValid}>
+                            {loading ? "Reseting..." : "Reset Password"} <ArrowRight size={16} />
                         </Button>
                         {error && (
                             <Alert variant="destructive" className="mt-4">
@@ -265,9 +306,9 @@ export default function ResetPasswordPage() {
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-row gap-4 items-center">
-                    <Button variant='link' size={'sm'} onClick={() => router.push('/login')}>Cancel</Button>
+                    <Button variant='outline' size={'sm'} onClick={() => router.push('/login')}>Cancel</Button>
                     <div className="text-sm text-center">
-                        Don't have an account?{" "}
+                        Don't have a chain?{" "}
                         <Link href="/register" className="text-primary hover:underline">
                             Sign up
                         </Link>
