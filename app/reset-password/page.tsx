@@ -22,7 +22,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import LayoutLoader from "@/components/layout/loading";
 import { toast } from "sonner";
-import { Eye, EyeOff, Check, X, Lock, Code, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff, Check, X, Lock, Code, ArrowRight, ArrowLeft } from 'lucide-react'
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import * as Tooltip from '@radix-ui/react-tooltip';
@@ -306,7 +306,7 @@ export default function ResetPasswordPage() {
                     </form>
                 </CardContent>
                 <CardFooter className="flex flex-row gap-4 items-center">
-                    <Button variant='outline' size={'sm'} onClick={() => router.push('/login')}>Cancel</Button>
+                    <Button variant='outline' size={'sm'} onClick={() => router.push('/login')} className="gap-1">  <ArrowLeft size={16} /> Cancel</Button>
                     <div className="text-sm text-center">
                         Don't have a chain?{" "}
                         <Link href="/register" className="text-primary hover:underline">
