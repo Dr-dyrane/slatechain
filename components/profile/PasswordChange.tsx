@@ -16,7 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, Check, X } from 'lucide-react';
+import { Eye, EyeOff, Check, X, Lock, ArrowRight } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 const passwordFormSchema = z.object({
     currentPassword: z.string().min(8, "Current password should be a minimum of 8 characters"),
@@ -108,7 +109,20 @@ export default function PasswordChange() {
             <CardContent>
                 <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
                     <div className="space-y-2">
-                        <Label htmlFor="currentPassword" className="text-sm font-medium">Current Password</Label>
+                        <Tooltip.Provider>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild>
+                                    <Label htmlFor="currentPassword" className="text-sm font-medium flex items-center gap-1">
+                                        <Lock className="h-4 w-4 text-muted-foreground" /> Current Password
+                                    </Label>
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                        Enter your current account password
+                                    </Tooltip.Content>
+                                </Tooltip.Portal>
+                            </Tooltip.Root>
+                        </Tooltip.Provider>
                         <Input
                             {...register("currentPassword")}
                             type="password"
@@ -120,7 +134,20 @@ export default function PasswordChange() {
                         )}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="newPassword" className="text-sm font-medium">New Password</Label>
+                        <Tooltip.Provider>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild>
+                                    <Label htmlFor="newPassword" className="text-sm font-medium flex items-center gap-1">
+                                        <Lock className="h-4 w-4 text-muted-foreground" /> New Password
+                                    </Label>
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                        Enter your new account password
+                                    </Tooltip.Content>
+                                </Tooltip.Portal>
+                            </Tooltip.Root>
+                        </Tooltip.Provider>
                         <div className="relative">
                             <Input
                                 {...register("newPassword")}
@@ -167,7 +194,20 @@ export default function PasswordChange() {
                         )}
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="confirmNewPassword" className="text-sm font-medium">Confirm New Password</Label>
+                        <Tooltip.Provider>
+                            <Tooltip.Root>
+                                <Tooltip.Trigger asChild>
+                                    <Label htmlFor="confirmNewPassword" className="text-sm font-medium flex items-center gap-1">
+                                        <Lock className="h-4 w-4 text-muted-foreground" /> Confirm New Password
+                                    </Label>
+                                </Tooltip.Trigger>
+                                <Tooltip.Portal>
+                                    <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                                        Confirm your new account password
+                                    </Tooltip.Content>
+                                </Tooltip.Portal>
+                            </Tooltip.Root>
+                        </Tooltip.Provider>
                         <div className="relative">
                             <Input
                                 {...register("confirmNewPassword")}
@@ -202,7 +242,7 @@ export default function PasswordChange() {
                             <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
                         )}
                     </div>
-                    <Button type="submit" className="w-full mt-4" disabled={!isValid}>Change Password</Button>
+                    <Button type="submit" className="w-full mt-4 flex items-center justify-center gap-2" disabled={!isValid}>Change Password <ArrowRight size={16} /></Button>
                 </form>
             </CardContent>
         </Card>
