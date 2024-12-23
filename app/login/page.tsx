@@ -1,30 +1,30 @@
-// src/app/login/page.tsx
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
-import { Logo } from '@/components/Logo'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { AppDispatch, RootState } from '@/lib/store'
-import { login, googleLogin, resetLoading, sendResetEmail } from '@/lib/slices/authSlice'
-import { GoogleSignInButton } from '@/components/ui/google-sign-in-button'
-import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal'
-import { Eye, EyeOff } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Logo } from '@/components/Logo';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AppDispatch, RootState } from '@/lib/store';
+import { login, googleLogin, resetLoading } from '@/lib/slices/authSlice';
+import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
+import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn } from 'lucide-react';
+import * as Tooltip from '@radix-ui/react-tooltip';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const dispatch = useDispatch<AppDispatch>()
-  const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const [showForgotPassowrd, setShowForgotPassowrd] = useState(false);
-  const { error, loading } = useSelector((state: RootState) => state.auth)
+  const { error, loading } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     return () => {
@@ -32,28 +32,31 @@ export default function LoginPage() {
     };
   }, [dispatch]);
 
-  const handleForgotPassword = async () => {
-    setShowForgotPassowrd(true)
+  const handleForgotPassword = () => {
+    setShowForgotPassowrd(true);
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const result = await dispatch(login({ email, password }))
+    e.preventDefault();
+    const result = await dispatch(login({ email, password }));
     if (login.fulfilled.match(result)) {
-      router.push('/dashboard')
+      router.push('/dashboard');
     }
-  }
+  };
+
   const togglePasswordVisibility = () => {
     setPasswordVisible(!passwordVisible);
   };
 
   const handleGoogleSignIn = () => {
-    dispatch(googleLogin())
+    dispatch(googleLogin());
+  };
+  const handleGoBack = () => {
+    router.push('/')
   }
 
   return (
-    <div className="flex  h-auto min-h-screen p-8 items-center justify-center bg-none">
+    <div className="flex h-auto min-h-screen p-8 items-center justify-center bg-none">
       <Card className="w-[350px]">
         <CardHeader className="text-center">
           <Logo />
@@ -64,7 +67,20 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid w-full items-center gap-4">
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Label htmlFor="email" className='flex items-center gap-1'>
+                        <Mail className="h-4 w-4 text-muted-foreground" /> Email
+                      </Label>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                        Enter your registered email address
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
                 <Input
                   id="email"
                   type="email"
@@ -74,7 +90,20 @@ export default function LoginPage() {
                 />
               </div>
               <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
+                <Tooltip.Provider>
+                  <Tooltip.Root>
+                    <Tooltip.Trigger asChild>
+                      <Label htmlFor="password" className='flex items-center gap-1'>
+                        <Lock className="h-4 w-4 text-muted-foreground" /> Password
+                      </Label>
+                    </Tooltip.Trigger>
+                    <Tooltip.Portal>
+                      <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
+                        Enter your account password
+                      </Tooltip.Content>
+                    </Tooltip.Portal>
+                  </Tooltip.Root>
+                </Tooltip.Provider>
                 <div className="relative">
                   <Input
                     id="password"
@@ -108,13 +137,18 @@ export default function LoginPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex justify-between w-full">
-            <Button variant='link' size={'sm'} onClick={handleForgotPassword}>Forgot password?</Button>
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? 'Logging in...' : 'Login'}
+          <div className="flex justify-between w-full items-center">
+            <Button variant='outline' size={'sm'} onClick={handleGoBack} className="gap-1">
+              <ArrowLeft size={16} />  Cancel
+            </Button>
+            <Button variant='link' size={'sm'} onClick={handleForgotPassword} className="gap-1">
+              Forgot password?
             </Button>
           </div>
-          <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full">
+          <Button onClick={handleSubmit} disabled={loading} className="w-full gap-2">
+            {loading ? 'Logging in...' : 'Login'} <LogIn size={16} />
+          </Button>
+          <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full gap-2">
             Sign in with Google
           </GoogleSignInButton>
           <div className="text-sm text-center">
@@ -123,14 +157,9 @@ export default function LoginPage() {
               Sign up
             </Link>
           </div>
-          <div className="text-sm text-center">
-            <Link href="/" className="text-muted-foreground hover:underline">
-              Learn more about SlateChain
-            </Link>
-          </div>
         </CardFooter>
       </Card>
       <ForgotPasswordModal isOpen={showForgotPassowrd} onClose={() => setShowForgotPassowrd(false)} />
     </div>
-  )
+  );
 }
