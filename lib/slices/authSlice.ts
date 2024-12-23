@@ -53,6 +53,26 @@ export const fetchUser = createAsyncThunk<
 		return rejectWithValue(authError);
 	}
 });
+
+export const updateUser = createAsyncThunk<
+	User,
+	Partial<User>,
+	{ rejectValue: AuthError }
+>("auth/updateUser", async (profileData, { rejectWithValue }) => {
+	try {
+		return await updateUserProfile(profileData);
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: "UPDATE_PROFILE_ERROR",
+			message:
+				error.response?.data?.message ||
+				error.message ||
+				"Failed to update profile",
+		};
+		return rejectWithValue(authError);
+	}
+});
+
 export const resetUserPassword = createAsyncThunk<
 	void,
 	{ code: string; newPassword: string },
@@ -76,13 +96,12 @@ export const resetUserPassword = createAsyncThunk<
 );
 
 export const sendResetEmail = createAsyncThunk<
-	string,
+	void,
 	string,
 	{ rejectValue: AuthError }
 >("auth/sendResetEmail", async (email, { rejectWithValue }) => {
 	try {
-		const resetCode = await sendPasswordResetEmail(email);
-		return resetCode;
+		await sendPasswordResetEmail(email);
 	} catch (error: any) {
 		const authError: AuthError = {
 			code: "GOOGLE_LOGIN_ERROR",
@@ -236,13 +255,25 @@ const authSlice = createSlice({
 					message: "Failed to fetch user information",
 				};
 			})
+			.addCase(updateUser.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(updateUser.fulfilled, (state, action) => {
+				state.loading = false;
+				state.user = action.payload;
+			})
+			.addCase(updateUser.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as AuthError;
+			})
 			.addCase(resetUserPassword.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
 			.addCase(resetUserPassword.fulfilled, (state, action) => {
 				state.loading = false;
-				// toast.success("Password reset successful, please log in with your new password"); // moved to the page
+				// toast.success("Password reset successful, please log in with your new password");
 			})
 			.addCase(resetUserPassword.rejected, (state, action) => {
 				state.loading = false;
@@ -258,7 +289,10 @@ const authSlice = createSlice({
 			})
 			.addCase(sendResetEmail.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload as AuthError;
+				state.error = action.payload || {
+					code: "SEND_EMAIL_ERROR",
+					message: "Failed to send reset email, please try again later",
+				};
 			})
 			.addCase(changePassword.pending, (state) => {
 				state.loading = true;
@@ -266,11 +300,13 @@ const authSlice = createSlice({
 			})
 			.addCase(changePassword.fulfilled, (state, action) => {
 				state.loading = false;
-				//toast.success('Password Changed successfully'); //moved to page
 			})
 			.addCase(changePassword.rejected, (state, action) => {
 				state.loading = false;
-				state.error = action.payload as AuthError;
+				state.error = action.payload || {
+					code: "PASSWORD_CHANGE_ERROR",
+					message: "An error occurred during password change",
+				};
 			})
 
 			.addCase(login.pending, (state) => {

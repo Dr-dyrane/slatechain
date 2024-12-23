@@ -41,7 +41,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Input } from "@/components/ui/input"
 import { toast } from 'sonner'
-import { setUser, fetchUser, changePassword } from "@/lib/slices/authSlice";
+import { setUser, fetchUser, changePassword, updateUser } from "@/lib/slices/authSlice";
 import Link from "next/link";
 
 import { ErrorState } from "@/components/ui/error";
@@ -68,7 +68,7 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 export default function ProfilePage() {
-    const user = useSelector((state: RootState) => state.auth.user);
+    const user = useSelector((state: RootState) => state.auth.user) || {} as User;
     const { loading: authLoading, error: authError } = useSelector((state: RootState) => state.auth)
     const [activeTab, setActiveTab] = useState("dashboard")
     const dispatch = useDispatch<AppDispatch>();
@@ -96,10 +96,6 @@ export default function ProfilePage() {
     } = useForm<PasswordFormValues>({
         resolver: zodResolver(passwordFormSchema),
     });
-
-    if (!user) {
-        return null;
-    }
 
     if (authLoading) {
         return <ProfileSkeleton />
@@ -158,16 +154,10 @@ export default function ProfilePage() {
 
     const onSubmit = async (data: ProfileFormValues) => {
         try {
-            const updatedUser = await updateUserProfile({
-                firstName: data.firstName,
-                lastName: data.lastName,
-                email: data.email,
-                phoneNumber: data.phoneNumber
-            });
-            dispatch(setUser({ ...user, ...updatedUser } as any));
-            toast.success('Profile updated successfully', {
-                duration: 5000
-            });
+          dispatch(updateUser(data)).unwrap();
+                toast.success('Profile updated successfully', {
+                    duration: 5000
+                });
         } catch (error: any) {
             toast.error('Failed to update profile, please try again later', {
                 duration: 5000
@@ -178,6 +168,7 @@ export default function ProfilePage() {
         try {
             await dispatch(changePassword(data)).unwrap()
             reset()
+            toast.success('Password changed successfully');
         } catch (error: any) {
             toast.error('Failed to change password, please try again later', {
                 duration: 5000
@@ -236,6 +227,7 @@ export default function ProfilePage() {
                             {renderKycStatus()}
                         </CardFooter>
                     </Card>
+
                 </TabsContent>
                 <TabsContent value="edit">
                     <Card>
@@ -273,6 +265,7 @@ export default function ProfilePage() {
                                         <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
                                     )}
                                 </div>
+
                                 <Button type="submit" className="w-full mt-4">Update Profile</Button>
                             </form>
                         </CardContent>
