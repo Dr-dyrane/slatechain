@@ -7,21 +7,22 @@ import { useRouter } from "next/navigation";
 import { RootState, AppDispatch } from "@/lib/store";
 import { User, OnboardingStatus, KYCStatus } from "@/lib/types";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
-  Mail,
-  Phone,
-  MapPin,
-  CircleUserRound,
-  Pencil,
-  ChevronRight,
+    Mail,
+    Phone,
+    MapPin,
+    CircleUserRound,
+    Pencil,
+    ChevronRight,
     LayoutDashboard,
     CheckCircle,
     Clock
@@ -122,19 +123,19 @@ export default function ProfilePage() {
         router.push('/kyc')
     }
 
-   const renderOnboardingStatus = () => {
-          if(user.onboardingStatus === OnboardingStatus.COMPLETED) return <div className="text-sm text-green-500 flex items-center space-x-1"><CheckCircle className="h-3 w-3" /> Onboarding Completed </div>;
-          if(user.onboardingStatus === OnboardingStatus.PENDING) return <div className="text-sm text-yellow-500 flex items-center space-x-1"><Clock className="h-3 w-3" />  Onboarding Pending <Link href={"/onboarding"} className="text-sm text-muted-foreground hover:underline ml-1">(Resume)</Link></div>;
-           return <div className="text-sm text-muted-foreground flex items-center space-x-1"><Clock className="h-3 w-3" /> Onboarding {user.onboardingStatus} <Link href={"/onboarding"} className="text-sm text-muted-foreground hover:underline ml-1">(Resume)</Link></div>
-      }
+    const renderOnboardingStatus = () => {
+        if (user.onboardingStatus === OnboardingStatus.COMPLETED) return <div className="text-sm text-green-500 flex items-center space-x-1"><CheckCircle className="h-3 w-3 mr-2" /> Onboarding Completed </div>;
+        if (user.onboardingStatus === OnboardingStatus.PENDING) return <div className="text-sm text-yellow-500 flex items-center space-x-1"><Clock className="h-3 w-3 mr-2" />  Onboarding Pending <Link href={"/onboarding"} className="text-sm text-muted-foreground hover:underline ml-1">(Resume)</Link></div>;
+        return <div className="text-sm text-muted-foreground flex items-center space-x-1"><Clock className="h-3 w-3 mr-2" /> Onboarding {user.onboardingStatus} <Link href={"/onboarding"} className="text-sm text-muted-foreground hover:underline ml-1">(Resume)</Link></div>
+    }
 
 
     const renderKycStatus = () => {
-        if (user.kycStatus === KYCStatus.APPROVED) return <div className="text-sm text-green-500 flex items-center space-x-1"><CheckCircle className="h-3 w-3" /> KYC Approved </div>
+        if (user.kycStatus === KYCStatus.APPROVED) return <div className="text-sm text-green-500 flex items-center space-x-1"><CheckCircle className="h-3 w-3 mr-2" /> KYC Approved </div>
         return <div className="text-sm text-muted-foreground flex items-center space-x-1">
-             {user.kycStatus === KYCStatus.PENDING_REVIEW ? <Clock className="h-3 w-3 text-yellow-500" /> : null}
-                {user.kycStatus === KYCStatus.REJECTED ? <Clock className="h-3 w-3 text-red-500" /> : null}
-           KYC: {user.kycStatus} <Link href={"/kyc"} className="text-sm text-muted-foreground hover:underline ml-1">(Review)</Link></div>
+            {user.kycStatus === KYCStatus.PENDING_REVIEW ? <Clock className="h-3 w-3 text-yellow-500 mr-2" /> : null}
+            {user.kycStatus === KYCStatus.REJECTED ? <Clock className="h-3 w-3 text-red-500 mr-2" /> : null}
+            KYC: {user.kycStatus} <Link href={"/kyc"} className="text-sm text-muted-foreground hover:underline ml-1">(Review)</Link></div>
     }
 
     const onSubmit = async (data: ProfileFormValues) => {
@@ -200,15 +201,12 @@ export default function ProfilePage() {
                                     <span className="text-sm">{user.id}</span>
                                 </div>
                             </div>
-                            <Separator />
-                              <div className="flex flex-col space-y-4">
-                                    { renderOnboardingStatus() }
-                                  { renderKycStatus() }
-                             </div>
-                            {/* <Separator /> */}
-
                         </CardContent>
-                     </Card>
+                        <CardFooter className="flex flex-col bg-muted p-4 gap-4">
+                            {renderOnboardingStatus()}
+                            {renderKycStatus()}
+                        </CardFooter>
+                    </Card>
 
                 </TabsContent>
                 <TabsContent value="edit">
