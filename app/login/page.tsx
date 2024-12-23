@@ -15,10 +15,12 @@ import { AppDispatch, RootState } from '@/lib/store'
 import { login, googleLogin, resetLoading, sendResetEmail } from '@/lib/slices/authSlice'
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button'
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const [showForgotPassowrd, setShowForgotPassowrd] = useState(false);
@@ -42,6 +44,9 @@ export default function LoginPage() {
       router.push('/dashboard')
     }
   }
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
+  };
 
   const handleGoogleSignIn = () => {
     dispatch(googleLogin())
@@ -70,13 +75,29 @@ export default function LoginPage() {
               </div>
               <div className="flex flex-col space-y-1.5">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={passwordVisible ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="pr-10"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-2 top-1/2 -translate-y-1/2"
+                    onClick={togglePasswordVisibility}
+                  >
+                    {passwordVisible ? (
+                      <EyeOff className="h-5 w-5 text-muted-foreground" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-muted-foreground" />
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </form>
@@ -93,8 +114,6 @@ export default function LoginPage() {
               {loading ? 'Logging in...' : 'Login'}
             </Button>
           </div>
-
-
           <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full">
             Sign in with Google
           </GoogleSignInButton>
