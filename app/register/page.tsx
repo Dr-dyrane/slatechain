@@ -18,12 +18,14 @@ import { Eye, EyeOff, Check, X } from 'lucide-react'
 
 const steps = ['Basic Info']
 
-// Zod schema for validation (without password specifics initially)
+// Zod schema for validation
 const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number'),
   confirmPassword: z.string().min(8, 'Confirm password is required'),
   phoneNumber: z.string(), // Add phoneNumber to the schema
   role: z.enum(['customer', 'admin', 'staff']).default('customer') // Add role to the schema
@@ -53,10 +55,12 @@ export default function RegisterPage() {
 
   const [passwordStrength, setPasswordStrength] = useState<{ hasUppercase: boolean; hasLowercase: boolean; hasNumber: boolean; isLongEnough: boolean } | null>(null);
   const [passwordsMatch, setPasswordsMatch] = useState(false)
+  const [formErrors, setFormErrors] = useState<z.ZodError | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    setFormErrors(null); // Clear errors on input change
   }
 
   const handlePasswordVisibility = () => {
@@ -85,6 +89,7 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormErrors(null);
 
     try {
       // Validate form data using Zod
@@ -106,7 +111,8 @@ export default function RegisterPage() {
       }
     } catch (err) {
       if (err instanceof z.ZodError) {
-        console.error('Validation failed', err.errors)
+        console.log('Validation failed', err);
+        setFormErrors(err);
       }
     }
   }
@@ -127,6 +133,10 @@ export default function RegisterPage() {
     return { hasUppercase, hasLowercase, hasNumber, isLongEnough };
   }
 
+  const getFieldError = (fieldName: keyof RegisterFormValues) => {
+    return formErrors?.flatten().fieldErrors[fieldName]?.[0];
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
@@ -141,6 +151,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange}
                 required
               />
+              {getFieldError('firstName') && <p className="text-sm text-red-500">{getFieldError('firstName')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="lastName">Last Name</Label>
@@ -151,6 +162,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange}
                 required
               />
+              {getFieldError('lastName') && <p className="text-sm text-red-500">{getFieldError('lastName')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="email">Email</Label>
@@ -162,6 +174,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange}
                 required
               />
+              {getFieldError('email') && <p className="text-sm text-red-500">{getFieldError('email')}</p>}
             </div>
             <div className="flex flex-col space-y-2">
               <Label htmlFor="password">Password</Label>
@@ -203,6 +216,7 @@ export default function RegisterPage() {
                   </p>
                 </div>
               )}
+               {getFieldError('password') && <p className="text-sm text-red-500">{getFieldError('password')}</p>}
             </div>
             <div className="flex flex-col space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
@@ -233,6 +247,7 @@ export default function RegisterPage() {
               {!passwordsMatch && formData.confirmPassword && formData.password && (
                 <p className="text-sm text-red-500 mt-1">Passwords do not match</p>
               )}
+               {getFieldError('confirmPassword') && <p className="text-sm text-red-500">{getFieldError('confirmPassword')}</p>}
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="phoneNumber">Phone Number</Label>
@@ -244,6 +259,7 @@ export default function RegisterPage() {
                 onChange={handleInputChange}
                 required
               />
+               {getFieldError('phoneNumber') && <p className="text-sm text-red-500">{getFieldError('phoneNumber')}</p>}
             </div>
           </>
         )
