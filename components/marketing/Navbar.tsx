@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
                         <Link href="/login">Sign In</Link>
                     </Button>
                     <Button asChild>
-                        <Link href="/register">Sign Up</Link>
+                        <Link href="/register" className="text-white">Sign Up</Link>
                     </Button>
                 </nav>
             </div>

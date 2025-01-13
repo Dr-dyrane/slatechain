@@ -24,14 +24,14 @@ const LandingPage: React.FC = () => {
                     />
                     Your browser does not support the video tag.
                 </video>
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-75"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-background to-background opacity-70"></div>
             </div>
 
             <Navbar />
 
             <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
                 <h1 className="text-5xl font-bold mb-6 relative z-20">Streamline Your Supply Chain</h1>
-                <p className="text-xl mb-8 max-w-2xl relative z-20">
+                <p className="text-xl text-muted-foreground mb-8 max-w-2xl relative z-20">
                     SlateChain helps you manage your inventory, track orders, and optimize logistics with ease.
                 </p>
                 <Button asChild size="lg" className="rounded-xl relative z-20">
