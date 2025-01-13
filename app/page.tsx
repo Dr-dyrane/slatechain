@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
            
             <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
                 {/* Hero Heading */}
-                <h1 className="text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-black dark:from-white via-gray-800 dark:via-gray-200 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg animate-fade-in">
+                <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-black dark:from-white via-gray-800 dark:via-gray-200 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg animate-fade-in">
                     Streamline Your Supply Chain
                 </h1>
                 {/* Subheading */}
@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
                 <Button
                     asChild
                     size="lg"
-                    className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
+                    className="rounded-xl bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
                 >
                     <Link href="/register">Get Started</Link>
                 </Button>
