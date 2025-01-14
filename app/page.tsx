@@ -21,24 +21,6 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex flex-col p-4">
-            {/* Video with Masking Effect */}
-            {/* <div className="absolute inset-0 -z-10">
-                <video
-                    className="object-cover w-full h-full opacity-80"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    aria-label="A high-quality video showcasing the efficiency of SlateChain in managing supply chains, inventory, and logistics."
-                >
-                    <source
-                        src="hero.mp4"
-                        type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                </video>
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-background to-background opacity-70"></div>
-            </div> */}
 
             <Navbar />
 
@@ -51,7 +33,7 @@ const LandingPage: React.FC = () => {
                 {/* Hero Heading */}
                 <h1
                     data-aos="fade-up"
-                    className="text-5xl p-4 sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-black dark:from-white via-gray-800 dark:via-gray-200 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg"
+                    className="text-5xl font-sans p-4 sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-black dark:from-white via-gray-800 dark:via-gray-200 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg"
                 >
                     Streamline Your Supply Chain
                 </h1>
@@ -59,15 +41,15 @@ const LandingPage: React.FC = () => {
                 <p
                     data-aos="fade-up"
                     data-aos-delay="200"
-                    className="text-xl md:text-2xl text-gray-800 dark:text-gray-200 leading-relaxed max-w-3xl mb-8"
+                    className="text-xl font-sans md:text-2xl text-gray-800 dark:text-gray-200 leading-relaxed max-w-3xl mb-8"
                 >
-                    SlateChain helps you manage your inventory, track orders, and optimize logistics with ease.
+                    SlateChain helps you manage your <strong className="italic strong font-sans">inventory</strong>, track orders, and optimize logistics with ease.
                 </p>
                 {/* Call-to-Action Button */}
                 <div data-aos="zoom-in" data-aos-delay="400">
                     <Button
                         size="lg"
-                        className="rounded-xl gap-4 group relative bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-6 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
+                        className="rounded-2xl gap-4 group relative bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-7 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
                     >
                         <div className="absolute inset-0 w-0 bg-accent transition-all duration-[250ms] rounded-xl ease-out group-hover:w-full opacity-10"></div>
                         <Link href="/register" className="text-base">Get Started</Link>
