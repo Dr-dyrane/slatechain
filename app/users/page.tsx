@@ -32,6 +32,7 @@ export default function UsersPage() {
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(5);
     const { toast } = useToast();
+    
     useEffect(() => {
         AOS.init({
             once: true,
