@@ -105,13 +105,13 @@ export default function Dashboard() {
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {cardData.map((card, index) => (
-          <Card key={index} className="bg-slate-100 dark:bg-gray-900 transition-all hover:shadow-lg overflow-hidden">
+          <Card key={index} className="bg-slate-100 dark:bg-gray-900 transition-all hover:shadow-lg overflow-hidden flex flex-col justify-between">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
               <card.icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold flex justify-between items-center">
+            <CardContent className="flex-1 justify-between items-start flex flex-col">
+              <div className="text-2xl flex-col font-bold flex justify-between items-start">
                 <span>{card.value}</span>
                 {card.sparklineData && <Sparkline data={card.sparklineData} type={card.type} />}
               </div>
