@@ -127,6 +127,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/auth/password/reset": () => {
 			return { success: true };
 		},
+		"/users": (data: Omit<User, "id">): User => {
+			return {
+				...data,
+				id: Math.random().toString(),
+			};
+		},
 	},
 	get: {
 		"/auth/me": {
@@ -378,11 +384,15 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/suppliers/:id": (data: Supplier): Supplier => {
 			return data;
 		},
+		"/users/:id": (data: User): User => {
+			return data;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/users/:id": (id: string) => ({ success: true, deletedId: id }),
 	},
 };
