@@ -29,7 +29,6 @@ const LandingPage: React.FC = () => {
 
             <Navbar />
 
-           
             <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
                 {/* Hero Heading */}
                 <h1 className="text-5xl sm:text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-black dark:from-white via-gray-800 dark:via-gray-200 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg animate-fade-in">
@@ -41,10 +40,10 @@ const LandingPage: React.FC = () => {
                 </p>
                 {/* Call-to-Action Button */}
                 <Button
-                    asChild
                     size="lg"
-                    className="rounded-xl bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
+                    className="rounded-xl group relative bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-4 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
                 >
+                    <div className="absolute inset-0 w-0 bg-accent transition-all duration-[250ms] rounded-xl ease-out group-hover:w-full opacity-10"></div>
                     <Link href="/register">Get Started</Link>
                 </Button>
             </main>
