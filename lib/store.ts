@@ -16,6 +16,7 @@ import ordersReducer from "./slices/orderSlice";
 import onboardingReducer from "./slices/onboardingSlice";
 import shipmentReducer from "./slices/shipmentSlice";
 import kycReducer from "./slices/kycSlice";
+import kpiReducer from "./slices/kpi/kpiSlice";
 import supplierReducer from "./slices/supplierSlice";
 import userReducer from "./slices/user/user";
 import { combineReducers } from "redux";
@@ -23,7 +24,7 @@ import { combineReducers } from "redux";
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
 	storage,
-	whitelist: ["auth", "onboarding", "kyc", "user"],
+	whitelist: ["auth", "onboarding", "kyc", "user", "kpi"],
 });
 
 const createRootReducer = () =>
@@ -36,6 +37,7 @@ const createRootReducer = () =>
 		shipment: shipmentReducer,
 		supplier: supplierReducer,
 		user: userReducer,
+		kpi: kpiReducer,
 	});
 
 export const createStore = (userId: string | null) => {

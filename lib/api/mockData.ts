@@ -366,6 +366,66 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				avatarUrl: "https://example.com/avatar.jpg",
 			},
 		],
+		"/kpis": () => ({
+			cardData: [
+				{
+					title: "Total Revenue",
+					icon: "DollarSign",
+					value: "$45,231.89",
+					description: "+20.1% from last month",
+					type: "revenue",
+					sparklineData: [10, 15, 12, 18, 20, 25, 22, 28, 30, 35, 32, 40],
+				},
+				{
+					title: "Inventory Items",
+					icon: "CreditCard",
+					value: "+2,350",
+					description: "+180.1% from last month",
+					type: "number",
+					sparklineData: null,
+				},
+				{
+					title: "Active Orders",
+					icon: "Activity",
+					value: "+573",
+					description: "+201 since last hour",
+					type: "orders",
+					sparklineData: [50, 60, 55, 65, 70, 75, 80, 78, 85, 90, 92, 95],
+				},
+				{
+					title: "Shipments in Transit",
+					icon: "Users",
+					value: "+989",
+					description: "+18 since last hour",
+					type: "number",
+					sparklineData: null,
+				},
+			],
+			otherChartData: [
+				{
+					title: "Order Fulfillment",
+					icon: "Package",
+					type: "progress",
+					progress: 75,
+					label: "75% Complete",
+				},
+				{
+					title: "Inventory by Category",
+					icon: "CreditCard",
+					type: "donut",
+					donutData: [30, 40, 20, 10],
+					donutLabels: ["Electronics", "Clothing", "Books", "Other"],
+				},
+				{
+					title: "Shipment Status",
+					icon: "Truck",
+					type: "donut",
+					donutData: [45, 30, 25],
+					donutLabels: ["In Transit", "Pending", "Delivered"],
+					colors: ["#38bdf8", "#f97316", "#4ade80"],
+				},
+			],
+		}),
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
