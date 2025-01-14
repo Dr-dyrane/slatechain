@@ -15,6 +15,8 @@ import Sparkline from "@/components/chart/Sparkline"
 import CircularProgress from "@/components/chart/CircularProgress"
 import DonutChart from "@/components/chart/DonutChart"
 import { fetchKPIs } from "@/lib/slices/kpi/kpiSlice"
+import { ErrorState } from "@/components/ui/error"
+import DashboardSkeleton from "./loading"
 
 
 const iconMap: Record<string, LucideIcon> = {
@@ -28,7 +30,7 @@ const iconMap: Record<string, LucideIcon> = {
 
 export const mapIcon = (iconName: string | null): any | null => {
   if (iconName && iconMap[iconName]) {
-      return iconMap[iconName];
+    return iconMap[iconName];
   }
   return null;
 };
@@ -54,10 +56,15 @@ export default function Dashboard() {
     router.push('/kyc')
   }
   if (loading) {
-    return <div> Loading Kpis please wait...</div>
+    return <DashboardSkeleton />
   }
+
   if (error) {
-    return <div> {error}</div>
+    return (
+      <div className="flex h-full items-center justify-center bg-none">
+        <ErrorState message="There was an error fetching kpi data" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
+      </div>
+    )
   }
 
   const formattedCardData = cardData?.map(card => ({
