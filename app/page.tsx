@@ -21,10 +21,10 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex flex-col p-4">
-
+            <div data-aos='fade-in' className="absolute inset-0 flex items-center min-h-screen justify-center text-muted-foreground -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10">SLATE<br />CHAIN</div>
             <Navbar />
 
-            <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
+            <main className="flex-grow container mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10 bg-background/75">
                 <div data-aos='fade-down' className="mb-4 w-40 h-40">
                     <Logo
                         className="w-full h-full  hover:drop-shadow-[0_10px_20px_rgba(0,0,0,0.7)]"
