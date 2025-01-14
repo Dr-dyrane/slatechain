@@ -7,6 +7,7 @@ import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { RightBar } from "./RightBar";
 import { BottomNav } from "./BottomNav";
+import { UserRole } from "@/lib/types";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export const sidebarItems = [
   { href: "/orders", title: "Orders" },
   { href: "/logistics", title: "Logistics" },
   { href: "/suppliers", title: "Suppliers" },
-  // { href: "/settings", title: "Settings" },
+  { href: "/users", title: "Users", role: UserRole.ADMIN },
 ];
 
 export function Layout({ children }: LayoutProps) {
@@ -27,7 +28,7 @@ export function Layout({ children }: LayoutProps) {
 
   // Check if the current route matches one of the sidebar item hrefs
   // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar
-  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
+  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings" ;
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);

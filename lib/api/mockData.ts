@@ -25,7 +25,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				name: `${data.firstName} ${data.lastName}`,
 				email: data.email || "",
 				phoneNumber: data.phoneNumber || "",
-				role: (data.role as UserRole) || UserRole.CUSTOMER,
+				role: (data.role as UserRole) || UserRole.ADMIN,
 				isEmailVerified: false,
 				isPhoneVerified: false,
 				kycStatus: KYCStatus.PENDING_REVIEW,
@@ -45,7 +45,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				name: "John Doe",
 				email: data.email,
 				phoneNumber: "+1234567890",
-				role: UserRole.CUSTOMER,
+				role: UserRole.ADMIN,
 				isEmailVerified: true,
 				isPhoneVerified: false,
 				kycStatus: KYCStatus.PENDING_REVIEW,
@@ -137,7 +137,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				name: "John Doe",
 				email: "johndoe@example.com",
 				phoneNumber: "123-456-7890",
-				role: "customer", // UserRole.CUSTOMER
+				role: "admin", // UserRole.ADMIN
 				isEmailVerified: true,
 				isPhoneVerified: true,
 				kycStatus: "APPROVED", // KYCStatus.APPROVED
@@ -341,6 +341,23 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				address: "789 Oak St, Othertown",
 				rating: 4.2,
 				status: "INACTIVE",
+			},
+		],
+		"/users": (): User[] => [
+			mockApiResponses.get["/users/me"](),
+			{
+				id: "user-456",
+				firstName: "Jane",
+				lastName: "Smith",
+				name: "Jane Smith",
+				email: "janesmith@example.com",
+				phoneNumber: "123-456-7891",
+				role: "admin", // UserRole.CUSTOMER
+				isEmailVerified: true,
+				isPhoneVerified: true,
+				kycStatus: "APPROVED", // KYCStatus.APPROVED
+				onboardingStatus: "COMPLETED", // OnboardingStatus.COMPLETED
+				avatarUrl: "https://example.com/avatar.jpg",
 			},
 		],
 	},

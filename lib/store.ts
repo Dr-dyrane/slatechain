@@ -17,12 +17,13 @@ import onboardingReducer from "./slices/onboardingSlice";
 import shipmentReducer from "./slices/shipmentSlice";
 import kycReducer from "./slices/kycSlice";
 import supplierReducer from "./slices/supplierSlice";
+import userReducer from "./slices/user/user";
 import { combineReducers } from "redux";
 
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
 	storage,
-	whitelist: ["auth", "onboarding", "kyc"],
+	whitelist: ["auth", "onboarding", "kyc", "user"],
 });
 
 const createRootReducer = () =>
@@ -34,6 +35,7 @@ const createRootReducer = () =>
 		kyc: kycReducer,
 		shipment: shipmentReducer,
 		supplier: supplierReducer,
+		user: userReducer,
 	});
 
 export const createStore = (userId: string | null) => {

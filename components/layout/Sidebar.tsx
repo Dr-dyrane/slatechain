@@ -5,7 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose } from "lucide-react";
+import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { UserRole } from "@/lib/types";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/dashboard": Home,
@@ -14,12 +17,14 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/logistics": Truck,
   "/suppliers": Users,
   "/settings": Settings,
+  "/users": UserCog,
 };
 
 interface SidebarProps {
   items: {
     href: string;
     title: string;
+    role?: UserRole
   }[];
   isCollapsed: boolean;
   toggleSidebar: () => void;
@@ -27,12 +32,16 @@ interface SidebarProps {
 
 export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const filteredItems = items.filter(item => {
+    return !item.role || user?.role === item.role;
+  })
 
   return (
     <div className="h-full bg-background flex flex-col justify-between">
       <div className="p-4">
         <nav className="space-y-1">
-          {items.map((item) => {
+          {filteredItems.map((item) => {
             const Icon = icons[item.href] || Home;
             const isActive = pathname === item.href;
 
