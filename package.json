@@ -39,6 +39,7 @@
 		"@radix-ui/react-tooltip": "^1.1.2",
 		"@reduxjs/toolkit": "latest",
 		"@tanstack/react-table": "latest",
+		"aos": "^2.3.4",
 		"axios": "^1.7.9",
 		"chart.js": "^4.4.7",
 		"class-variance-authority": "^0.7.0",
