@@ -1,3 +1,4 @@
+// src/components/DataTable.tsx
 "use client"
 
 import * as React from "react"
@@ -32,27 +33,29 @@ import {
     TableRow,
 } from "@/components/ui/table"
 import { ListCard } from "./List-card"
-
+import { DataTablePagination } from "./DataTablePagination"
+import { DataDetailsModal } from "@/components/table/DataDetailsModal"
 
 interface DataRow {
-    id: number
-    name: string
+    id: string;
     [key: string]: any
 }
 
-interface DataTableProps<TData extends DataRow, TValue> {
-    columns: ColumnDef<TData, TValue>[]
+interface DataTableProps<TData extends DataRow> {
+    columns: ColumnDef<TData, any>[]
     data: TData[]
 }
 
-export function DataTable<TData extends DataRow, TValue>({
+
+export function DataTable<TData extends DataRow>({
     columns,
     data,
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
+    const [selectedRow, setSelectedRow] = React.useState<TData | null>(null)
 
     const table = useReactTable({
         data,
@@ -71,7 +74,15 @@ export function DataTable<TData extends DataRow, TValue>({
             columnVisibility,
             rowSelection,
         },
-    })
+    });
+
+    const handleRowClick = (row: TData) => {
+        setSelectedRow(row);
+    };
+
+    const handleCloseModal = () => {
+        setSelectedRow(null)
+    }
 
     return (
         <div className="w-full space-y-4">
@@ -88,7 +99,7 @@ export function DataTable<TData extends DataRow, TValue>({
                         aria-label="Filter table"
                     />
                 </div>
-                
+
                 <div className="hidden sm:block">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -145,6 +156,8 @@ export function DataTable<TData extends DataRow, TValue>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
+                                    onClick={() => handleRowClick(row.original)}
+                                    className="cursor-pointer"
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>
@@ -163,32 +176,7 @@ export function DataTable<TData extends DataRow, TValue>({
                     </TableBody>
                 </Table>
             </div>
-
-            <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                    {table.getFilteredSelectedRowModel().rows.length} of{" "}
-                    {table.getFilteredRowModel().rows.length} row(s) selected.
-                </div>
-                <div className="space-x-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                    >
-                        Previous
-                    </Button>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
-                </div>
-            </div>
-        </div>
+            <DataTablePagination table={table} />
+            <DataDetailsModal open={!!selectedRow}  onClose={handleCloseModal} columns={columns}  data={selectedRow} title={selectedRow?.name} />        </div>
     )
 }
-
