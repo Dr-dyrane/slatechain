@@ -2,7 +2,7 @@
 "use client"
 
 import { useSelector } from "react-redux"
-import { DataTable } from "@/components/DataTable"
+import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
 import { PlusIcon } from 'lucide-react'
 import { RootState } from "@/lib/store"

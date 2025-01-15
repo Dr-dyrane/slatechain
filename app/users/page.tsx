@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/DataTable";
+import { DataTable } from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from 'lucide-react'
 import { RootState, AppDispatch } from "@/lib/store";

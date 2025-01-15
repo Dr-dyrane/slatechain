@@ -4,7 +4,7 @@
 import { useEffect } from "react"
 import { CardTitle } from "@/components/ui/card"
 import { columns } from "../inventory/page"
-import { DataTable } from "@/components/DataTable"
+import { DataTable } from "@/components/table/DataTable"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { useRouter } from "next/navigation"

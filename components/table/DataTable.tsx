@@ -31,7 +31,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { ListCard } from "./ui/List-card"
+import { ListCard } from "./List-card"
 
 
 interface DataRow {
