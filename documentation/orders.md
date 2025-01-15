@@ -91,28 +91,28 @@ https://your-api-base-url/api/v1
 - **Request Body:** None
 - **Response (200 OK):**
   `json
-   {
-     "id": 1,
-     "orderNumber": "ORD12345",
-     "customerId": "user-123",
-     "items": [
+ {
+   "id": 1,
+   "orderNumber": "ORD12345",
+   "customerId": "user-123",
+   "items": [
+     {
+       "productId": "product-1",
+       "quantity": 2,
+       "price": 100
+     },
        {
-         "productId": "product-1",
-         "quantity": 2,
-         "price": 100
-       },
-         {
-           "productId": "product-2",
-           "quantity": 1,
-           "price": 50
-         }
-     ],
-     "totalAmount": 250,
-     "status": "PROCESSING",
-     "createdAt": "2024-07-26T10:00:00Z",
-     "updatedAt": "2024-07-26T10:30:00Z"
-   }
-     `
+         "productId": "product-2",
+         "quantity": 1,
+         "price": 50
+       }
+   ],
+   "totalAmount": 250,
+   "status": "PROCESSING",
+   "createdAt": "2024-07-26T10:00:00Z",
+   "updatedAt": "2024-07-26T10:30:00Z"
+ }
+   `
 
   - Returns the `Order` object matching the ID provided
 
@@ -153,28 +153,30 @@ https://your-api-base-url/api/v1
 - **Response (201 Created):**
   ```json
   {
-  "id": 3,
-  "orderNumber": "ORD11223",
-  "customerId": "user-789",
-  "items": [
-  {
-  "productId": "product-5",
-  "quantity": 1,
-  "price": 75
-  },
-  {
-  "productId": "product-6",
-  "quantity": 2,
-  "price": 30
-  }
-  ],
-  "totalAmount": 135,
-  "status": "PENDING",
-  "createdAt": "2024-07-28T12:00:00Z",
-  "updatedAt": "2024-07-28T12:00:00Z"
+  	"id": 3,
+  	"orderNumber": "ORD11223",
+  	"customerId": "user-789",
+  	"items": [
+  		{
+  			"productId": "product-5",
+  			"quantity": 1,
+  			"price": 75
+  		},
+  		{
+  			"productId": "product-6",
+  			"quantity": 2,
+  			"price": 30
+  		}
+  	],
+  	"totalAmount": 135,
+  	"status": "PENDING",
+  	"createdAt": "2024-07-28T12:00:00Z",
+  	"updatedAt": "2024-07-28T12:00:00Z"
   }
   ```
-  *   Returns the newly created `Order` object with an assigned `id`.
+  - Returns the newly created `Order` object with an assigned `id`.
+  ```
+
   ```
 - **Error Response:**
   - **400 Bad Request:** If the request body is invalid or missing required fields.
@@ -212,32 +214,35 @@ https://your-api-base-url/api/v1
   - The `id` in the body must match the `:id` path parameter.
   - All fields are required.
 - **Response (200 OK):**
+
   ```json
   {
-  "id": 1,
-  "orderNumber": "ORD12345",
-  "customerId": "user-123",
-  "items": [
-  {
-  "productId": "product-1",
-  "quantity": 1,
-  "price": 110
-  },
-  {
-  "productId": "product-2",
-  "quantity": 1,
-  "price": 50
+  	"id": 1,
+  	"orderNumber": "ORD12345",
+  	"customerId": "user-123",
+  	"items": [
+  		{
+  			"productId": "product-1",
+  			"quantity": 1,
+  			"price": 110
+  		},
+  		{
+  			"productId": "product-2",
+  			"quantity": 1,
+  			"price": 50
+  		}
+  	],
+  	"totalAmount": 160,
+  	"status": "SHIPPED",
+  	"createdAt": "2024-07-26T10:00:00Z",
+  	"updatedAt": "2024-07-26T11:00:00Z"
   }
-  ],
-  "totalAmount": 160,
-  "status": "SHIPPED",
-  "createdAt": "2024-07-26T10:00:00Z",
-  "updatedAt": "2024-07-26T11:00:00Z"
-  }
+  ```
+
+  - Returns the updated `Order` object.
 
   ```
 
-  *   Returns the updated `Order` object.
   ```
 
 - **Error Response:**

@@ -16,7 +16,7 @@ const DonutChart: React.FC<DonutChartProps> = ({ data = [], labels = [], colors 
         labels: labels,
         datasets: [
             {
-                data: data,
+                data: [...data],
                 backgroundColor: colors,
                 borderWidth: 0,
                 hoverOffset: 4

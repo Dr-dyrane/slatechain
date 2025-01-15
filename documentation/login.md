@@ -50,6 +50,7 @@
 ---
 
 ### **Key Points:**
+
 - **Role-Based Access**: After logging in, the system checks the user's role and determines what dashboard or section to display.
 - **Security**: You can implement additional layers like 2FA, especially for **admins** or **managers**, to enhance security.
 - **Session Management**: Tokens are used to maintain the user session, with the option to refresh the token when it expires.
@@ -59,8 +60,7 @@ Overall, the **login flow** is straightforward compared to registration but can 
 Based on the provided code and your question, I'll help you update the authentication process for Google login and create an API document for the backend. Let's start by addressing your questions and then move on to the API documentation.
 
 1. Implementing Google Login:
-You don't need to implement a separate `auth/googleLogin` in your `auth` API call with `apiClient`. The Google login is already handled by NextAuth in your `route.ts` file. However, you need to update your `authSlice.ts` to handle the Google login response correctly.
-
+   You don't need to implement a separate `auth/googleLogin` in your `auth` API call with `apiClient`. The Google login is already handled by NextAuth in your `route.ts` file. However, you need to update your `authSlice.ts` to handle the Google login response correctly.
 
 Update your `googleLogin` thunk in `authSlice.ts`:
 
@@ -69,8 +69,7 @@ Update your `googleLogin` thunk in `authSlice.ts`:
 ```
 
 2. Backend API Document:
-Let's create an API document for the Google login process and update the user schema if needed.
-
+   Let's create an API document for the Google login process and update the user schema if needed.
 
 ### Google Login
 
@@ -79,27 +78,29 @@ Let's create an API document for the Google login process and update the user sc
 This endpoint is handled by NextAuth and is called after successful Google authentication.
 
 #### Request
+
 No request body is required. The Google authentication data is handled by NextAuth.
 
 #### Response
+
 ```json
 {
-  "user": {
-    "id": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "name": "string",
-    "email": "string",
-    "phoneNumber": "string",
-    "role": "enum(UserRole)",
-    "isEmailVerified": "boolean",
-    "isPhoneVerified": "boolean",
-    "kycStatus": "enum(KYCStatus)",
-    "onboardingStatus": "enum(OnboardingStatus)",
-    "avatarUrl": "string"
-  },
-  "accessToken": "string",
-  "refreshToken": "string"
+	"user": {
+		"id": "string",
+		"firstName": "string",
+		"lastName": "string",
+		"name": "string",
+		"email": "string",
+		"phoneNumber": "string",
+		"role": "enum(UserRole)",
+		"isEmailVerified": "boolean",
+		"isPhoneVerified": "boolean",
+		"kycStatus": "enum(KYCStatus)",
+		"onboardingStatus": "enum(OnboardingStatus)",
+		"avatarUrl": "string"
+	},
+	"accessToken": "string",
+	"refreshToken": "string"
 }
 ```
 
@@ -115,27 +116,26 @@ Headers:
 
 - Authorization: Bearer accessToken
 
-
 #### Response
 
 ```json
 {
-  "user": {
-    "id": "string",
-    "firstName": "string",
-    "lastName": "string",
-    "name": "string",
-    "email": "string",
-    "phoneNumber": "string",
-    "role": "enum(UserRole)",
-    "isEmailVerified": "boolean",
-    "isPhoneVerified": "boolean",
-    "kycStatus": "enum(KYCStatus)",
-    "onboardingStatus": "enum(OnboardingStatus)",
-    "avatarUrl": "string"
-  },
-  "accessToken": "string",
-  "refreshToken": "string"
+	"user": {
+		"id": "string",
+		"firstName": "string",
+		"lastName": "string",
+		"name": "string",
+		"email": "string",
+		"phoneNumber": "string",
+		"role": "enum(UserRole)",
+		"isEmailVerified": "boolean",
+		"isPhoneVerified": "boolean",
+		"kycStatus": "enum(KYCStatus)",
+		"onboardingStatus": "enum(OnboardingStatus)",
+		"avatarUrl": "string"
+	},
+	"accessToken": "string",
+	"refreshToken": "string"
 }
 ```
 
@@ -143,45 +143,43 @@ Headers:
 
 ```typescript
 interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  name: string;
-  email: string;
-  phoneNumber: string;
-  role: UserRole;
-  isEmailVerified: boolean;
-  isPhoneVerified: boolean;
-  kycStatus: KYCStatus;
-  onboardingStatus: OnboardingStatus;
-  avatarUrl?: string;
-  googleId?: string; // Add this field to link Google accounts
+	id: string;
+	firstName: string;
+	lastName: string;
+	name: string;
+	email: string;
+	phoneNumber: string;
+	role: UserRole;
+	isEmailVerified: boolean;
+	isPhoneVerified: boolean;
+	kycStatus: KYCStatus;
+	onboardingStatus: OnboardingStatus;
+	avatarUrl?: string;
+	googleId?: string; // Add this field to link Google accounts
 }
 
 enum UserRole {
-  ADMIN = "admin",
-  SUPPLIER = "supplier",
-  MANAGER = "manager",
-  CUSTOMER = "customer",
+	ADMIN = "admin",
+	SUPPLIER = "supplier",
+	MANAGER = "manager",
+	CUSTOMER = "customer",
 }
 
 enum KYCStatus {
-  NOT_STARTED = "NOT_STARTED",
-  IN_PROGRESS = "IN_PROGRESS",
-  PENDING_REVIEW = "PENDING_REVIEW",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
+	NOT_STARTED = "NOT_STARTED",
+	IN_PROGRESS = "IN_PROGRESS",
+	PENDING_REVIEW = "PENDING_REVIEW",
+	APPROVED = "APPROVED",
+	REJECTED = "REJECTED",
 }
 
 enum OnboardingStatus {
-  PENDING = "PENDING",
-  NOT_STARTED = "NOT_STARTED",
-  IN_PROGRESS = "IN_PROGRESS",
-  COMPLETED = "COMPLETED",
+	PENDING = "PENDING",
+	NOT_STARTED = "NOT_STARTED",
+	IN_PROGRESS = "IN_PROGRESS",
+	COMPLETED = "COMPLETED",
 }
 ```
-
-
 
 This API documentation covers the Google login process and the user schema. The backend should implement these endpoints and update the user schema to include a `googleId` field for linking Google accounts.
 

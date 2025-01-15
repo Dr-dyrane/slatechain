@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
 
@@ -19,7 +19,8 @@ interface SparklineProps {
 }
 const Sparkline: React.FC<SparklineProps> = ({ data = [], type = "number" }) => {
 
-    const gradientColor = (ctx: any) => {
+    const gradientColor = useCallback((ctx: any) => {
+        if (!ctx?.chart?.ctx || !ctx?.chart?.height) return;
         const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, ctx.chart.height);
         if (type === 'revenue') {
             gradient.addColorStop(0, 'rgba(77, 233, 130, 0.5)'); // Start color (green)
@@ -29,7 +30,7 @@ const Sparkline: React.FC<SparklineProps> = ({ data = [], type = "number" }) => 
             gradient.addColorStop(1, 'rgba(56, 189, 248, 0)');   // End color (transparent blue)
         }
         return gradient;
-    };
+    }, [type]);
 
     const options = {
         responsive: true,
@@ -65,7 +66,7 @@ const Sparkline: React.FC<SparklineProps> = ({ data = [], type = "number" }) => 
         labels: data.map((_, i) => i + 1),
         datasets: [
             {
-                data: data,
+                data: [...data],
                 fill: true,
                 backgroundColor: gradientColor,
             },
