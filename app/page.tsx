@@ -43,7 +43,7 @@ const LandingPage: React.FC = () => {
                 <p
                     data-aos="fade-up"
                     data-aos-delay="200"
-                    className="text-xl font-thin font-sans md:text-2xl text-gray-800 dark:text-gray-200 leading-relaxed max-w-3xl mb-8"
+                    className="text-xl font-light font-sans md:text-2xl text-gray-800 dark:text-gray-200 leading-relaxed max-w-3xl mb-8"
                 >
                     SlateChain helps you manage your <strong className="italic strong font-sans text-primary hover:underline">inventory</strong>, track orders, and optimize logistics with ease.
                 </p>
@@ -54,7 +54,7 @@ const LandingPage: React.FC = () => {
                         className="rounded-2xl gap-4 group relative bg-gradient-to-r from-primary to-purple-500 text-white px-8 py-7 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
                     >
                         <div className="absolute inset-0 w-0 bg-accent transition-all duration-[250ms] rounded-xl ease-out group-hover:w-full opacity-10"></div>
-                        <Link href="/register" className="text-base">Get Started</Link>
+                        <Link href="/register" className="text-lg">Get Started</Link>
                         <CircleArrowRight />
                     </Button>
                 </div>
