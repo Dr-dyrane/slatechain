@@ -18,6 +18,7 @@ export interface OtherChartData {
     icon:  string | null;
     type: "progress" | "donut";
     progress?: number;
+    description?: string;
     label?: string;
     donutData?: number[];
     donutLabels?: string[];
