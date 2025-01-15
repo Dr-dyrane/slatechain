@@ -1,4 +1,4 @@
-// src/lib/slices/order/order.ts
+// src/lib/slices/orderSlice.ts
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "@/lib/api/apiClient";
