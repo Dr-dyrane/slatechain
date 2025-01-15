@@ -97,6 +97,18 @@ ${colorConfig
     />
   )
 }
+// Define the array and new item
+let someVariable: any[] = [] // This is the array you're working with
+let newItem = "new data" // This is the new item you want to add
+
+// Before using `push`, ensure it's an array.
+const arr = someVariable; // Assuming `someVariable` could be an array.
+
+if (Array.isArray(arr)) {
+  arr.push(newItem); // Safe to push to an array.
+} else {
+  console.error('The value is not an array:', arr);
+}
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
