@@ -1,18 +1,21 @@
 // src/app/suppliers/page.tsx
 "use client"
 
-import { useState } from "react"
-import { useSelector } from "react-redux"
+import { useState, useEffect } from "react"
+import { useSelector, useDispatch } from "react-redux"
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PlusIcon, MessageSquare, FileText } from 'lucide-react'
-import { RootState } from "@/lib/store";
+import { RootState, AppDispatch } from "@/lib/store";
+import {  fetchSuppliers } from "@/lib/slices/supplierSlice";
+import { Supplier } from "@/lib/types";
+import { AddSupplierModal } from "@/components/supplier/AddSupplierModal";
 
 const supplierColumns = [
   { accessorKey: "name", header: "Name" },
-  { accessorKey: "contactPerson", header: "Contact Person" },
+   { accessorKey: "contactPerson", header: "Contact Person" },
   { accessorKey: "rating", header: "Rating" },
   { accessorKey: "status", header: "Status" },
 ]
@@ -20,9 +23,25 @@ const supplierColumns = [
 
 export default function SuppliersPage() {
   const [activeTab, setActiveTab] = useState("list")
-  const suppliers = useSelector((state: RootState) => state.supplier.items);
+    const dispatch = useDispatch<AppDispatch>();
+      const suppliers = useSelector((state: RootState) => state.supplier.items);
+     const [addModalOpen, setAddModalOpen] = useState(false);
 
 
+    useEffect(() => {
+        dispatch(fetchSuppliers());
+    }, [dispatch]);
+
+  const handleAddModalOpen = () => {
+         setAddModalOpen(true)
+    }
+     const handleAddModalClose = () => {
+        setAddModalOpen(false)
+    };
+    const formattedSuppliers = suppliers?.map(supplier => ({
+         ...supplier,
+         id: supplier.id?.toString()
+    })) || [];
   return (
     <div className="space-y-4">
       <h1 className="text-3xl font-bold">Supplier Collaboration</h1>
@@ -37,17 +56,17 @@ export default function SuppliersPage() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Suppliers</CardTitle>
-                <Button>
-                  <PlusIcon className="mr-2 h-4 w-4" /> Add Supplier
-                </Button>
-              </div>
-              <CardDescription>Manage your supplier relationships</CardDescription>
+                  <Button onClick={handleAddModalOpen}>
+                    <PlusIcon className="mr-2 h-4 w-4" /> Add Supplier
+                  </Button>
+               </div>
+               <CardDescription>Manage your supplier relationships</CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable columns={supplierColumns} data={suppliers as any} />
+                 <DataTable columns={supplierColumns} data={formattedSuppliers as any} />
             </CardContent>
           </Card>
-        </TabsContent>
+       </TabsContent>
         <TabsContent value="communication">
           <Card>
             <CardHeader>
@@ -77,6 +96,7 @@ export default function SuppliersPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      <AddSupplierModal open={addModalOpen} onClose={handleAddModalClose} />
     </div>
   )
 }
