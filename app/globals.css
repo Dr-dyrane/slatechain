@@ -82,3 +82,9 @@
 .input-hover {
 	@apply hover:bg-muted/70 transition-all duration-300;
 }
+.modal-focus {
+    @apply focus:ring-secondary-foreground focus:ring-4 transition-all duration-300;
+}
+.modal-hover {
+    @apply hover:ring-secondary-foreground hover:ring-4 transition-all duration-300;
+}
