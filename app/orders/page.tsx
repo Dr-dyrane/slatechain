@@ -65,7 +65,7 @@ export default function OrdersPage() {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">Order Management</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold">Order Management</h1>
                 <Button onClick={handleAddModalOpen}>
                     <PlusIcon className="mr-2 h-4 w-4" /> Create Order
                 </Button>

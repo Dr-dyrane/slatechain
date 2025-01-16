@@ -44,7 +44,7 @@ export default function SuppliersPage() {
     })) || [];
   return (
     <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Supplier Collaboration</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold">Supplier Collaboration</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="list">Supplier List</TabsTrigger>

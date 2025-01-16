@@ -46,7 +46,7 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
 
       {user && <UserStatusAlert
         kycStatus={user.kycStatus}

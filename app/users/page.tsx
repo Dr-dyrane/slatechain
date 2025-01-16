@@ -101,7 +101,7 @@ export default function UsersPage() {
     return (
         <div className="space-y-4"  data-aos="fade-in" data-aos-duration="500" >
             <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold">User Management</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
                 <Button onClick={handleAddUserOpen}>
                     <PlusIcon className="mr-2 h-4 w-4" /> Add User
                 </Button>

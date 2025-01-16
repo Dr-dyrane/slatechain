@@ -39,7 +39,7 @@ export default function ProfilePage() {
 
     return (
         <div className="space-y-4">
-            <h1 className="text-3xl font-bold">User Profile</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">User Profile</h1>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="w-full md:w-auto justify-between md:justify-start">
                     <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
