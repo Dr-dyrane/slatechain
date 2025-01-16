@@ -38,31 +38,38 @@ export function DataDetailsModal<TData extends Record<string, any>>({
     };
 
     return (
-        <AlertDialog open={open} onOpenChange={onClose}>
+        <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <AlertDialogContent
                 className="rounded-lg shadow-lg ring-1 ring-secondary-foreground/70 hover:ring-4 hover:ring-secondary-foreground focus:ring-4 focus:ring-secondary-foreground transition-all duration-300 
                 bg-gradient-to-br from-secondary to-muted dark:from-muted dark:to-secondary text-foreground"
             >
-                <AlertDialogHeader className="p-6">
-                    <AlertDialogTitle className="text-2xl font-bold tracking-wide drop-shadow-md">
+                <AlertDialogHeader className="p4 sm:p-6">
+                    <AlertDialogTitle className="text-lg sm:text-2xl font-bold tracking-wide drop-shadow-md">
                         {title || "Row Details"}
                     </AlertDialogTitle>
                     <AlertDialogDescription className="mt-2 text-sm text-muted-foreground">
                         View the details of the selected row.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="space-y-4 p-6">
-                    {data &&
-                        columns.map((column, index) => (
-                            <div key={index} className="flex flex-col">
-                                <span className="font-semibold text-sm text-muted-foreground">
-                                    {column.header}:
-                                </span>
-                                <span className="font-medium text-secondary-foreground">
-                                    {renderValue(column, data)}
-                                </span>
-                            </div>
-                        ))}
+                <div className="space-y-2 sm:space-y-4 p-4 sm:p-6">
+                    {data ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {columns.map((column, index) => (
+                                <div key={index} className="flex flex-col">
+                                    <span className="font-semibold text-sm text-muted-foreground">
+                                        {column.header}:
+                                    </span>
+                                    <span className="font-medium text-secondary-foreground break-words">
+                                        {renderValue(column, data)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-center text-muted-foreground">
+                            No data available to display.
+                        </p>
+                    )}
                 </div>
                 <AlertDialogFooter className="p-6 border-t border-muted">
                     <AlertDialogCancel
