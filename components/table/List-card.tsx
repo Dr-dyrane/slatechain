@@ -1,34 +1,46 @@
-import React, { useState } from 'react'
-import { ColumnDef } from "@tanstack/react-table"
-import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
+// src/components/table/List-card.tsx
+"use client";
+
+import * as React from "react";
+import {
+    ColumnDef,
+} from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
 import { ChevronRight } from 'lucide-react'
 import { TouchableOpacity } from "@/components/ui/touchable-opacity"
-import { Modal } from "@/components/ui/modal"
 import { Avatar } from "@/components/ui/avatar"
+import { DataDetailsModal } from "@/components/table/DataDetailsModal"
+import { Card, CardContent } from "../ui/card";
 
-interface ListCardProps<TData, TValue> {
+
+interface DataRow {
+    id: string;
+    name: string;
+    [key: string]: any;
+}
+
+interface ListCardProps<TData extends DataRow, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
 }
 
-export function ListCard<TData extends Record<string, any>, TValue>({
+export function ListCard<TData extends DataRow, TValue>({
     columns,
     data,
 }: ListCardProps<TData, TValue>) {
-    const [selectedItem, setSelectedItem] = useState<TData | null>(null)
+    const [selectedItem, setSelectedItem] = React.useState<TData | null>(null);
 
     const handleItemClick = (item: TData) => {
-        setSelectedItem(item)
-    }
+        setSelectedItem(item);
+    };
 
-    const closeModal = () => {
+    const handleCloseModal = () => {
         setSelectedItem(null)
-    }
+    };
 
     const getAvatarContent = (item: TData) => {
         const firstColumn = columns[0]
-        const value = firstColumn.accessorKey ? item[firstColumn.accessorKey as string] : ''
+        const value = firstColumn.accessorKey ? item[firstColumn.accessorKey as string] : '';
         return typeof value === 'string' ? value.charAt(0).toUpperCase() : '?'
     }
 
@@ -36,29 +48,33 @@ export function ListCard<TData extends Record<string, any>, TValue>({
         if (column.cell && typeof column.cell === 'function') {
             return column.cell({ row: { original: item, getValue: (key: string) => item[key] } })
         }
-        return column.accessorKey ? item[column.accessorKey as string] : ''
-    }
+        return column.accessorKey ? item[column.accessorKey as string] : '';
+    };
 
     return (
         <>
-            <ScrollArea className="">
+            <div className="space-y-4">
                 {data.map((item, index) => (
                     <TouchableOpacity key={index} onClick={() => handleItemClick(item)}>
                         <Card className="mb-2">
-                            <CardContent className="p-4 flex items-center justify-between">
-                                <Avatar className="mr-2">
+                            <CardContent className="py-4 px-2 flex items-center justify-between gap-1.5">
+                                <Avatar className="bg-muted">
                                     {getAvatarContent(item)}
                                 </Avatar>
-                                <div className="flex-grow">
-                                    <div className="font-semibold">
+                                <div className="flex-grow max-w-[96px]">
+                                    <div className="font-semibold truncate">
                                         {renderValue(columns[0], item)}
                                     </div>
-                                    <div className="text-sm text-muted-foreground">
+                                    <div className="text-xs text-muted-foreground break-words overflow-wrap truncate">
                                         {renderValue(columns[1], item)}
                                     </div>
                                 </div>
+
                                 {columns.slice(2, 4).map((column, colIndex) => (
-                                    <div key={colIndex} className="text-sm text-right mr-4">
+                                    <div
+                                        key={colIndex}
+                                        className="text-sm text-right mr-1 break-words overflow-wrap truncate"
+                                    >
                                         {renderValue(column, item)}
                                     </div>
                                 ))}
@@ -66,22 +82,10 @@ export function ListCard<TData extends Record<string, any>, TValue>({
                             </CardContent>
                         </Card>
                     </TouchableOpacity>
-                ))}
-            </ScrollArea>
 
-            <Modal isOpen={!!selectedItem} onClose={closeModal}>
-                {selectedItem && (
-                    <div className="space-y-4">
-                        {columns.map((column, index) => (
-                            <div key={index} className="flex flex-col">
-                                <span className="font-semibold">{column.header as string}:</span>
-                                <span>{renderValue(column, selectedItem)}</span>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </Modal>
+                ))}
+            </div>
+            <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name} />
         </>
     )
 }
-

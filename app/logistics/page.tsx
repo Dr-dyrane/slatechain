@@ -21,9 +21,9 @@ export default function LogisticsPage() {
   }, [shipments])
 
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -75,21 +75,24 @@ export default function LogisticsPage() {
             <CardDescription>Order #{selectedShipment.orderId}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <MapPin className="mr-2" />
-                <span>{selectedShipment.carrier}</span>
+            <div className="flex items-center gap-4 justify-start md:justify-between mb-4">
+              <div className='w-full flex flex-col md:flex-row items-start md:items-center gap-4 flex-1 h-full'>
+                <div className="flex items-center">
+                  <MapPin className="mr-2" />
+                  <span>{selectedShipment.carrier}</span>
+                </div>
+                <Progress
+                  value={selectedShipment.status === "DELIVERED" ? 100 : selectedShipment.status === "IN_TRANSIT" ? 65 : 10}
+                  className="w-full md:w-1/3"
+                />
               </div>
-              <Progress
-                value={selectedShipment.status === "DELIVERED" ? 100 : selectedShipment.status === "IN_TRANSIT" ? 65 : 10}
-                className="w-1/3"
-              />
-              <div className="flex items-center">
+
+              <div className="flex gap-2 flex-col md:flex-row items-start md:items-center">
                 <Truck className="mr-2" />
                 <div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
                     <span className='text-sm'> {formatDate(selectedShipment.estimatedDeliveryDate)}</span>
-                    <span className='text-xs italic text-right'>{selectedShipment.destination}</span></div>
+                    <span className='text-xs italic px-4 py-1.5 bg-muted rounded-full items-center justify-center'>{selectedShipment.destination}</span></div>
                 </div>
               </div>
             </div>
