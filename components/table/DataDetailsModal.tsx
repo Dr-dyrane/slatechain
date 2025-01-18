@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
+import { Edit, MoreVertical, Trash } from "lucide-react";
 
 interface DataDetailsModalProps<TData> {
     open: boolean;
@@ -43,13 +45,35 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                 className="rounded-lg shadow-lg ring-1 ring-secondary-foreground/50 hover:ring-2 hover:ring-secondary-foreground focus:ring-2 focus:ring-secondary-foreground transition-all duration-300 
                 bg-gradient-to-br from-secondary to-muted dark:from-muted dark:to-secondary text-foreground"
             >
-                <AlertDialogHeader className="">
+
+                <AlertDialogHeader className="relative">
                     <AlertDialogTitle className="text-lg sm:text-2xl font-bold tracking-wide drop-shadow-md">
                         {title || "Row Details"}
                     </AlertDialogTitle>
                     <AlertDialogDescription className="mt-2 text-sm text-muted-foreground">
                         View the details of the selected row.
                     </AlertDialogDescription>
+
+                    {/* Options Icon */}
+                    <div className="absolute top-0 right-0">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/70 transition">
+                                    <MoreVertical className="w-5 h-5" />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-auto rounded-md shadow-lg bg-primary/10 ring-1 ring-primary/20 focus:outline-none">
+                                <DropdownMenuItem>
+                                    <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
+                                    Edit {title}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Trash className="w-4 h-4 mr-2 text-muted-foreground" />
+                                    Delete {title}
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </AlertDialogHeader>
                 <div className="space-y-2 sm:space-y-4">
                     {data ? (
