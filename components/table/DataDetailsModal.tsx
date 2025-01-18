@@ -40,10 +40,10 @@ export function DataDetailsModal<TData extends Record<string, any>>({
     return (
         <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <AlertDialogContent
-                className="rounded-lg shadow-lg ring-1 ring-secondary-foreground/70 hover:ring-4 hover:ring-secondary-foreground focus:ring-4 focus:ring-secondary-foreground transition-all duration-300 
+                className="rounded-lg shadow-lg ring-1 ring-secondary-foreground/50 hover:ring-2 hover:ring-secondary-foreground focus:ring-2 focus:ring-secondary-foreground transition-all duration-300 
                 bg-gradient-to-br from-secondary to-muted dark:from-muted dark:to-secondary text-foreground"
             >
-                <AlertDialogHeader className="p4 sm:p-6">
+                <AlertDialogHeader className="">
                     <AlertDialogTitle className="text-lg sm:text-2xl font-bold tracking-wide drop-shadow-md">
                         {title || "Row Details"}
                     </AlertDialogTitle>
@@ -51,11 +51,11 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                         View the details of the selected row.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <div className="space-y-2 sm:space-y-4 p-4 sm:p-6">
+                <div className="space-y-2 sm:space-y-4">
                     {data ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {columns.map((column, index) => (
-                                <div key={index} className="flex flex-col">
+                                <div key={index} className="flex flex-col bg-primary/10 hover:bg-primary/15 hover:scale-105 transition-all ease-linear duration-150 p-4 rounded-xl">
                                     <span className="font-semibold text-sm text-muted-foreground">
                                         {column.header}:
                                     </span>
@@ -71,9 +71,9 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                         </p>
                     )}
                 </div>
-                <AlertDialogFooter className="p-6 border-t border-muted">
+                <AlertDialogFooter className="border-t border-muted">
                     <AlertDialogCancel
-                        className="px-4 py-2 text-sm font-medium text-secondary bg-secondary-foreground/80 rounded-lg hover:bg-secondary focus:ring focus:ring-secondary/70 transition-all"
+                        className="px-4 py-2 text-sm font-medium text-secondary bg-secondary-foreground/80 rounded-lg hover:bg-secondary-foreground hover:text-white dark:hover:text-black focus:ring focus:ring-secondary/70 transition-all"
                     >
                         Cancel
                     </AlertDialogCancel>
