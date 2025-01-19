@@ -44,12 +44,15 @@ interface DataRow {
 interface DataTableProps<TData extends DataRow> {
     columns: ColumnDef<TData, any>[]
     data: TData[]
+    onEdit?: (item:any) => void;
+    onDelete?: (item:any) => void;
 }
 
 
 export function DataTable<TData extends DataRow>({
     columns,
     data,
+    onEdit, onDelete
 }: DataTableProps<TData>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -129,7 +132,8 @@ export function DataTable<TData extends DataRow>({
             </div>
 
             <div className="block sm:hidden">
-                <ListCard columns={columns} data={table.getRowModel().rows.map(row => row.original)} />
+                <ListCard columns={columns} data={table.getRowModel().rows.map(row => row.original)} onEdit={onEdit}
+                    onDelete={onDelete} />
             </div>
 
             <div className="rounded-md border hidden sm:block">
@@ -177,6 +181,8 @@ export function DataTable<TData extends DataRow>({
                 </Table>
             </div>
             <DataTablePagination table={table} />
-            <DataDetailsModal open={!!selectedRow}  onClose={handleCloseModal} columns={columns}  data={selectedRow} title={selectedRow?.name} />        </div>
+            <DataDetailsModal open={!!selectedRow} onClose={handleCloseModal} columns={columns} data={selectedRow} title={selectedRow?.name} onEdit={onEdit}
+                onDelete={onDelete} />
+        </div>
     )
 }

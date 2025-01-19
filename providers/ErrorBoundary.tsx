@@ -59,7 +59,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     if (hasError) {
       return (
         <div className="flex items-center justify-center min-h-screen bg-background">
-          <div className="text-center">
+          <div className="text-center flex gap-4 flex-col">
             <AlertTriangle className="mx-auto h-16 w-16 text-destructive" />
             <h1 className="mt-4 text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
               Oops! Something went wrong.
@@ -69,7 +69,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 ? error.message
                 : 'An unexpected error occurred.'}
             </p>
-            <div className="mt-10 flex items-center justify-center gap-x-6">
+            <div className="mt-10 flex items-center justify-center gap-4">
               <Button onClick={this.resetError} variant="default">
                 Try again
               </Button>

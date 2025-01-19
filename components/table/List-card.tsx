@@ -22,11 +22,13 @@ interface DataRow {
 interface ListCardProps<TData extends DataRow, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
+    onEdit?: (item: any) => void;
+    onDelete?: (item: any) => void;
 }
 
 export function ListCard<TData extends DataRow, TValue>({
     columns,
-    data,
+    data, onEdit, onDelete
 }: ListCardProps<TData, TValue>) {
     const [selectedItem, setSelectedItem] = React.useState<TData | null>(null);
 
@@ -85,7 +87,8 @@ export function ListCard<TData extends DataRow, TValue>({
 
                 ))}
             </div>
-            <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name} />
+            <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name} onEdit={onEdit}
+                onDelete={onDelete} />
         </>
     )
 }

@@ -21,6 +21,8 @@ interface DataDetailsModalProps<TData> {
     data: TData | null;
     title: string;
     columns: ColumnDef<TData, any>[];
+    onEdit?: (item: any) => void;
+    onDelete?: (item: any) => void;
 }
 
 export function DataDetailsModal<TData extends Record<string, any>>({
@@ -29,6 +31,7 @@ export function DataDetailsModal<TData extends Record<string, any>>({
     data,
     columns,
     title,
+    onEdit, onDelete
 }: DataDetailsModalProps<TData>) {
     const renderValue = (column: ColumnDef<TData, any>, item: TData) => {
         if (column.cell && typeof column.cell === "function") {
@@ -55,25 +58,32 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                     </AlertDialogDescription>
 
                     {/* Options Icon */}
-                    <div className="absolute top-0 right-0">
+                    {(onEdit || onDelete) && (<div className="absolute top-0 right-0">
                         <DropdownMenu>
+
                             <DropdownMenuTrigger asChild>
                                 <button className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/70 transition">
                                     <MoreVertical className="w-5 h-5" />
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent className="w-auto rounded-md shadow-lg bg-primary/10 ring-1 ring-primary/20 focus:outline-none">
-                                <DropdownMenuItem>
+                                {onEdit && (<DropdownMenuItem onClick={() => {
+                                    onEdit(data)
+                                    onClose()
+                                }}>
                                     <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
                                     Edit {title}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                    <Trash className="w-4 h-4 mr-2 text-muted-foreground" />
+                                </DropdownMenuItem>)}
+                                {onDelete && (<DropdownMenuItem onClick={() => {
+                                    onDelete(data)
+                                    onClose()
+                                }}><Trash className="w-4 h-4 mr-2 text-muted-foreground" />
                                     Delete {title}
                                 </DropdownMenuItem>
+                                )}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                    </div>
+                    </div>)}
                 </AlertDialogHeader>
                 <div className="space-y-2 sm:space-y-4">
                     {data ? (
