@@ -70,9 +70,6 @@ export default function InventoryPage() {
      setItemToDelete(null);
        setDeleteModalOpen(false);
  };
- const handleDeleteItem = (id: string) => {
-     dispatch(removeInventoryItem(id as any))
-  };
 
 
   const formattedInventory = inventory.items?.map(item => ({
@@ -90,7 +87,7 @@ export default function InventoryPage() {
       <DataTable columns={columns} data={formattedInventory as any} onDelete={handleOpenDeleteModal} onEdit={handleEditModalOpen}/>
       <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
       <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
-      <DeleteModal open={deleteModalOpen} onClose={handleCloseDeleteModal} data={itemToDelete} onDelete={handleDeleteItem} deleteModalTitle={"Delete Inventory Item"} />
+      <DeleteModal open={deleteModalOpen} onClose={handleCloseDeleteModal} data={itemToDelete} deleteModalTitle={"Delete Inventory Item"} />
     </div>
   );
 }

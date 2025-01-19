@@ -30,7 +30,6 @@ interface DeleteModalProps<TData> {
     open: boolean;
     onClose: () => void;
     data: TData | null;
-    onDelete?: (id: string) => void;
     deleteModalTitle?: string;
 }
 
@@ -38,7 +37,6 @@ export const DeleteModal = <TData extends Record<string, any>>({
     open,
     onClose,
     data,
-    onDelete,
     deleteModalTitle,
 }: DeleteModalProps<TData>) => {
     const [dataName, setDataName] = useState<string>('');
