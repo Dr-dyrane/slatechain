@@ -66,7 +66,7 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                                     <MoreVertical className="w-5 h-5" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-auto rounded-md shadow-lg bg-primary/10 ring-1 ring-primary/20 focus:outline-none">
+                            <DropdownMenuContent className="w-auto rounded-xl shadow-lg bg-primary/10 ring-1 ring-primary/10 py-4 px-2 focus:outline-none">
                                 {onEdit && (<DropdownMenuItem onClick={() => {
                                     onEdit(data)
                                     onClose()
@@ -105,7 +105,7 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                         </p>
                     )}
                 </div>
-                <AlertDialogFooter className="border-t border-muted">
+                <AlertDialogFooter>
                     <AlertDialogCancel
                         className="px-4 py-2 text-sm font-medium text-secondary bg-secondary-foreground/80 rounded-lg hover:bg-secondary-foreground hover:text-white dark:hover:text-black focus:ring focus:ring-secondary/70 transition-all"
                     >
