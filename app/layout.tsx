@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/providers'
 import { Layout } from '@/components/layout';
+import MouseMoveEffect from './mouse-move-effect';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -24,7 +25,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="dark">
       <body className={inter.className}>
         <Providers>
-          <Layout>{children}</Layout>
+          <Layout><MouseMoveEffect />{children}</Layout>
         </Providers>
       </body>
     </html>
