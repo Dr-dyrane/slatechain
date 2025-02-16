@@ -10,7 +10,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,23 +17,24 @@ import { Label } from "@/components/ui/label";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { addInventoryItem } from "@/lib/slices/inventorySlice";
 import { AppDispatch, RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
 import { InventoryItem } from "@/lib/types";
 import { toast } from "sonner";
+import { addInventoryItem } from "@/lib/slices/inventorySlice";
 
+// Define the schema for validation and types
 const addInventorySchema = z.object({
     name: z.string().min(1, "Name is required"),
     sku: z.string().min(1, "SKU is required"),
     quantity: z.number({ invalid_type_error: "Quantity must be a number" }).min(0, "Quantity must be a positive number"),
+    minAmount: z.number({ invalid_type_error: "Minimum Amount must be a number" }).min(0, "Minimum Amount must be a positive number"),
     location: z.string().optional(),
     price: z.number({ invalid_type_error: "Price must be a number" }).min(0, "Price must be a positive number"),
     category: z.string().min(1, "Category is required"),
 });
 
 type AddInventoryFormValues = z.infer<typeof addInventorySchema>;
-
 
 interface AddInventoryModalProps {
     open: boolean;
@@ -108,6 +108,19 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
                         />
                         {errors.quantity && (
                             <p className="text-sm text-red-500">{errors.quantity.message}</p>
+                        )}
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="minAmount">Min Stock</Label>
+                        <Input
+                            id="minAmount"
+                            type='number'
+                            placeholder='Minimum Stock Amount'
+                            {...register("minAmount", { valueAsNumber: true })}
+                            className="input-focus input-hover"
+                        />
+                        {errors.minAmount && (
+                            <p className="text-sm text-red-500">{errors.minAmount.message}</p>
                         )}
                     </div>
                     <div className="space-y-2">

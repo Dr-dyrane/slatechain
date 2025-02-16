@@ -38,9 +38,9 @@ export default function InventoryPage() {
   const dispatch = useDispatch<AppDispatch>();
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
+  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null)
 
 
   useEffect(() => {
@@ -56,20 +56,20 @@ export default function InventoryPage() {
 
   const handleEditModalOpen = (item: InventoryItem) => {
     setSelectedItem(item);
-   setEditModalOpen(true)
- };
- const handleEditModalClose = () => {
-     setSelectedItem(null);
+    setEditModalOpen(true)
+  };
+  const handleEditModalClose = () => {
+    setSelectedItem(null);
     setEditModalOpen(false)
- };
+  };
   const handleOpenDeleteModal = (item: InventoryItem) => {
-      setItemToDelete(item);
-        setDeleteModalOpen(true)
- };
+    setItemToDelete(item);
+    setDeleteModalOpen(true)
+  };
   const handleCloseDeleteModal = () => {
-     setItemToDelete(null);
-       setDeleteModalOpen(false);
- };
+    setItemToDelete(null);
+    setDeleteModalOpen(false);
+  };
 
 
   const formattedInventory = inventory.items?.map(item => ({
@@ -84,7 +84,7 @@ export default function InventoryPage() {
           <PlusIcon className="mr-2 h-4 w-4" /> Add Item
         </Button>
       </div>
-      <DataTable columns={columns} data={formattedInventory as any} onDelete={handleOpenDeleteModal} onEdit={handleEditModalOpen}/>
+      <DataTable columns={columns} data={formattedInventory as any} onDelete={handleOpenDeleteModal} onEdit={handleEditModalOpen} />
       <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
       <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
       <DeleteModal open={deleteModalOpen} onClose={handleCloseDeleteModal} data={itemToDelete} deleteModalTitle={"Delete Inventory Item"} />
