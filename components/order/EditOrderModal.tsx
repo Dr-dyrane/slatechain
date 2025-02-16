@@ -24,6 +24,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { updateOrder, markOrderAsPaid } from "@/lib/slices/orderSlice";
 import { Checkbox } from "@/components/ui/checkbox";
+import { motion } from "framer-motion"; // ✅ Smooth animations
 
 const editOrderSchema = z.object({
   id: z.number(),
@@ -71,7 +72,7 @@ export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
 
     try {
       const updatedOrder: Order = { ...data, status: nextStatus };
-      await dispatch(updateOrder(updatedOrder)).unwrap(); // ✅ Ensure `unwrap()` works
+      await dispatch(updateOrder(updatedOrder));
       toast.success(`Order status updated to ${nextStatus}`);
       onClose();
     } catch {
@@ -83,7 +84,7 @@ export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
     if (!data) return;
 
     try {
-      await dispatch(markOrderAsPaid(data.id)) // ✅ Ensure `unwrap()` works for async thunk
+      await dispatch(markOrderAsPaid(data.id));
       setIsPaid(true);
       toast.success("Order marked as paid.");
     } catch {
@@ -96,7 +97,7 @@ export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
 
     try {
       const updatedOrder: Order = { ...data, ...formData, paid: isPaid };
-      await dispatch(updateOrder(updatedOrder)).unwrap(); // ✅ Ensure `unwrap()` works
+      await dispatch(updateOrder(updatedOrder));
       toast.success("Order updated successfully!");
       onClose();
       reset();
@@ -107,23 +108,32 @@ export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Edit Order</AlertDialogTitle>
-          <AlertDialogDescription>Modify order details.</AlertDialogDescription>
+      <AlertDialogContent className="max-w-lg md:max-w-xl px-6 py-6 rounded-2xl shadow-lg">
+        <AlertDialogHeader className="mb-4">
+          <AlertDialogTitle className="text-lg font-semibold text-gray-800">Edit Order</AlertDialogTitle>
+          <AlertDialogDescription className="text-gray-500">
+            Modify order details with real-time updates.
+          </AlertDialogDescription>
         </AlertDialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+        <motion.form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           {/* Customer ID Input */}
-          <div className="space-y-2">
-            <Label htmlFor="customerId">Customer ID</Label>
-            <Input id="customerId" {...register("customerId")} className="input-focus input-hover" />
+          <div className="space-y-1">
+            <Label htmlFor="customerId" className="text-gray-700">Customer ID</Label>
+            <Input id="customerId" {...register("customerId")} className="w-full input-focus" />
             {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
           </div>
 
           {/* Order Status */}
-          <div className="space-y-2">
-            <Label htmlFor="status">Order Status</Label>
-            <select id="status" className="input-focus input-hover" {...register("status")}>
+          <div className="space-y-1">
+            <Label htmlFor="status" className="text-gray-700">Order Status</Label>
+            <select id="status" className="w-full input-focus" {...register("status")}>
               <option value="PENDING">Pending</option>
               <option value="PROCESSING">Processing</option>
               <option value="SHIPPED">Shipped</option>
@@ -135,22 +145,30 @@ export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
           {/* Mark as Paid Checkbox */}
           <div className="flex items-center space-x-2">
             <Checkbox checked={isPaid} onCheckedChange={() => setIsPaid(!isPaid)} />
-            <Label>Mark as Paid</Label>
+            <Label className="text-gray-700">Mark as Paid</Label>
           </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Order"}
+          {/* Buttons - Centered, Responsive, and Modern */}
+          <AlertDialogFooter className="flex flex-col md:flex-row md:justify-between gap-3 mt-4">
+            {/* Cancel Button (Proper Closing) */}
+            <Button variant="ghost" type="button" onClick={onClose} className="w-full md:w-auto">
+              Cancel
             </Button>
-            <Button type="button" onClick={handleNextStatus} disabled={loading || data?.status === "DELIVERED"}>
-              {loading ? "Processing..." : "Move to Next Status"}
+
+            <Button variant="outline" type="button" onClick={handleNextStatus} disabled={loading || data?.status === "DELIVERED"} className="w-full md:w-auto">
+              {loading ? "Processing..." : "Next Status"}
             </Button>
-            <Button type="button" onClick={handleMockPayment} disabled={loading || isPaid}>
+
+            <Button variant={isPaid ? "secondary" : "default"} type="button" onClick={handleMockPayment} disabled={loading || isPaid} className="w-full md:w-auto">
               {loading ? "Processing..." : isPaid ? "Already Paid" : "Mock Payment"}
             </Button>
+
+            <Button type="submit" disabled={loading} className="w-full md:w-auto">
+              {loading ? "Updating..." : "Save Changes"}
+            </Button>
           </AlertDialogFooter>
-        </form>
+
+        </motion.form>
       </AlertDialogContent>
     </AlertDialog>
   );

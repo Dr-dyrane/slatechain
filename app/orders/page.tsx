@@ -41,14 +41,14 @@ const columns: ColumnDef<OrderRow>[] = [
     cell: ({ row }) => {
       const status = row.getValue("status") as Order["status"];
       const statusColors: Record<Order["status"], string> = {
-        PENDING: "bg-yellow-500 text-white",
-        PROCESSING: "bg-blue-500 text-white",
-        SHIPPED: "bg-indigo-500 text-white",
-        DELIVERED: "bg-green-500 text-white",
-        CANCELLED: "bg-red-500 text-white",
+        PENDING: "bg-yellow-500/85 text-white",
+        PROCESSING: "bg-blue-500/85 text-white",
+        SHIPPED: "bg-indigo-500/85 text-white",
+        DELIVERED: "bg-green-500/85 text-white",
+        CANCELLED: "bg-red-500/85 text-white",
       };
       return (
-        <span className={`px-3 py-1 rounded-md text-xs font-bold ${statusColors[status]}`}>
+        <span className={`px-3 py-2 rounded-lg text-xs font-semibold ${statusColors[status]}`}>
           {status}
         </span>
       );
