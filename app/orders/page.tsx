@@ -64,9 +64,9 @@ const columns: ColumnDef<OrderRow>[] = [
     header: "Payment",
     cell: ({ row }) =>
       row.getValue("paid") ? (
-        <span className="text-green-600 font-bold">Paid</span>
+        <span className="text-green-500 font-medium">Paid</span>
       ) : (
-        <span className="text-red-600 font-bold">Unpaid</span>
+        <span className="text-red-500 font-medium">Unpaid</span>
       ),
   },
 ];
