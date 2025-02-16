@@ -19,11 +19,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppDispatch, RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
-import { InventoryItem } from "@/lib/types";
+import { InventoryItem, UserRole } from "@/lib/types";
 import { toast } from "sonner";
+import { useEffect } from "react";
 import { addInventoryItem } from "@/lib/slices/inventorySlice";
 
-// Define the schema for validation and types
 const addInventorySchema = z.object({
     name: z.string().min(1, "Name is required"),
     sku: z.string().min(1, "SKU is required"),
@@ -32,9 +32,11 @@ const addInventorySchema = z.object({
     location: z.string().optional(),
     price: z.number({ invalid_type_error: "Price must be a number" }).min(0, "Price must be a positive number"),
     category: z.string().min(1, "Category is required"),
+    supplierId: z.string()
 });
 
 type AddInventoryFormValues = z.infer<typeof addInventorySchema>;
+
 
 interface AddInventoryModalProps {
     open: boolean;
@@ -43,6 +45,7 @@ interface AddInventoryModalProps {
 export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
     const dispatch = useDispatch<AppDispatch>();
     const { loading } = useSelector((state: RootState) => state.inventory);
+    const { user } = useSelector((state: RootState) => state.auth);
 
     const {
         register,
@@ -51,7 +54,17 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
         formState: { errors, isValid },
     } = useForm<AddInventoryFormValues>({
         resolver: zodResolver(addInventorySchema),
+        defaultValues: {
+            supplierId: user?.id || 'user-123'
+        }
     });
+    useEffect(() => {
+        if (user) {
+            reset({
+                supplierId: user?.id || 'user-123'
+            } as any)
+        }
+    }, [reset, user]);
 
 
     const onSubmit = async (data: AddInventoryFormValues) => {
@@ -61,10 +74,10 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
             onClose()
             reset()
         } catch (error: any) {
-            toast.error('There was an error creating inventory item, please try again later')
+            toast.error(error || 'There was an error creating inventory item, please try again later')
         }
-    }
-
+    };
+    const isAdmin = user?.role === UserRole.ADMIN
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
             <AlertDialogContent>
@@ -157,6 +170,16 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
                             <p className="text-sm text-red-500">{errors.category.message}</p>
                         )}
                     </div>
+
+                    {isAdmin && <div className="space-y-2">
+                        <Label htmlFor="supplierId">Supplier Id</Label>
+                        <Input
+                            id="supplierId"
+                            placeholder='supplierId'
+                            {...register("supplierId")}
+                            className="input-focus input-hover"
+                        />
+                    </div>}
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <Button type="submit" disabled={loading || !isValid}>

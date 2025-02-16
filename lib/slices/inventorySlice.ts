@@ -1,4 +1,4 @@
-// src/lib/slices/inventory/inventory.ts
+// src/lib/slices/InventorySlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiClient } from "@/lib/api/apiClient";
 import { InventoryItem } from "@/lib/types";
@@ -77,7 +77,14 @@ export const removeInventoryItem = createAsyncThunk(
 const inventorySlice = createSlice({
 	name: "inventory",
 	initialState,
-	reducers: {},
+	reducers: {
+		resetLoading: (state) => {
+		  state.loading = false
+		},
+		setLoading: (state, action: PayloadAction<boolean>) => {
+		  state.loading = action.payload
+		},
+	  },
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchInventory.pending, (state) => {
@@ -136,6 +143,8 @@ const inventorySlice = createSlice({
 			});
 	},
 });
+
+export const { resetLoading, setLoading } = inventorySlice.actions;
 
 // Export the actions, the reducer, and any extra logic you'd like
 export default inventorySlice.reducer;

@@ -15,7 +15,7 @@ import { Card, CardContent } from "../ui/card";
 
 interface DataRow {
     id: string;
-    name: string;
+    name?: string;
     [key: string]: any;
 }
 
@@ -87,7 +87,7 @@ export function ListCard<TData extends DataRow, TValue>({
 
                 ))}
             </div>
-            <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name} onEdit={onEdit}
+            <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name || ''} onEdit={onEdit}
                 onDelete={onDelete} />
         </>
     )

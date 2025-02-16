@@ -180,7 +180,7 @@ export interface UserPreferences {
 
 // Inventory (for Supplier role)
 export interface InventoryItem {
-	id: number;
+	id: number | string;
 	name: string;
 	sku: string;
 	quantity: number;
