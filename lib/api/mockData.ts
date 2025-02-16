@@ -230,19 +230,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				orderNumber: "ORD12345",
 				customerId: "user-123",
 				items: [
-					{
-						productId: "product-1",
-						quantity: 2,
-						price: 100,
-					},
-					{
-						productId: "product-2",
-						quantity: 1,
-						price: 50,
-					},
+					{ productId: "product-1", quantity: 2, price: 100 },
+					{ productId: "product-2", quantity: 1, price: 50 },
 				],
 				totalAmount: 250,
 				status: "PROCESSING",
+				paid: true, // NEW: Tracks payment status
 				createdAt: "2024-07-26T10:00:00Z",
 				updatedAt: "2024-07-26T10:30:00Z",
 			},
@@ -251,19 +244,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				orderNumber: "ORD67890",
 				customerId: "user-123",
 				items: [
-					{
-						productId: "product-3",
-						quantity: 3,
-						price: 20,
-					},
-					{
-						productId: "product-4",
-						quantity: 1,
-						price: 30,
-					},
+					{ productId: "product-3", quantity: 3, price: 20 },
+					{ productId: "product-4", quantity: 1, price: 30 },
 				],
 				totalAmount: 90,
 				status: "PENDING",
+				paid: false, // NEW: Unpaid order
 				createdAt: "2024-07-27T14:00:00Z",
 				updatedAt: "2024-07-27T14:15:00Z",
 			},
@@ -272,19 +258,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				orderNumber: "ORD67910",
 				customerId: "user-123",
 				items: [
-					{
-						productId: "product-5",
-						quantity: 3,
-						price: 20,
-					},
-					{
-						productId: "product-6",
-						quantity: 1,
-						price: 30,
-					},
+					{ productId: "product-5", quantity: 3, price: 20 },
+					{ productId: "product-6", quantity: 1, price: 30 },
 				],
 				totalAmount: 60,
 				status: "PENDING",
+				paid: false,
 				createdAt: "2024-07-27T14:00:00Z",
 				updatedAt: "2024-07-27T14:15:00Z",
 			},

@@ -25,12 +25,20 @@ import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
+import { CheckedState } from "@radix-ui/react-checkbox"; // ✅ Import `CheckedState`
 
 const addOrderSchema = z.object({
   customerId: z.string().min(1, "Customer ID is required"),
-  itemIds: z.array(z.string()).min(1, "Please select at least 1 item"),
-  totalAmount: z.number({ invalid_type_error: "Total must be a number" }).min(0, "Total must be a positive number"),
-  status: z.string().optional()
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().min(1, "Quantity must be at least 1"),
+      price: z.number().min(0, "Price must be non-negative"),
+    })
+  ).min(1, "At least one item is required"),
+  totalAmount: z.number().min(0, "Total must be positive"),
+  status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]),
+  paid: z.boolean().default(false), // ✅ Now included
 });
 
 type AddOrderFormValues = z.infer<typeof addOrderSchema>;
@@ -39,130 +47,137 @@ interface AddOrderModalProps {
   open: boolean;
   onClose: () => void;
 }
+
 export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.orders);
   const inventory = useSelector((state: RootState) => state.inventory.items);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
+  const [markAsPaid, setMarkAsPaid] = useState(false);
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors, isValid },
-    watch,
-    trigger
   } = useForm<AddOrderFormValues>({
     resolver: zodResolver(addOrderSchema),
-    defaultValues: {
-      status: "PENDING"
-    }
+    defaultValues: { status: "PENDING", items: [], totalAmount: 0, paid: false },
+    mode: "onChange",
   });
 
   useEffect(() => {
-    trigger("itemIds")
-  }, [selectedItems, trigger]);
+    register("items");
+  }, [register]);
 
   const handleCheckboxChange = (item: InventoryItem) => {
     setSelectedItems(prev => {
-      if (prev.includes(item.id.toString())) {
-        return prev.filter(id => id !== item.id.toString());
-      } else {
-        return [...prev, item.id.toString()];
+      if (prev[item.id]) {
+        const updated = { ...prev };
+        delete updated[item.id];
+        return updated;
       }
+      return { ...prev, [item.id]: 1 }; // Default quantity: 1
     });
   };
 
-  const handleTotalChange = () => {
-    trigger('totalAmount');
+  const handleQuantityChange = (productId: string, quantity: number) => {
+    setSelectedItems(prev => ({ ...prev, [productId]: quantity }));
+  };
+
+  const calculateTotalAmount = () => {
+    return Object.entries(selectedItems).reduce((total, [productId, quantity]) => {
+      const item = inventory.find(item => item.id.toString() === productId);
+      return total + (item?.price || 0) * quantity;
+    }, 0);
   };
 
   const onSubmit = async (data: AddOrderFormValues) => {
     try {
-      const orderItems = (selectedItems as string[]).map((productId: string) => {
+      const orderItems = Object.entries(selectedItems).map(([productId, quantity]) => {
         const item = inventory.find(item => item.id.toString() === productId);
-        return {
-          productId: productId,
-          quantity: 1,
-          price: item?.price || 10,
-        }
-      })
-      const totalAmount: number = orderItems.reduce((total: number, item: OrderItem) => total + item.price * item.quantity, 0);
-      await dispatch(addOrder({ ...data, items: JSON.stringify(orderItems), totalAmount } as Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>)).unwrap();
-      toast.success('New order item created successfully');
-      onClose()
-      reset()
-    } catch (error: any) {
-      toast.error('There was an error creating the order, please try again later');
+        return { productId, quantity, price: item?.price || 0 };
+      });
+
+      const totalAmount = calculateTotalAmount();
+
+      await dispatch(addOrder({ ...data, items: orderItems, totalAmount, paid: markAsPaid } as Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>)).unwrap();
+      toast.success(`Order created successfully. ${markAsPaid ? "Marked as Paid" : "Awaiting Payment"}`);
+      reset();
+      onClose();
+    } catch {
+      toast.error("Failed to create order. Please try again.");
     }
-  }
+  };
+
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Add New Order</AlertDialogTitle>
-          <AlertDialogDescription>Please provide details of order to be created.</AlertDialogDescription>
+          <AlertDialogTitle>Create New Order</AlertDialogTitle>
+          <AlertDialogDescription>Fill in order details below.</AlertDialogDescription>
         </AlertDialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Customer ID Input */}
           <div className="space-y-2">
             <Label htmlFor="customerId">Customer ID</Label>
-            <Input
-              id="customerId"
-              placeholder='Customer ID'
-              {...register("customerId")}
-              className="input-focus input-hover"
-            />
-            {errors.customerId && (
-              <p className="text-sm text-red-500">{errors.customerId.message}</p>
-            )}
+            <Input id="customerId" placeholder="Enter Customer ID" {...register("customerId")} className="input-focus input-hover" />
+            {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
           </div>
+
+          {/* Select Items */}
           <div className="space-y-2">
-            <Label htmlFor="items">Items </Label>
-            <ScrollArea className="h-[200px] w-[300px] border rounded-md p-2 border-input ">
-              {inventory?.map((item) => (
-                <div key={item.id} className="flex items-center space-x-2 ">
-                  <Checkbox
-                    id={`item-${item.id}`}
-                    value={item.id.toString()}
-                    checked={selectedItems.includes(item.id.toString())}
-                    onCheckedChange={() => handleCheckboxChange(item)}
-                  />
-                  <Label htmlFor={`item-${item.id}`} className='text-sm'>
-                    {item.name}
-                  </Label>
+            <Label>Select Items</Label>
+            <ScrollArea className="h-[200px] w-[100%] border rounded-md p-2 border-input">
+              {inventory?.map(item => (
+                <div key={item.id} className="flex items-center justify-between space-x-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id={`item-${item.id}`} checked={!!selectedItems[item.id]} onCheckedChange={() => handleCheckboxChange(item)} />
+                    <Label htmlFor={`item-${item.id}`} className="text-sm">{item.name} - ₦{item.price}</Label>
+                  </div>
+                  {selectedItems[item.id] && (
+                    <Input
+                      type="number"
+                      className="w-20"
+                      value={selectedItems[item.id]}
+                      onChange={e => handleQuantityChange(item.id.toString(), parseInt(e.target.value) || 1)}
+                      min="1"
+                    />
+                  )}
                 </div>
               ))}
             </ScrollArea>
-            {errors.itemIds && (
-              <p className="text-sm text-red-500">{errors.itemIds.message}</p>
-            )}
+            {errors.items && <p className="text-sm text-red-500">{errors.items.message}</p>}
           </div>
-          <div className="space-y-2 hidden">
-            <Label htmlFor="totalAmount">Total Amount</Label>
-            <Input
-              id="totalAmount"
-              type='number'
-              placeholder='Total Amount'
-              {...register("totalAmount", { valueAsNumber: true })}
-              className="input-focus input-hover"
-            />
-            {errors.totalAmount && (
-              <p className="text-sm text-red-500">{errors.totalAmount.message}</p>
-            )}
-          </div>
+
+          {/* Total Amount (Read-Only) */}
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              className="input-focus input-hover"
-              {...register("status")}
-            >
-              <option value="PENDING">PENDING</option>
-              <option value="PROCESSING">PROCESSING</option>
-              <option value="SHIPPED">SHIPPED</option>
-              <option value="DELIVERED">DELIVERED</option>
-              <option value="CANCELLED">CANCELLED</option>
+            <Label>Total Amount</Label>
+            <Input type="number" className="input-focus input-hover" value={calculateTotalAmount()} readOnly />
+          </div>
+
+          {/* Order Status */}
+          <div className="space-y-2">
+            <Label>Order Status</Label>
+            <select className="input-focus input-hover" {...register("status")}>
+              <option value="PENDING">Pending</option>
+              <option value="PROCESSING">Processing</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
+
+          {/* Mark as Paid Checkbox */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              checked={markAsPaid}
+              onCheckedChange={(checked: CheckedState) => setMarkAsPaid(checked === true)} // ✅ Fixes TypeScript error
+            />
+            <Label>Mark as Paid</Label>
+          </div>
+
+          {/* Submit Button */}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit" disabled={loading || !isValid}>
@@ -173,4 +188,4 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
-};
+}

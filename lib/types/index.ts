@@ -200,6 +200,7 @@ export interface Order {
 	items: OrderItem[];
 	totalAmount: number;
 	status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+	paid: boolean;
 	createdAt: string;
 	updatedAt: string;
 }
