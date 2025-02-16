@@ -23,6 +23,8 @@ import { InventoryItem, UserRole } from "@/lib/types";
 import { useEffect } from 'react'
 import { toast } from "sonner";
 import { updateInventoryItem } from "@/lib/slices/inventorySlice";
+
+
 const editInventorySchema = z.object({
   id: z.string().min(1, "Id is required"),
   name: z.string().min(1, "Name is required"),
@@ -32,7 +34,7 @@ const editInventorySchema = z.object({
   location: z.string().optional(),
   price: z.number({ invalid_type_error: "Price must be a number" }).min(0, "Price must be a positive number"),
   category: z.string().min(1, "Category is required"),
-  supplierId: z.string().min(1, "Supplier ID is required")
+  supplierId: z.string().min(1, "Supplier ID is required"),
 });
 
 type EditInventoryFormValues = z.infer<typeof editInventorySchema>;
@@ -46,6 +48,8 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.inventory);
   const { user } = useSelector((state: RootState) => state.auth);
+  const isAdmin = user?.role === UserRole.ADMIN
+
   const {
     register,
     handleSubmit,
@@ -62,9 +66,26 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       location: data?.location || "",
       price: data?.price || 0,
       category: data?.category || "",
-      supplierId: data?.supplierId || ""
+      supplierId: data?.supplierId || ''
     }
   });
+
+  useEffect(() => {
+    if (data) {
+      reset({
+        id: data?.id?.toString() || "",
+        name: data?.name || "",
+        sku: data?.sku || "",
+        quantity: data?.quantity || 0,
+        minAmount: data?.minAmount || 0,
+        location: data?.location || "",
+        price: data?.price || 0,
+        category: data?.category || "",
+        supplierId: data?.supplierId || ''
+      });
+    }
+
+  }, [data, reset]);
 
   const onSubmit = async (data: EditInventoryFormValues) => {
     try {
@@ -76,7 +97,8 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       toast.error("There was an issue updating inventory")
     }
   }
-  const isAdmin = user?.role === UserRole.ADMIN
+
+
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent>
@@ -202,4 +224,4 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       </AlertDialogContent>
     </AlertDialog>
   );
-};
+}
