@@ -15,6 +15,7 @@ import { toast } from "@/hooks/use-toast";
 import { ErrorState } from "@/components/ui/error";
 import { useRouter } from "next/navigation";
 import { InventoryItem } from "@/lib/types";
+import DashboardCard from "@/components/dashboard/DashboardCard";
 
 export const columns = [
   { accessorKey: "name", header: "Name" },
@@ -40,9 +41,19 @@ export default function InventoryPage() {
     dispatch(fetchInventory()).finally(() => dispatch(setLoading(false)));
   }, [dispatch]);
 
-  // Compute low stock items dynamically (instead of using useState)
+  // Compute inventory KPIs
+  const totalStock = useMemo(
+    () => inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
+    [inventory.items]
+  );
+
   const lowStockItems = useMemo(
     () => inventory.items?.filter(item => item.quantity < item.minAmount) || [],
+    [inventory.items]
+  );
+
+  const mostStockedItem = useMemo(
+    () => inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }),
     [inventory.items]
   );
 
@@ -52,25 +63,44 @@ export default function InventoryPage() {
       toast({
         title: "Low Stock Alert",
         description: `Low stock: ${lowStockItems.map(item => item.name).join(", ")}.`,
+        action: (
+          <Button
+            variant="outline"
+            onClick={() => handleUpdateItem(lowStockItems[0], 10)}
+          >
+            Restock 10
+          </Button>
+        ),
       });
     }
   }, [lowStockItems]);
 
+
+  // Handle inventory update
   const handleUpdateItem = async (item: InventoryItem, replenishmentAmount: number | undefined) => {
     try {
-      await dispatch(
-        updateInventoryItem({ ...item, quantity: item.quantity + (replenishmentAmount || 0) })
-      ).unwrap();
+      if (!replenishmentAmount || replenishmentAmount <= 0) {
+        toast({ title: "Error", description: "Invalid replenishment amount", variant: "destructive" });
+        return;
+      }
 
-      toast({ description: "Inventory item updated successfully" });
+      const updatedItem = { ...item, quantity: item.quantity + replenishmentAmount };
+
+      // Optimistically update Redux before API call
+      dispatch(updateInventoryItem(updatedItem));
+
+      // Call API
+      await dispatch(updateInventoryItem(updatedItem)).unwrap();
+
+      toast({ title: "Success", description: `"${item.name}" updated successfully!` });
     } catch (error) {
-      toast({ description: "There was an issue updating inventory" });
+      toast({ title: "Error", description: "Failed to update inventory item", variant: "destructive" });
     }
   };
 
+  // Modals handlers
   const handleAddModalOpen = () => setAddModalOpen(true);
   const handleAddModalClose = () => setAddModalOpen(false);
-
   const handleEditModalOpen = (item: InventoryItem) => {
     setSelectedItem(item);
     setEditModalOpen(true);
@@ -79,7 +109,6 @@ export default function InventoryPage() {
     setSelectedItem(null);
     setEditModalOpen(false);
   };
-
   const handleOpenDeleteModal = (item: InventoryItem) => {
     setItemToDelete(item);
     setDeleteModalOpen(true);
@@ -111,13 +140,22 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl sm:text-3xl font-bold">Inventory Management</h1>
         <Button onClick={handleAddModalOpen}>
           <PlusIcon className="mr-2 h-4 w-4" /> Add Item
         </Button>
       </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <DashboardCard card={{ title: "Total Stock", value: totalStock.toString(), type: "number", icon: "Package", description: "Total items in stock", sparklineData: [totalStock] }} />
+        <DashboardCard card={{ title: "Low Stock Items", value: lowStockItems.length.toString(), type: "number", icon: "Truck", description: "Items that need replenishment", sparklineData: [lowStockItems.length] }} />
+        <DashboardCard card={{ title: "Most Stocked Item", value: mostStockedItem?.name || "N/A", type: "orders", icon: "Package", description: "Item with highest stock", sparklineData: [mostStockedItem?.quantity || 0] }} />
+      </div>
+
+      {/* Inventory Table */}
       <DataTable
         columns={columns}
         data={formattedInventory as any}

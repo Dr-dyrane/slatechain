@@ -65,21 +65,7 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       supplierId: data?.supplierId || ""
     }
   });
-  useEffect(() => {
-    if (data) {
-      reset({
-        id: data?.id?.toString() || "",
-        name: data?.name || "",
-        sku: data?.sku || "",
-        quantity: data?.quantity || 0,
-        minAmount: data?.minAmount || 0,
-        location: data?.location || "",
-        price: data?.price || 0,
-        category: data?.category || "",
-        supplierId: data?.supplierId || ""
-      })
-    }
-  }, [data, reset]);
+
   const onSubmit = async (data: EditInventoryFormValues) => {
     try {
       await dispatch(updateInventoryItem(data as InventoryItem)).unwrap()
