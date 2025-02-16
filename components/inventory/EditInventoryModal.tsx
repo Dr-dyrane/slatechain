@@ -19,11 +19,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AppDispatch, RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
-import { InventoryItem } from "@/lib/types";
+import { InventoryItem, UserRole } from "@/lib/types";
 import { useEffect } from 'react'
 import { toast } from "sonner";
 import { updateInventoryItem } from "@/lib/slices/inventorySlice";
-
 const editInventorySchema = z.object({
   id: z.string().min(1, "Id is required"),
   name: z.string().min(1, "Name is required"),
@@ -33,7 +32,7 @@ const editInventorySchema = z.object({
   location: z.string().optional(),
   price: z.number({ invalid_type_error: "Price must be a number" }).min(0, "Price must be a positive number"),
   category: z.string().min(1, "Category is required"),
-  supplierId: z.string()
+  supplierId: z.string().min(1, "Supplier ID is required")
 });
 
 type EditInventoryFormValues = z.infer<typeof editInventorySchema>;
@@ -47,8 +46,6 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.inventory);
   const { user } = useSelector((state: RootState) => state.auth);
-
-
   const {
     register,
     handleSubmit,
@@ -65,25 +62,27 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       location: data?.location || "",
       price: data?.price || 0,
       category: data?.category || "",
-      supplierId: user!.id
+      supplierId: data?.supplierId || ""
     }
   });
   useEffect(() => {
-    reset({
-      id: data?.id?.toString() || "",
-      name: data?.name || "",
-      sku: data?.sku || "",
-      quantity: data?.quantity || 0,
-      minAmount: data?.minAmount || 0,
-      location: data?.location || "",
-      price: data?.price || 0,
-      category: data?.category || "",
-      supplierId: user!.id
-    });
+    if (data) {
+      reset({
+        id: data?.id?.toString() || "",
+        name: data?.name || "",
+        sku: data?.sku || "",
+        quantity: data?.quantity || 0,
+        minAmount: data?.minAmount || 0,
+        location: data?.location || "",
+        price: data?.price || 0,
+        category: data?.category || "",
+        supplierId: data?.supplierId || ""
+      })
+    }
   }, [data, reset]);
   const onSubmit = async (data: EditInventoryFormValues) => {
     try {
-      await dispatch(updateInventoryItem({ ...data, supplierId: user!.id } as InventoryItem)).unwrap()
+      await dispatch(updateInventoryItem(data as InventoryItem)).unwrap()
       toast.success('inventory item updated successfully')
       onClose()
       reset();
@@ -91,6 +90,7 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
       toast.error("There was an issue updating inventory")
     }
   }
+  const isAdmin = user?.role === UserRole.ADMIN
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent>
@@ -158,8 +158,8 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
               {...register("minAmount", { valueAsNumber: true })}
               className="input-focus input-hover"
             />
-            {errors.quantity && (
-              <p className="text-sm text-red-500">{errors.quantity.message}</p>
+            {errors.minAmount && (
+              <p className="text-sm text-red-500">{errors.minAmount.message}</p>
             )}
           </div>
           <div className="space-y-2">
@@ -196,7 +196,7 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
               <p className="text-sm text-red-500">{errors.category.message}</p>
             )}
           </div>
-          <div className="space-y-2">
+       { isAdmin &&  <div className="space-y-2">
             <Label htmlFor="supplierId">Supplier Id</Label>
             <Input
               id="supplierId"
@@ -205,7 +205,7 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
               className="input-focus input-hover"
               readOnly
             />
-          </div>
+          </div>}
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit" disabled={loading || !isValid}>
