@@ -1,191 +1,145 @@
-// src/components/order/AddOrderModal.tsx
-"use client";
+"use client"
 
+import { useState } from "react"
+import { useDispatch } from "react-redux"
+import { addOrder } from "@/lib/slices/orderSlice"
+import type { Order, OrderItem } from "@/lib/types"
+import type { AppDispatch } from "@/lib/store"
+import { toast } from "sonner"
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { addOrder } from "@/lib/slices/orderSlice";
-import { AppDispatch, RootState } from "@/lib/store";
-import { useDispatch, useSelector } from "react-redux";
-import { Order, OrderItem, InventoryItem } from "@/lib/types";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CheckedState } from "@radix-ui/react-checkbox"; // ✅ Import `CheckedState`
-
-const addOrderSchema = z.object({
-  customerId: z.string().min(1, "Customer ID is required"),
-  items: z.array(
-    z.object({
-      productId: z.string(),
-      quantity: z.number().min(1, "Quantity must be at least 1"),
-      price: z.number().min(0, "Price must be non-negative"),
-    })
-  ).min(1, "At least one item is required"),
-  totalAmount: z.number().min(0, "Total must be positive"),
-  status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]),
-  paid: z.boolean().default(false), // ✅ Now included
-});
-
-type AddOrderFormValues = z.infer<typeof addOrderSchema>;
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
+import { Loader2, CreditCard } from "lucide-react"
+import { OrderDetailsForm } from "./OrderDetailsForm"
+import { OrderItemsForm } from "./OrderItemsForm"
 
 interface AddOrderModalProps {
-  open: boolean;
-  onClose: () => void;
+  open: boolean
+  onClose: () => void
 }
 
 export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { loading } = useSelector((state: RootState) => state.orders);
-  const inventory = useSelector((state: RootState) => state.inventory.items);
-  const [selectedItems, setSelectedItems] = useState<{ [key: string]: number }>({});
-  const [markAsPaid, setMarkAsPaid] = useState(false);
+  const dispatch = useDispatch<AppDispatch>()
+  const [activeTab, setActiveTab] = useState("details")
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isValid },
-  } = useForm<AddOrderFormValues>({
-    resolver: zodResolver(addOrderSchema),
-    defaultValues: { status: "PENDING", items: [], totalAmount: 0, paid: false },
-    mode: "onChange",
-  });
+  const [newOrder, setNewOrder] = useState<Partial<Order>>({
+    customerId: "",
+    items: [],
+    totalAmount: 0,
+    status: "PENDING",
+    paid: false,
+  })
 
-  useEffect(() => {
-    register("items");
-  }, [register]);
+  const handleStatusChange = (status: Order["status"]) => {
+    setNewOrder({ ...newOrder, status })
+  }
 
-  const handleCheckboxChange = (item: InventoryItem) => {
-    setSelectedItems(prev => {
-      if (prev[item.id]) {
-        const updated = { ...prev };
-        delete updated[item.id];
-        return updated;
-      }
-      return { ...prev, [item.id]: 1 }; // Default quantity: 1
-    });
-  };
+  const handleCustomerIdChange = (customerId: string) => {
+    setNewOrder({ ...newOrder, customerId })
+  }
 
-  const handleQuantityChange = (productId: string, quantity: number) => {
-    setSelectedItems(prev => ({ ...prev, [productId]: quantity }));
-  };
+  const handleItemsChange = (items: OrderItem[]) => {
+    const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.price, 0)
+    setNewOrder({ ...newOrder, items, totalAmount })
+  }
 
-  const calculateTotalAmount = () => {
-    return Object.entries(selectedItems).reduce((total, [productId, quantity]) => {
-      const item = inventory.find(item => item.id.toString() === productId);
-      return total + (item?.price || 0) * quantity;
-    }, 0);
-  };
+  const handlePaymentProcess = () => {
+    setNewOrder({ ...newOrder, paid: true, status: "PROCESSING" })
+    toast.success("Payment processed successfully")
+    setShowPaymentModal(false)
+  }
 
-  const onSubmit = async (data: AddOrderFormValues) => {
+  const handleSubmit = async () => {
+    setLoading(true)
     try {
-      const orderItems = Object.entries(selectedItems).map(([productId, quantity]) => {
-        const item = inventory.find(item => item.id.toString() === productId);
-        return { productId, quantity, price: item?.price || 0 };
-      });
-
-      const totalAmount = calculateTotalAmount();
-
-      await dispatch(addOrder({ ...data, items: orderItems, totalAmount, paid: markAsPaid } as Omit<Order, 'id' | 'orderNumber' | 'createdAt' | 'updatedAt'>)).unwrap();
-      toast.success(`Order created successfully. ${markAsPaid ? "Marked as Paid" : "Awaiting Payment"}`);
-      reset();
-      onClose();
-    } catch {
-      toast.error("Failed to create order. Please try again.");
+      const orderToSubmit = {
+        ...newOrder,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }
+      await dispatch(addOrder(orderToSubmit as Order))
+      toast.success("Order added successfully")
+      onClose()
+    } catch (error) {
+      console.error("Error adding order:", error)
+      toast.error("Failed to add order")
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Create New Order</AlertDialogTitle>
-          <AlertDialogDescription>Fill in order details below.</AlertDialogDescription>
+          <AlertDialogTitle>Add New Order</AlertDialogTitle>
+          <AlertDialogDescription>Enter the order details below. Click save when you're done.</AlertDialogDescription>
         </AlertDialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Customer ID Input */}
-          <div className="space-y-2">
-            <Label htmlFor="customerId">Customer ID</Label>
-            <Input id="customerId" placeholder="Enter Customer ID" {...register("customerId")} className="input-focus input-hover" />
-            {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
-          </div>
 
-          {/* Select Items */}
-          <div className="space-y-2">
-            <Label>Select Items</Label>
-            <ScrollArea className="h-[200px] w-[100%] border rounded-md p-2 border-input">
-              {inventory?.map(item => (
-                <div key={item.id} className="flex items-center justify-between space-x-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id={`item-${item.id}`} checked={!!selectedItems[item.id]} onCheckedChange={() => handleCheckboxChange(item)} />
-                    <Label htmlFor={`item-${item.id}`} className="text-sm">{item.name} - ₦{item.price}</Label>
-                  </div>
-                  {selectedItems[item.id] && (
-                    <Input
-                      type="number"
-                      className="w-20"
-                      value={selectedItems[item.id]}
-                      onChange={e => handleQuantityChange(item.id.toString(), parseInt(e.target.value) || 1)}
-                      min="1"
-                    />
-                  )}
-                </div>
-              ))}
-            </ScrollArea>
-            {errors.items && <p className="text-sm text-red-500">{errors.items.message}</p>}
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Order Details</TabsTrigger>
+            <TabsTrigger value="items">Order Items</TabsTrigger>
+          </TabsList>
 
-          {/* Total Amount (Read-Only) */}
-          <div className="space-y-2">
-            <Label>Total Amount</Label>
-            <Input type="number" className="input-focus input-hover" value={calculateTotalAmount()} readOnly />
-          </div>
-
-          {/* Order Status */}
-          <div className="space-y-2">
-            <Label>Order Status</Label>
-            <select className="input-focus input-hover" {...register("status")}>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="SHIPPED">Shipped</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
-
-          {/* Mark as Paid Checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={markAsPaid}
-              onCheckedChange={(checked: CheckedState) => setMarkAsPaid(checked === true)} // ✅ Fixes TypeScript error
+          <TabsContent value="details" className="mt-4">
+            <OrderDetailsForm
+              order={newOrder as Order}
+              onStatusChange={handleStatusChange}
+              onCustomerIdChange={handleCustomerIdChange}
+              onPaymentProcess={() => setShowPaymentModal(true)}
             />
-            <Label>Mark as Paid</Label>
-          </div>
+          </TabsContent>
 
-          {/* Submit Button */}
+          <TabsContent value="items" className="mt-4">
+            <OrderItemsForm items={newOrder.items || []} onItemsChange={handleItemsChange} />
+          </TabsContent>
+        </Tabs>
+
+        <Separator className="my-4" />
+
+        <div className="flex justify-between items-center">
+          <div className="text-lg font-semibold">Total: ${newOrder.totalAmount?.toFixed(2) || "0.00"}</div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button type="submit" disabled={loading || !isValid}>
-              {loading ? "Adding..." : "Add Order"}
+            <Button onClick={handleSubmit} disabled={loading}>
+              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Add Order
             </Button>
           </AlertDialogFooter>
-        </form>
+        </div>
       </AlertDialogContent>
+
+      {/* Payment Modal */}
+      <AlertDialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Process Payment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to process the payment for this order?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button onClick={handlePaymentProcess}>
+              <CreditCard className="mr-2 h-4 w-4" />
+              Confirm Payment
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AlertDialog>
-  );
+  )
 }
+
