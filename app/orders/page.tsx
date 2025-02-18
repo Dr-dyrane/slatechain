@@ -188,7 +188,7 @@ export default function OrdersPage() {
       />
 
       <AddOrderModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
-      <EditOrderModal open={editModalOpen} onClose={() => setEditModalOpen(false)} data={selectedOrder} />
+      <EditOrderModal open={editModalOpen} onClose={() => setEditModalOpen(false)} order={selectedOrder} />
       <DeleteOrderModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} order={orderToDelete} />
     </div>
   )

@@ -1,175 +1,305 @@
-// src/components/order/EditOrderModal.tsx
-"use client";
+"use client"
 
+import { useState, useEffect } from "react"
+import { useForm, useFieldArray } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { useDispatch, useSelector } from "react-redux"
+import { updateOrder, markOrderAsPaid } from "@/lib/slices/orderSlice"
+import type { Order, OrderItem } from "@/lib/types"
+import type { AppDispatch, RootState } from "@/lib/store"
+import { toast } from "sonner"
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { AppDispatch, RootState } from "@/lib/store";
-import { useDispatch, useSelector } from "react-redux";
-import { Order } from "@/lib/types";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { updateOrder, markOrderAsPaid } from "@/lib/slices/orderSlice";
-import { Checkbox } from "@/components/ui/checkbox";
-import { motion } from "framer-motion"; // ✅ Smooth animations
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Badge } from "@/components/ui/badge"
+import { Trash2, Plus, CreditCard, Loader2 } from "lucide-react"
 
-const editOrderSchema = z.object({
+const orderItemSchema = z.object({
+  id: z.number().optional(),
+  productId: z.string().min(1, "Product ID is required"),
+  quantity: z.number().min(1, "Quantity must be at least 1"),
+  price: z.number().min(0, "Price must be non-negative"),
+})
+
+const orderSchema = z.object({
   id: z.number(),
+  orderNumber: z.string(),
   customerId: z.string().min(1, "Customer ID is required"),
+  items: z.array(orderItemSchema).min(1, "At least one item is required"),
+  totalAmount: z.number().min(0, "Total amount must be non-negative"),
   status: z.enum(["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED"]),
   paid: z.boolean(),
-});
+  createdAt: z.string(),
+  updatedAt: z.string(),
+})
 
-type EditOrderFormValues = z.infer<typeof editOrderSchema>;
+type OrderFormValues = z.infer<typeof orderSchema>
 
 interface EditOrderModalProps {
-  open: boolean;
-  onClose: () => void;
-  data: Order | null;
+  open: boolean
+  onClose: () => void
+  order: Order | null
 }
 
-export function EditOrderModal({ open, onClose, data }: EditOrderModalProps) {
-  const dispatch = useDispatch<AppDispatch>();
-  const { loading } = useSelector((state: RootState) => state.orders);
-  const [isPaid, setIsPaid] = useState<boolean>(data?.paid || false);
+export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
+  const dispatch = useDispatch<AppDispatch>()
+  const [activeTab, setActiveTab] = useState("details")
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const { loading: updateLoading, paymentLoading } = useSelector((state: RootState) => state.orders)
+  const loading = updateLoading || paymentLoading // Combine loading states
 
   const {
     register,
+    control,
     handleSubmit,
+    watch,
+    setValue,
     reset,
-    formState: { errors },
-  } = useForm<EditOrderFormValues>({
-    resolver: zodResolver(editOrderSchema),
-    defaultValues: data ? { ...data, paid: data.paid } : { id: 0, customerId: "", status: "PENDING", paid: false },
-  });
+    formState: { errors, isDirty, isValid },
+  } = useForm<OrderFormValues>({
+    resolver: zodResolver(orderSchema),
+    defaultValues: order || {
+      id: 0,
+      orderNumber: "",
+      customerId: "",
+      items: [],
+      totalAmount: 0,
+      status: "PENDING",
+      paid: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  })
+
+  const { fields, append, remove, update } = useFieldArray({
+    control,
+    name: "items",
+  })
 
   useEffect(() => {
-    if (data) {
-      reset({ ...data, paid: data.paid });
-      setIsPaid(data.paid);
+    if (order) {
+      reset({
+        ...order,
+        items: order.items || [],
+      })
     }
-  }, [data, reset]);
+  }, [order, reset])
 
-  const handleNextStatus = async () => {
-    if (!data) return;
+  const watchItems = watch("items")
+  const watchStatus = watch("status")
+  const watchPaid = watch("paid")
 
-    const statusFlow: Order["status"][] = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
-    const nextStatusIndex = statusFlow.indexOf(data.status) + 1;
-    const nextStatus = statusFlow[nextStatusIndex] || "DELIVERED";
+  const calculateTotal = (items: OrderItem[] | undefined) => {
+    return items?.reduce((sum, item) => sum + item.quantity * item.price, 0) || 0
+  }
 
+  useEffect(() => {
+    if (watchItems && watchItems.length > 0) {
+      const total = calculateTotal(watchItems)
+      setValue("totalAmount", total)
+    }
+  }, [watchItems, setValue]) // Removed calculateTotal from dependency array
+
+  const onSubmit = async (data: OrderFormValues) => {
     try {
-      const updatedOrder: Order = { ...data, status: nextStatus };
-      await dispatch(updateOrder(updatedOrder));
-      toast.success(`Order status updated to ${nextStatus}`);
-      onClose();
-    } catch {
-      toast.error("Failed to update status.");
+      const updatedOrder: Order = {
+        ...data,
+        updatedAt: new Date().toISOString(),
+      }
+      await dispatch(updateOrder(updatedOrder))
+      toast.success("Order updated successfully")
+      onClose()
+    } catch (error) {
+      toast.error("Failed to update order")
     }
-  };
+  }
 
-  const handleMockPayment = async () => {
-    if (!data) return;
-
-    try {
-      await dispatch(markOrderAsPaid(data.id));
-      setIsPaid(true);
-      toast.success("Order marked as paid.");
-    } catch {
-      toast.error("Payment failed.");
+  const handlePayment = () => {
+    if (order) {
+      dispatch(markOrderAsPaid(order.id))
+      setValue("paid", true)
+      setValue("status", "PROCESSING")
+      toast.success("Payment processed successfully")
+      setShowPaymentModal(false)
     }
-  };
+  }
 
-  const onSubmit = async (formData: EditOrderFormValues) => {
-    if (!data) return;
+  const handleAddItem = () => {
+    append({ productId: "", quantity: 1, price: 0 })
+  }
 
-    try {
-      const updatedOrder: Order = { ...data, ...formData, paid: isPaid };
-      await dispatch(updateOrder(updatedOrder));
-      toast.success("Order updated successfully!");
-      onClose();
-      reset();
-    } catch {
-      toast.error("Failed to update order.");
-    }
-  };
+  const handleUpdateItem = (index: number, data: Partial<OrderItem>) => {
+    update(index, { ...watchItems[index], ...data })
+  }
+
+  if (!order) return null
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-lg md:max-w-xl px-6 py-6 rounded-2xl shadow-lg">
-        <AlertDialogHeader className="mb-4">
-          <AlertDialogTitle className="text-lg font-semibold text-gray-800">Edit Order</AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-500">
-            Modify order details with real-time updates.
-          </AlertDialogDescription>
+      <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <AlertDialogHeader>
+          <AlertDialogTitle>Edit Order: {order.orderNumber}</AlertDialogTitle>
+          <AlertDialogDescription>Update the order details below. Click save when you're done.</AlertDialogDescription>
         </AlertDialogHeader>
 
-        <motion.form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-5"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {/* Customer ID Input */}
-          <div className="space-y-1">
-            <Label htmlFor="customerId" className="text-gray-700">Customer ID</Label>
-            <Input id="customerId" {...register("customerId")} className="w-full input-focus" />
-            {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
-          </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Order Details</TabsTrigger>
+            <TabsTrigger value="items">Order Items</TabsTrigger>
+          </TabsList>
 
-          {/* Order Status */}
-          <div className="space-y-1">
-            <Label htmlFor="status" className="text-gray-700">Order Status</Label>
-            <select id="status" className="w-full input-focus" {...register("status")}>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="SHIPPED">Shipped</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-          </div>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <TabsContent value="details" className="mt-4 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="orderNumber">Order Number</Label>
+                  <Input id="orderNumber" {...register("orderNumber")} readOnly />
+                </div>
+                <div>
+                  <Label htmlFor="customerId">Customer ID</Label>
+                  <Input id="customerId" {...register("customerId")} />
+                  {errors.customerId && <p className="text-sm text-red-500">{errors.customerId.message}</p>}
+                </div>
+              </div>
 
-          {/* Mark as Paid Checkbox */}
-          <div className="flex items-center space-x-2">
-            <Checkbox checked={isPaid} onCheckedChange={() => setIsPaid(!isPaid)} />
-            <Label className="text-gray-700">Mark as Paid</Label>
-          </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Select onValueChange={(value) => setValue("status", value as Order["status"])} value={watchStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="PROCESSING">Processing</SelectItem>
+                    <SelectItem value="SHIPPED">Shipped</SelectItem>
+                    <SelectItem value="DELIVERED">Delivered</SelectItem>
+                    <SelectItem value="CANCELLED">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Buttons - Centered, Responsive, and Modern */}
-          <AlertDialogFooter className="flex flex-col md:flex-row md:justify-between gap-3 mt-4">
-            {/* Cancel Button (Proper Closing) */}
-            <Button variant="ghost" type="button" onClick={onClose} className="w-full md:w-auto">
-              Cancel
-            </Button>
+              <div className="flex items-center space-x-2">
+                <Label htmlFor="paid">Payment Status</Label>
+                <Badge variant={watchPaid ? "success" : "destructive"}>{watchPaid ? "Paid" : "Unpaid"}</Badge>
+                {!watchPaid && (
+                  <Button type="button" onClick={() => setShowPaymentModal(true)} size="sm">
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    Process Payment
+                  </Button>
+                )}
+              </div>
+            </TabsContent>
 
-            <Button variant="outline" type="button" onClick={handleNextStatus} disabled={loading || data?.status === "DELIVERED"} className="w-full md:w-auto">
-              {loading ? "Processing..." : "Next Status"}
-            </Button>
+            <TabsContent value="items" className="mt-4 space-y-4">
+              {fields.map((field, index) => (
+                <Card key={field.id}>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium">Item {index + 1}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor={`items.${index}.productId`}>Product ID</Label>
+                        <Input
+                          {...register(`items.${index}.productId` as const)}
+                          onChange={(e) => handleUpdateItem(index, { productId: e.target.value })}
+                        />
+                        {errors.items?.[index]?.productId && (
+                          <p className="text-sm text-red-500">{errors.items[index]?.productId?.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor={`items.${index}.quantity`}>Quantity</Label>
+                        <Input
+                          type="number"
+                          {...register(`items.${index}.quantity` as const, { valueAsNumber: true })}
+                          onChange={(e) => handleUpdateItem(index, { quantity: Number.parseInt(e.target.value) })}
+                        />
+                        {errors.items?.[index]?.quantity && (
+                          <p className="text-sm text-red-500">{errors.items[index]?.quantity?.message}</p>
+                        )}
+                      </div>
+                      <div>
+                        <Label htmlFor={`items.${index}.price`}>Price</Label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...register(`items.${index}.price` as const, { valueAsNumber: true })}
+                          onChange={(e) => handleUpdateItem(index, { price: Number.parseFloat(e.target.value) })}
+                        />
+                        {errors.items?.[index]?.price && (
+                          <p className="text-sm text-red-500">{errors.items[index]?.price?.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button type="button" onClick={() => remove(index)} variant="destructive" size="sm">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Remove Item
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+              <Button type="button" onClick={handleAddItem} className="mt-2">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+            </TabsContent>
 
-            <Button variant={isPaid ? "secondary" : "default"} type="button" onClick={handleMockPayment} disabled={loading || isPaid} className="w-full md:w-auto">
-              {loading ? "Processing..." : isPaid ? "Already Paid" : "Mock Payment"}
-            </Button>
+            <Separator className="my-4" />
 
-            <Button type="submit" disabled={loading} className="w-full md:w-auto">
-              {loading ? "Updating..." : "Save Changes"}
+            <div className="flex justify-between items-center">
+              <div className="text-lg font-semibold">Total: ${calculateTotal(watchItems).toFixed(2)}</div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button type="submit" disabled={!isDirty || !isValid || updateLoading}>
+                  {updateLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Save Changes
+                </Button>
+              </AlertDialogFooter>
+            </div>
+          </form>
+        </Tabs>
+      </AlertDialogContent>
+
+      {/* Payment Modal */}
+      <AlertDialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Process Payment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to process the payment for this order?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <Button onClick={handlePayment} disabled={paymentLoading}>
+              {paymentLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <CreditCard className="mr-2 h-4 w-4" />
+              )}
+              Confirm Payment
             </Button>
           </AlertDialogFooter>
-
-        </motion.form>
-      </AlertDialogContent>
+        </AlertDialogContent>
+      </AlertDialog>
     </AlertDialog>
-  );
+  )
 }
+

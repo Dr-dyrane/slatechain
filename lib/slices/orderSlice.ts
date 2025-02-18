@@ -1,16 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { apiClient } from "@/lib/api/apiClient";
-import { Order } from "@/lib/types";
+import type { Order } from "@/lib/types";
 
 interface OrderState {
 	items: Order[];
 	loading: boolean;
+	updateLoading: boolean;
+	paymentLoading: boolean;
 	error: string | null;
 }
 
 const initialState: OrderState = {
 	items: [],
 	loading: false,
+	updateLoading: false,
+	paymentLoading: false,
 	error: null,
 };
 
@@ -92,11 +96,13 @@ const orderSlice = createSlice({
 		},
 		// Mark an order as paid
 		markOrderAsPaid: (state, action) => {
+			state.paymentLoading = true;
 			const order = state.items.find((order) => order.id === action.payload);
 			if (order) {
 				order.status = "PROCESSING"; // Move to processing after payment
 				order.paid = true;
 			}
+			state.paymentLoading = false;
 		},
 	},
 	extraReducers: (builder) => {
@@ -116,13 +122,22 @@ const orderSlice = createSlice({
 			.addCase(addOrder.fulfilled, (state, action) => {
 				state.items.push(action.payload);
 			})
+			.addCase(updateOrder.pending, (state) => {
+				state.updateLoading = true;
+				state.error = null;
+			})
 			.addCase(updateOrder.fulfilled, (state, action) => {
+				state.updateLoading = false;
 				const index = state.items.findIndex(
 					(order) => order.id === action.payload.id
 				);
 				if (index !== -1) {
 					state.items[index] = action.payload;
 				}
+			})
+			.addCase(updateOrder.rejected, (state, action) => {
+				state.updateLoading = false;
+				state.error = action.payload as string;
 			})
 			.addCase(removeOrder.fulfilled, (state, action) => {
 				state.items = state.items.filter(
