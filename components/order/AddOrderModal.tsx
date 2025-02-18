@@ -18,9 +18,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Loader2, CreditCard } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { OrderDetailsForm } from "./OrderDetailsForm"
 import { OrderItemsForm } from "./OrderItemsForm"
+import { PaymentModal } from "./PaymentModal"
 
 interface AddOrderModalProps {
   open: boolean
@@ -54,13 +55,25 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
     setNewOrder({ ...newOrder, items, totalAmount })
   }
 
-  const handlePaymentProcess = () => {
-    setNewOrder({ ...newOrder, paid: true, status: "PROCESSING" })
-    toast.success("Payment processed successfully")
+  const handlePaymentProcess = (paymentResult: boolean) => {
+    setNewOrder({ ...newOrder, paid: paymentResult, status: paymentResult ? "PROCESSING" : "PENDING" })
     setShowPaymentModal(false)
+    if (paymentResult) {
+      toast.success("Payment processed successfully")
+    }
   }
 
   const handleSubmit = async () => {
+    if (!newOrder.customerId || newOrder.customerId.trim() === "") {
+      toast.error("Customer ID is required")
+      return
+    }
+
+    if (!newOrder.items || newOrder.items.length === 0) {
+      toast.error("At least one order item is required")
+      return
+    }
+
     setLoading(true)
     try {
       const orderToSubmit = {
@@ -121,24 +134,12 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
         </div>
       </AlertDialogContent>
 
-      {/* Payment Modal */}
-      <AlertDialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Process Payment</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to process the payment for this order?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button onClick={handlePaymentProcess}>
-              <CreditCard className="mr-2 h-4 w-4" />
-              Confirm Payment
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <PaymentModal
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentComplete={handlePaymentProcess}
+        amount={newOrder.totalAmount || 0}
+      />
     </AlertDialog>
   )
 }
