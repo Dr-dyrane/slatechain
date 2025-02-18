@@ -20,7 +20,7 @@ interface OrderRow {
   orderNumber: string
   name: string // Changed from customerId to name
   status: Order["status"]
-  totalAmount: string
+  totalAmount: number
   paid: boolean
   items: OrderItem[]
 }
@@ -52,7 +52,10 @@ const columns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: "totalAmount",
     header: "Total",
-    cell: ({ row }) => <div className="font-medium">{row.getValue("totalAmount")}</div>,
+    cell: ({ row }) => {
+      const total = row.getValue("totalAmount") as number;
+      return <div className="font-medium">${total.toFixed(2)}</div>;
+    },
   },
   {
     accessorKey: "items",
@@ -150,10 +153,7 @@ export default function OrdersPage() {
       orderNumber: order.orderNumber,
       name: order.customerId, // Changed from customerId to name
       status: order.status,
-      totalAmount: new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(order.totalAmount),
+      totalAmount: Number(order.totalAmount),
       paid: order.paid,
       items: order.items,
     }))
