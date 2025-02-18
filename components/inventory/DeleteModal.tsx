@@ -77,7 +77,7 @@ export const DeleteModal = <TData extends Record<string, any>>({
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent>
+            <AlertDialogContent className="w-full max-w-xs rounded-2xl sm:max-w-lg mx-auto">
                 <AlertDialogHeader>
                     <AlertDialogTitle>{deleteModalTitle || "Confirm Delete Item"}</AlertDialogTitle>
                     <AlertDialogDescription>
