@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { CreditCard } from "lucide-react"
 import type { Order } from "@/lib/types"
+import { useEffect } from "react"
 
 const orderDetailsSchema = z.object({
     orderNumber: z.string(),
@@ -23,6 +24,7 @@ interface OrderDetailsFormProps {
     onStatusChange: (status: Order["status"]) => void
     onCustomerIdChange: (customerId: string) => void
     onPaymentProcess: () => void
+    onPaidChange: (paid: boolean) => void
 }
 
 export function OrderDetailsForm({
@@ -30,6 +32,7 @@ export function OrderDetailsForm({
     onStatusChange,
     onCustomerIdChange,
     onPaymentProcess,
+    onPaidChange,
 }: OrderDetailsFormProps) {
     const {
         register,
@@ -50,7 +53,13 @@ export function OrderDetailsForm({
     const watchStatus = watch("status")
     const watchPaid = watch("paid")
 
-    console.log("OrderDetailsForm rendered with order:", order)
+    useEffect(() => {
+        setValue("paid", order.paid)
+    }, [order.paid, setValue])
+
+    useEffect(() => {
+        onPaidChange(watchPaid)
+    }, [watchPaid])
 
     return (
         <div className="space-y-4">
@@ -91,8 +100,7 @@ export function OrderDetailsForm({
             <div className="flex items-center justify-between">
                 <div className="space-x-2">
                     <Label htmlFor="paid">Payment Status</Label>
-                    <Badge variant={watchPaid ? "success" : "destructive"}>{watchPaid ? "Paid" : "Unpaid"}
-                    </Badge>
+                    <Badge variant={watchPaid ? "success" : "destructive"}>{watchPaid ? "Paid" : "Unpaid"}</Badge>
                 </div>
                 {!watchPaid && (
                     <Button type="button" onClick={onPaymentProcess} size="sm">

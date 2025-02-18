@@ -55,8 +55,19 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
     setNewOrder({ ...newOrder, items, totalAmount })
   }
 
+  const handlePaidChange = (paid: boolean) => {
+    setNewOrder((prevOrder) => ({
+      ...prevOrder,
+      paid: paid,
+    }))
+  }
+
   const handlePaymentProcess = (paymentResult: boolean) => {
-    setNewOrder({ ...newOrder, paid: paymentResult, status: paymentResult ? "PROCESSING" : "PENDING" })
+    setNewOrder((prevOrder) => ({
+      ...prevOrder,
+      paid: paymentResult,
+      status: paymentResult ? "PROCESSING" : prevOrder.status,
+    }))
     setShowPaymentModal(false)
     if (paymentResult) {
       toast.success("Payment processed successfully")
@@ -112,6 +123,7 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
               onStatusChange={handleStatusChange}
               onCustomerIdChange={handleCustomerIdChange}
               onPaymentProcess={() => setShowPaymentModal(true)}
+              onPaidChange={handlePaidChange}
             />
           </TabsContent>
 

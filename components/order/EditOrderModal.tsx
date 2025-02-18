@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Loader2, CreditCard } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { OrderDetailsForm } from "./OrderDetailsForm"
 import { OrderItemsForm } from "./OrderItemsForm"
 import { PaymentModal } from "./PaymentModal"
@@ -66,10 +66,23 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
     }
   }
 
+  const handlePaidChange = (paid: boolean) => {
+    if (editedOrder) {
+      setEditedOrder((prevOrder) => ({
+        ...prevOrder!,
+        paid: paid,
+      }))
+    }
+  }
+
   const handlePaymentProcess = (paymentResult: boolean) => {
     if (editedOrder) {
       dispatch(markOrderAsPaid(editedOrder.id))
-      setEditedOrder({ ...editedOrder, paid: paymentResult, status: paymentResult ? "PROCESSING" : "PENDING" })
+      setEditedOrder((prevOrder) => ({
+        ...prevOrder!,
+        paid: paymentResult,
+        status: paymentResult ? "PROCESSING" : prevOrder!.status,
+      }))
       setShowPaymentModal(false)
       if (paymentResult) {
         toast.success("Payment processed successfully")
@@ -80,29 +93,25 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
   const handleSubmit = async () => {
     if (editedOrder) {
       try {
-        // Ensure customerId is properly set before removing name
         const submittingOrder = {
           ...editedOrder,
-          customerId: editedOrder.customerId || editedOrder.name as string, // Fallback to name if customerId isn't set
-        };
+          customerId: editedOrder.customerId || (editedOrder.name as string),
+        }
 
-        // Remove the `name` field
-        const { name, ...finalOrder } = submittingOrder;
+        const { name, ...finalOrder } = submittingOrder
 
-        console.log("Submitting updated order:", finalOrder);
-        await dispatch(updateOrder(finalOrder));
-        toast.success("Order updated successfully");
-        onClose();
+        console.log("Submitting updated order:", finalOrder)
+        await dispatch(updateOrder(finalOrder))
+        toast.success("Order updated successfully")
+        onClose()
       } catch (error) {
-        console.error("Error updating order:", error);
-        toast.error("Failed to update order");
+        console.error("Error updating order:", error)
+        toast.error("Failed to update order")
       }
     }
-  };
-
+  }
 
   if (!editedOrder) {
-    // console.log("EditOrderModal: editedOrder is null")
     return null
   }
 
@@ -126,6 +135,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
               onStatusChange={handleStatusChange}
               onCustomerIdChange={handleCustomerIdChange}
               onPaymentProcess={() => setShowPaymentModal(true)}
+              onPaidChange={handlePaidChange}
             />
           </TabsContent>
 
