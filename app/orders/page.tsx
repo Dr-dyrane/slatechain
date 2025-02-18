@@ -78,7 +78,7 @@ export default function OrdersPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [filterStatus, setFilterStatus] = useState<string | null>(null);
 
   useEffect(() => {
@@ -90,8 +90,9 @@ export default function OrdersPage() {
     setSelectedOrder(order);
     setEditModalOpen(true);
   };
-  const handleDeleteModalOpen = (orderId: number) => {
-    setOrderToDelete(orderId);
+
+  const handleDeleteModalOpen = (order: Order) => {
+    setOrderToDelete(order);  // Pass the full order object
     setDeleteModalOpen(true);
   };
 
@@ -149,7 +150,7 @@ export default function OrdersPage() {
       {/* Modals */}
       <AddOrderModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
       <EditOrderModal open={editModalOpen} onClose={() => setEditModalOpen(false)} data={selectedOrder} />
-      <DeleteOrderModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} orderId={orderToDelete} />
+      <DeleteOrderModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} order={orderToDelete} />
     </div>
   );
 }

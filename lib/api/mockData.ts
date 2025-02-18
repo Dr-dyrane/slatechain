@@ -242,7 +242,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			{
 				id: 2,
 				orderNumber: "ORD67890",
-				customerId: "user-123",
+				customerId: "user-124",
 				items: [
 					{ productId: "product-3", quantity: 3, price: 20 },
 					{ productId: "product-4", quantity: 1, price: 30 },
@@ -256,7 +256,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			{
 				id: 3,
 				orderNumber: "ORD67910",
-				customerId: "user-123",
+				customerId: "user-125",
 				items: [
 					{ productId: "product-5", quantity: 3, price: 20 },
 					{ productId: "product-6", quantity: 1, price: 30 },

@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { removeOrder } from "@/lib/slices/orderSlice";
 import { toast } from "sonner";
+import { Order } from "@/lib/types";
 
 const deleteSchema = z.object({
   id: z.number(),
@@ -32,20 +33,19 @@ type DeleteFormValues = z.infer<typeof deleteSchema>;
 interface DeleteOrderModalProps {
   open: boolean;
   onClose: () => void;
-  orderId: number | null;
-  orderNumber?: string;
+  order: Order | null;  // Use full order object instead of orderId
 }
 
-export function DeleteOrderModal({ open, onClose, orderId, orderNumber }: DeleteOrderModalProps) {
+export function DeleteOrderModal({ open, onClose, order }: DeleteOrderModalProps) {
   const dispatch = useDispatch<AppDispatch>();
   const { loading } = useSelector((state: RootState) => state.orders);
   const [orderNum, setOrderNum] = useState<string>("");
 
   useEffect(() => {
-    if (orderNumber) {
-      setOrderNum(orderNumber);
+    if (order) {
+      setOrderNum(order.orderNumber);  // Use order.orderNumber
     }
-  }, [orderNumber]);
+  }, [order]);
 
   const {
     register,
@@ -54,14 +54,14 @@ export function DeleteOrderModal({ open, onClose, orderId, orderNumber }: Delete
     formState: { errors, isValid },
   } = useForm<DeleteFormValues>({
     resolver: zodResolver(deleteSchema),
-    defaultValues: { id: orderId || 0 },
+    defaultValues: { id: order?.id || 0 },
     mode: "onChange",
   });
 
   const onSubmit = async (formData: DeleteFormValues) => {
-    if (!orderId) return;
+    if (!order?.id) return;
     try {
-      await dispatch(removeOrder(orderId)).unwrap();
+      await dispatch(removeOrder(order.id)).unwrap();  // Use order.id
       toast.success(`Order ${orderNum} deleted successfully.`);
       reset();
       onClose();
