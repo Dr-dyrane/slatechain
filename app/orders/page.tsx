@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
-import { PlusIcon } from "lucide-react"
+import { PlusIcon, Package, ChevronRight } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import { fetchOrders } from "@/lib/slices/orderSlice"
 import { AddOrderModal } from "@/components/order/AddOrderModal"
@@ -13,11 +13,12 @@ import { EditOrderModal } from "@/components/order/EditOrderModal"
 import { DeleteOrderModal } from "@/components/order/DeleteOrderModal"
 import { Label } from "@/components/ui/label"
 import type { ColumnDef } from "@tanstack/react-table"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 interface OrderRow {
   id: string
   orderNumber: string
-  name: string
+  name: string // Changed from customerId to name
   status: Order["status"]
   totalAmount: string
   paid: boolean
@@ -30,7 +31,7 @@ const columns: ColumnDef<OrderRow>[] = [
     header: "Order Number",
   },
   {
-    accessorKey: "name",
+    accessorKey: "name", // Changed from customerId to name
     header: "Customer ID",
   },
   {
@@ -58,14 +59,47 @@ const columns: ColumnDef<OrderRow>[] = [
     header: "Items",
     cell: ({ row }) => {
       const items = row.getValue("items") as OrderItem[]
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
       return (
-        <div className="flex flex-col space-y-1">
-          {items.map((item, index) => (
-            <div key={index} className="text-sm">
-              {item.productId} (Qty: {item.quantity}, Price: ${item.price})
-            </div>
-          ))}
-        </div>
+        <TooltipProvider>
+          <Tooltip >
+            <TooltipTrigger asChild>
+              <div className="flex items-center space-x-2 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  e.preventDefault()
+                }}>
+                <Package className="w-4 h-4 text-gray-500" />
+                <span className="text-sm font-medium">
+                  {totalItems} item{totalItems !== 1 ? "s" : ""}
+                </span>
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="w-64 p-0">
+              <div className="shadow-lg overflow-hidden">
+                <div className="px-4 py-3 bg-primary/15 border-b border-border">
+                  <h3 className="text-sm font-semibold">Order Items</h3>
+                </div>
+                <div className="px-4 py-2 max-h-48 overflow-y-auto">
+                  {items.map((item, index) => (
+                    <div
+                      key={index}
+                      className="py-2 flex justify-between items-center border-b border-muted last:border-b-0"
+                    >
+                      <span className="text-sm font-medium">{item.productId}</span>
+                      <div className="text-xs text-muted-foreground">
+                        <span className="mr-2">Qty: {item.quantity}</span>
+                        <span>${item.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       )
     },
   },
@@ -114,7 +148,7 @@ export default function OrdersPage() {
     return filteredOrders.map((order) => ({
       id: order.id.toString(),
       orderNumber: order.orderNumber,
-      name: order.customerId,
+      name: order.customerId, // Changed from customerId to name
       status: order.status,
       totalAmount: new Intl.NumberFormat("en-US", {
         style: "currency",
@@ -134,13 +168,9 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      {/* Status Filter */}
       <div className="flex items-center space-x-4">
         <Label>Status Filter:</Label>
-        <select
-          className="input-focus input-hover"
-          onChange={(e) => setFilterStatus(e.target.value || null)}
-        >
+        <select className="input-focus input-hover" onChange={(e) => setFilterStatus(e.target.value || null)}>
           <option value="">All Orders</option>
           <option value="PENDING">Pending</option>
           <option value="PROCESSING">Processing</option>
@@ -150,7 +180,6 @@ export default function OrdersPage() {
         </select>
       </div>
 
-      {/* Data Table */}
       <DataTable
         columns={columns}
         data={formattedOrders}
@@ -158,10 +187,10 @@ export default function OrdersPage() {
         onDelete={handleDeleteModalOpen}
       />
 
-      {/* Modals */}
       <AddOrderModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
       <EditOrderModal open={editModalOpen} onClose={() => setEditModalOpen(false)} data={selectedOrder} />
       <DeleteOrderModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} order={orderToDelete} />
     </div>
-  );
+  )
 }
+
