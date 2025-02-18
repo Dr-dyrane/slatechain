@@ -58,7 +58,7 @@ export const DeleteModal = <TData extends Record<string, any>>({
     } = useForm<DeleteFormValues>({
         resolver: zodResolver(deleteSchema),
         defaultValues: {
-            id: data?.id || "",
+            id: data?.id ?? "",
         },
         mode: "onChange", // Enables dynamic validation
     });
@@ -66,7 +66,7 @@ export const DeleteModal = <TData extends Record<string, any>>({
     const onSubmit = async (formData: DeleteFormValues) => {
         try {
             if (formData.id) {
-                await dispatch(removeInventoryItem(formData.id as any)).unwrap();
+                await dispatch(removeInventoryItem(Number(formData.id))).unwrap();
                 toast.success("Item deleted successfully.");
                 reset();
                 onClose();
@@ -78,8 +78,8 @@ export const DeleteModal = <TData extends Record<string, any>>({
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
-      <AlertDialogHeader>
+            <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
+                <AlertDialogHeader>
                     <div className="flex justify-center items-center relative">
                         <AlertDialogTitle>{deleteModalTitle || "Confirm Delete Item"}</AlertDialogTitle>
                         <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 -right-4 p-2 bg-muted rounded-full">
