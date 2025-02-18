@@ -21,6 +21,7 @@ import { Separator } from "@/components/ui/separator"
 import { Loader2, CreditCard } from "lucide-react"
 import { OrderDetailsForm } from "./OrderDetailsForm"
 import { OrderItemsForm } from "./OrderItemsForm"
+import { PaymentModal } from "./PaymentModal"
 
 interface EditOrderModalProps {
   open: boolean
@@ -65,11 +66,14 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
     }
   }
 
-  const handlePaymentProcess = () => {
+  const handlePaymentProcess = (paymentResult: boolean) => {
     if (editedOrder) {
       dispatch(markOrderAsPaid(editedOrder.id))
-      setEditedOrder({ ...editedOrder, paid: true, status: "PROCESSING" })
-      toast.success("Payment processed successfully")
+      setEditedOrder({ ...editedOrder, paid: paymentResult, status: paymentResult ? "PROCESSING" : "PENDING" })
+      setShowPaymentModal(false)
+      if (paymentResult) {
+        toast.success("Payment processed successfully")
+      }
     }
   }
 
@@ -144,28 +148,12 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
         </div>
       </AlertDialogContent>
 
-      {/* Payment Modal */}
-      <AlertDialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Process Payment</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to process the payment for this order?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button onClick={handlePaymentProcess} disabled={paymentLoading}>
-              {paymentLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <CreditCard className="mr-2 h-4 w-4" />
-              )}
-              Confirm Payment
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <PaymentModal
+        open={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        onPaymentComplete={handlePaymentProcess}
+        amount={editedOrder.totalAmount || 0}
+      />
     </AlertDialog>
   )
 }
