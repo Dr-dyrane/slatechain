@@ -1,31 +1,29 @@
-// src/app/orders/page.tsx
-"use client";
+"use client"
 
-import { useState, useEffect, useMemo } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { DataTable } from "@/components/table/DataTable";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
-import { RootState, AppDispatch } from "@/lib/store";
-import { fetchOrders } from "@/lib/slices/orderSlice";
-import { AddOrderModal } from "@/components/order/AddOrderModal";
-import { Order } from "@/lib/types";
-import { EditOrderModal } from "@/components/order/EditOrderModal";
-import { DeleteOrderModal } from "@/components/order/DeleteOrderModal";
-import { Label } from "@/components/ui/label";
-import { ColumnDef } from "@tanstack/react-table";
+import { useState, useEffect, useMemo } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { DataTable } from "@/components/table/DataTable"
+import { Button } from "@/components/ui/button"
+import { PlusIcon } from "lucide-react"
+import type { RootState, AppDispatch } from "@/lib/store"
+import { fetchOrders } from "@/lib/slices/orderSlice"
+import { AddOrderModal } from "@/components/order/AddOrderModal"
+import type { Order, OrderItem } from "@/lib/types"
+import { EditOrderModal } from "@/components/order/EditOrderModal"
+import { DeleteOrderModal } from "@/components/order/DeleteOrderModal"
+import { Label } from "@/components/ui/label"
+import type { ColumnDef } from "@tanstack/react-table"
 
-// ✅ Define a new type for formatted rows
 interface OrderRow {
-  id: string;
-  orderNumber: string;
-  name: string;
-  status: Order["status"];
-  totalAmount: string; // Formatted currency string
-  paid: boolean;
+  id: string
+  orderNumber: string
+  name: string
+  status: Order["status"]
+  totalAmount: string
+  paid: boolean
+  items: OrderItem[]
 }
 
-// ✅ Define columns using the new formatted type
 const columns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: "orderNumber",
@@ -39,25 +37,37 @@ const columns: ColumnDef<OrderRow>[] = [
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as Order["status"];
+      const status = row.getValue("status") as Order["status"]
       const statusColors: Record<Order["status"], string> = {
         PENDING: "bg-yellow-500/85 text-white",
         PROCESSING: "bg-blue-500/85 text-white",
         SHIPPED: "bg-indigo-500/85 text-white",
         DELIVERED: "bg-green-500/85 text-white",
         CANCELLED: "bg-red-500/85 text-white",
-      };
-      return (
-        <span className={`px-3 py-2 rounded-lg text-xs font-semibold ${statusColors[status]}`}>
-          {status}
-        </span>
-      );
+      }
+      return <span className={`px-3 py-2 rounded-lg text-xs font-semibold ${statusColors[status]}`}>{status}</span>
     },
   },
   {
     accessorKey: "totalAmount",
     header: "Total",
     cell: ({ row }) => <div className="font-medium">{row.getValue("totalAmount")}</div>,
+  },
+  {
+    accessorKey: "items",
+    header: "Items",
+    cell: ({ row }) => {
+      const items = row.getValue("items") as OrderItem[]
+      return (
+        <div className="flex flex-col space-y-1">
+          {items.map((item, index) => (
+            <div key={index} className="text-sm">
+              {item.productId} (Qty: {item.quantity}, Price: ${item.price})
+            </div>
+          ))}
+        </div>
+      )
+    },
   },
   {
     accessorKey: "paid",
@@ -69,50 +79,51 @@ const columns: ColumnDef<OrderRow>[] = [
         <span className="text-red-500 font-medium">Unpaid</span>
       ),
   },
-];
+]
 
 export default function OrdersPage() {
-  const dispatch = useDispatch<AppDispatch>();
-  const orders = useSelector((state: RootState) => state.orders.items);
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
-  const [filterStatus, setFilterStatus] = useState<string | null>(null);
+  const dispatch = useDispatch<AppDispatch>()
+  const orders = useSelector((state: RootState) => state.orders.items)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null)
+  const [filterStatus, setFilterStatus] = useState<string | null>(null)
 
   useEffect(() => {
-    dispatch(fetchOrders());
-  }, [dispatch]);
+    dispatch(fetchOrders())
+  }, [dispatch])
 
-  const handleAddModalOpen = () => setAddModalOpen(true);
+  const handleAddModalOpen = () => setAddModalOpen(true)
   const handleEditModalOpen = (order: Order) => {
-    setSelectedOrder(order);
-    setEditModalOpen(true);
-  };
+    setSelectedOrder(order)
+    setEditModalOpen(true)
+  }
 
   const handleDeleteModalOpen = (order: Order) => {
-    setOrderToDelete(order);  // Pass the full order object
-    setDeleteModalOpen(true);
-  };
+    setOrderToDelete(order)
+    setDeleteModalOpen(true)
+  }
 
-  // Filtered orders based on selected status
   const filteredOrders = useMemo(() => {
-    return filterStatus ? orders.filter(order => order.status === filterStatus) : orders;
-  }, [orders, filterStatus]);
+    return filterStatus ? orders.filter((order) => order.status === filterStatus) : orders
+  }, [orders, filterStatus])
 
-  // ✅ Format data before passing it to DataTable
-  const formattedOrders: OrderRow[] = filteredOrders.map(order => ({
-    id: order.id.toString(),
-    orderNumber: order.orderNumber,
-    name: order.customerId,
-    status: order.status,
-    totalAmount: new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(order.totalAmount), // ✅ Formatting total amount
-    paid: order.paid,
-  }));
+  const formattedOrders: OrderRow[] = useMemo(() => {
+    return filteredOrders.map((order) => ({
+      id: order.id.toString(),
+      orderNumber: order.orderNumber,
+      name: order.customerId,
+      status: order.status,
+      totalAmount: new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }).format(order.totalAmount),
+      paid: order.paid,
+      items: order.items,
+    }))
+  }, [filteredOrders])
 
   return (
     <div className="space-y-4">
@@ -142,7 +153,7 @@ export default function OrdersPage() {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={formattedOrders} // ✅ Now correctly formatted
+        data={formattedOrders}
         onEdit={handleEditModalOpen}
         onDelete={handleDeleteModalOpen}
       />
