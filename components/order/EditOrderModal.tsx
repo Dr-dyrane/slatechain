@@ -94,6 +94,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
     if (order) {
       reset({
         ...order,
+        customerId: order.name, // Convert name back to customerId
         items: order.items || [],
       })
     }
@@ -120,6 +121,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
         ...data,
         updatedAt: new Date().toISOString(),
       }
+      console.log(updatedOrder)
       await dispatch(updateOrder(updatedOrder))
       toast.success("Order updated successfully")
       onClose()
@@ -150,8 +152,8 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <AlertDialogHeader>
+      <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
+      <AlertDialogHeader>
           <AlertDialogTitle>Edit Order: {order.orderNumber}</AlertDialogTitle>
           <AlertDialogDescription>Update the order details below. Click save when you're done.</AlertDialogDescription>
         </AlertDialogHeader>

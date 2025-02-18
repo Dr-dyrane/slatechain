@@ -197,6 +197,7 @@ export interface Order {
 	id: number;
 	orderNumber: string;
 	customerId: string;
+	name?: string;
 	items: OrderItem[];
 	totalAmount: number;
 	status: "PENDING" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "CANCELLED";
