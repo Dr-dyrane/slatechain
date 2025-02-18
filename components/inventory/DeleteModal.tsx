@@ -18,6 +18,7 @@ import { AppDispatch, RootState } from "@/lib/store";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { X } from "lucide-react";
 
 const deleteSchema = z.object({
     id: z.string().min(1, "Id is required"),
@@ -77,9 +78,14 @@ export const DeleteModal = <TData extends Record<string, any>>({
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent className="w-full max-w-xs rounded-2xl sm:max-w-lg mx-auto">
-                <AlertDialogHeader>
-                    <AlertDialogTitle>{deleteModalTitle || "Confirm Delete Item"}</AlertDialogTitle>
+      <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
+      <AlertDialogHeader>
+                    <div className="flex justify-center items-center relative">
+                        <AlertDialogTitle>{deleteModalTitle || "Confirm Delete Item"}</AlertDialogTitle>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 -right-4 p-2 bg-muted rounded-full">
+                            <X className="w-5 h-5 " />
+                        </button>
+                    </div>
                     <AlertDialogDescription>
                         Are you sure you want to delete this item?
                     </AlertDialogDescription>
