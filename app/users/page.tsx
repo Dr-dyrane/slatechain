@@ -8,10 +8,10 @@ import { DataTable } from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from 'lucide-react'
 import { RootState, AppDispatch } from "@/lib/store";
-import {  UserRole, User } from "@/lib/types";
-import {  fetchUsers} from "@/lib/slices/user/user";
+import { UserRole, User } from "@/lib/types";
+import { fetchUsers } from "@/lib/slices/user/user";
 
-import  UsersPageSkeleton from "./loading";
+import UsersPageSkeleton from "./loading";
 import { UserModal } from "@/components/user/UserModal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -27,23 +27,23 @@ export default function UsersPage() {
     const dispatch = useDispatch<AppDispatch>();
     const router = useRouter();
     const user = useSelector((state: RootState) => state.auth.user);
-     const { items, loading, error } = useSelector((state: RootState) => state.user);
+    const { items, loading, error } = useSelector((state: RootState) => state.user);
     const [addUserOpen, setAddUserOpen] = useState(false);
     const [pageIndex, setPageIndex] = useState(0);
     const [pageSize, setPageSize] = useState(5);
     const { toast } = useToast();
-    
+
     useEffect(() => {
         AOS.init({
             once: true,
         });
     }, [])
     useEffect(() => {
-        if(user?.role !== UserRole.ADMIN) {
+        if (user?.role !== UserRole.ADMIN) {
             router.push('/dashboard')
         }
-         dispatch(fetchUsers());
-     }, [dispatch, router, user]);
+        dispatch(fetchUsers());
+    }, [dispatch, router, user]);
 
     const table = useReactTable({
         data: items || [],
@@ -68,38 +68,38 @@ export default function UsersPage() {
 
     const formattedUsers = table.getRowModel().rows.map(row => ({
         ...row.original,
-         id: row.original.id?.toString() || '',
-        }));
+        id: row.original.id?.toString() || '',
+    }));
 
     const handleAddUserOpen = () => {
-       setAddUserOpen(true)
+        setAddUserOpen(true)
     }
-      const handleAddUserClose = () => {
-          setAddUserOpen(false)
-      };
+    const handleAddUserClose = () => {
+        setAddUserOpen(false)
+    };
 
-    if(loading) {
+    if (loading) {
         return <UsersPageSkeleton />
-     }
+    }
 
-    if(error) {
-      return (
-        <div className="flex h-full items-center justify-center bg-none">
-           <ErrorState message="There was an error fetching user data" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
-         </div>
-      )
+    if (error) {
+        return (
+            <div className="flex h-full items-center justify-center bg-none">
+                <ErrorState message="There was an error fetching user data" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
+            </div>
+        )
     }
     if (user?.role !== UserRole.ADMIN) {
-      return (
-          <div className="flex h-full items-center justify-center bg-none">
-             <ErrorState
-                message="You do not have permission to see this page" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()}/>
-           </div>
+        return (
+            <div className="flex h-full items-center justify-center bg-none">
+                <ErrorState
+                    message="You do not have permission to see this page" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
+            </div>
         )
     }
 
     return (
-        <div className="space-y-4"  data-aos="fade-in" data-aos-duration="500" >
+        <div className="space-y-4" data-aos="fade-in" data-aos-duration="500" >
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
                 <Button onClick={handleAddUserOpen}>
@@ -107,7 +107,7 @@ export default function UsersPage() {
                 </Button>
             </div>
             <DataTable columns={Columns} data={formattedUsers} />
-            <UserModal open={addUserOpen} onClose={handleAddUserClose}/>
+            <UserModal open={addUserOpen} onClose={handleAddUserClose} />
         </div>
     );
 }
