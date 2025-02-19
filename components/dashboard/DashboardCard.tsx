@@ -19,6 +19,7 @@ import {
     TrendingUp,
     type LucideIcon,
     Star,
+    CheckCircle,
 } from "lucide-react"
 import type { CardData, OtherChartData } from "@/lib/slices/kpi/kpiSlice"
 
@@ -39,6 +40,7 @@ const iconMap: { [key: string]: LucideIcon } = {
     Clock,
     TrendingUp,
     Star,
+    CheckCircle
 }
 
 const DashboardCard = ({ card }: DashboardCardProps) => {

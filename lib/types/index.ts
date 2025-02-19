@@ -37,8 +37,8 @@ export interface User {
 	kycStatus: KYCStatus;
 	onboardingStatus: OnboardingStatus;
 	avatarUrl?: string;
-	createdAt: string
-	updatedAt: string
+	createdAt: string;
+	updatedAt: string;
 }
 
 // Auth
@@ -215,68 +215,115 @@ export interface OrderItem {
 }
 
 // Shipment
+
 export interface GeoLocation {
-	latitude: number
-	longitude: number
-  }
-  
-  export interface ShipmentStatus {
-	PREPARING: "PREPARING"
-	IN_TRANSIT: "IN_TRANSIT"
-	DELIVERED: "DELIVERED"
-  }
-  
-  export interface Shipment {
-	id: string
-	orderId: string
-	trackingNumber: string
-	carrier: string
-	status: keyof ShipmentStatus
-	destination: string
-	estimatedDeliveryDate: string
-	actualDeliveryDate?: string
-	currentLocation?: GeoLocation
-  }
-  
-  export interface Transport {
-	id: string
-	type: "TRUCK" | "SHIP" | "PLANE"
-	capacity: number
-	currentLocation: GeoLocation
-	status: "AVAILABLE" | "IN_TRANSIT" | "MAINTENANCE"
-  }
+	latitude: number;
+	longitude: number;
+}
+
+export interface ShipmentStatus {
+	CREATED: "CREATED";
+	PREPARING: "PREPARING";
+	IN_TRANSIT: "IN_TRANSIT";
+	DELIVERED: "DELIVERED";
+}
+
+export interface Shipment {
+	id: string;
+	name: string;
+	orderId: string;
+	trackingNumber: string;
+	carrier: string;
+	freightId: string;
+	routeId: string;
+	status: keyof ShipmentStatus;
+	destination: string;
+	estimatedDeliveryDate: string;
+	actualDeliveryDate?: string;
+	currentLocation?: GeoLocation;
+}
+
+export interface Transport {
+	id: string;
+	type: "TRUCK" | "SHIP" | "PLANE";
+	capacity: number;
+	currentLocation: GeoLocation;
+	status: "AVAILABLE" | "IN_TRANSIT" | "MAINTENANCE";
+	carrierId: string;
+}
+
+export interface Carrier {
+	id: string;
+	name: string;
+	contactPerson: string;
+	email: string;
+	phone: string;
+	rating: number;
+	status: "ACTIVE" | "INACTIVE";
+}
+
+// Route interface
+export interface Route {
+	id: string;
+	name: string;
+	startLocation: string;
+	endLocation: string;
+	distance: number;
+	estimatedDuration: number;
+}
+
+// Freight interface
+export interface Freight {
+	id: string;
+	type: string;
+	name: string;
+	weight: number;
+	volume: number;
+	hazardous: boolean;
+	specialInstructions?: string;
+}
+
+export interface ShipmentState {
+	items: Shipment[];
+	carriers: Carrier[];
+	routes: Route[];
+	transports: Transport[];
+	freights: Freight[];
+	loading: boolean;
+	error: string | null;
+}
 
 // Supplier
 export interface Supplier {
-	id: string
-	name: string
-	contactPerson: string
-	email: string
-	phoneNumber: string
-	address: string
-	rating: number
-	status: "ACTIVE" | "INACTIVE"
-	createdAt: string
-	updatedAt: string
-  }
-  
-  export interface SupplierDocument {
-	id: string
-	supplierId: string
-	name: string
-	type: string
-	url: string
-	uploadedAt: string
-  }
-  
-  export interface ChatMessage {
-	id: string
-	supplierId: string
-	senderId: string
-	senderName: string
-	message: string
-	timestamp: string
-  }
+	id: string;
+	name: string;
+	contactPerson: string;
+	email: string;
+	phoneNumber: string;
+	address: string;
+	rating: number;
+	status: "ACTIVE" | "INACTIVE";
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface SupplierDocument {
+	id: string;
+	supplierId: string;
+	name: string;
+	type: string;
+	url: string;
+	uploadedAt: string;
+}
+
+export interface ChatMessage {
+	id: string;
+	supplierId: string;
+	senderId: string;
+	senderName: string;
+	message: string;
+	timestamp: string;
+}
 
 // These types cover the main entities and processes in your SlateChain application.
 // You may need to add or modify types as your application grows or requirements change.
