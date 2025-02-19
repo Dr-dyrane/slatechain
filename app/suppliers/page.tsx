@@ -130,7 +130,7 @@ export default function SuppliersPage() {
       <h1 className="text-2xl sm:text-3xl font-bold">Supplier Collaboration</h1>
       <SupplierKPIs suppliers={suppliers} />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full flex flex-wrap justify-start">
+        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="list" className="flex-grow sm:flex-grow-0">
             Supplier List
           </TabsTrigger>
