@@ -15,7 +15,7 @@ import {
   fetchChatMessages,
   sendChatMessage,
 } from "@/lib/slices/supplierSlice"
-import type { Supplier } from "@/lib/types"
+import type { ChatMessage, Supplier, SupplierDocument } from "@/lib/types"
 import { SupplierList } from "@/components/supplier/SupplierList"
 import { CommunicationCenter } from "@/components/supplier/CommunicationCenter"
 import { DocumentManagement } from "@/components/supplier/DocumentManagement"
@@ -35,6 +35,17 @@ export default function SuppliersPage() {
   const suppliers = useSelector((state: RootState) => state.supplier.items)
   const documents = useSelector((state: RootState) => state.supplier.documents)
   const chatMessages = useSelector((state: RootState) => state.supplier.chatMessages)
+
+  const groupedMessages = suppliers.reduce<Record<string, ChatMessage[]>>((acc, supplier) => {
+    acc[supplier.id] = chatMessages.filter((msg) => msg.supplierId === supplier.id);
+    return acc;
+  }, {});
+  
+  const groupedDocuments = suppliers.reduce<Record<string, SupplierDocument[]>>((acc, supplier) => {
+    acc[supplier.id] = documents.filter((doc) => doc.supplierId === supplier.id);
+    return acc;
+  }, {});
+
 
   useEffect(() => {
     dispatch(fetchSuppliers())
@@ -140,12 +151,12 @@ export default function SuppliersPage() {
           />
         </TabsContent>
         <TabsContent value="communication">
-          <CommunicationCenter suppliers={suppliers} messages={chatMessages} onSendMessage={handleSendMessage} />
+          <CommunicationCenter suppliers={suppliers} messages={groupedMessages} onSendMessage={handleSendMessage} />
         </TabsContent>
         <TabsContent value="documents">
           <DocumentManagement
             suppliers={suppliers}
-            documents={documents}
+            documents={groupedDocuments}
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
           />
