@@ -316,6 +316,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				address: "123 Main St, Anytown",
 				rating: 4.5,
 				status: "ACTIVE",
+				createdAt: "2023-01-01T00:00:00Z",
+				updatedAt: "2023-01-01T00:00:00Z",
 			},
 			{
 				id: "2",
@@ -326,6 +328,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				address: "456 Elm St, Somecity",
 				rating: 3.8,
 				status: "ACTIVE",
+				createdAt: "2023-02-15T00:00:00Z",
+				updatedAt: "2023-02-15T00:00:00Z",
 			},
 			{
 				id: "3",
@@ -336,6 +340,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				address: "789 Oak St, Othertown",
 				rating: 4.2,
 				status: "INACTIVE",
+				createdAt: "2023-03-30T00:00:00Z",
+				updatedAt: "2023-03-30T00:00:00Z",
 			},
 		],
 		"/users": (): User[] => [

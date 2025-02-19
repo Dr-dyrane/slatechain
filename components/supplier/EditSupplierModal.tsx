@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -19,7 +19,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
 
-const addSupplierSchema = z.object({
+const editSupplierSchema = z.object({
+  id: z.string().min(1, "ID is required"),
   name: z.string().min(1, "Name is required"),
   contactPerson: z.string().min(1, "Contact Person is required"),
   email: z.string().email("Invalid email address"),
@@ -29,15 +30,16 @@ const addSupplierSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE"]),
 })
 
-type AddSupplierFormValues = z.infer<typeof addSupplierSchema>
+type EditSupplierFormValues = z.infer<typeof editSupplierSchema>
 
-interface AddSupplierModalProps {
+interface EditSupplierModalProps {
   open: boolean
   onClose: () => void
-  onAdd: (supplier: Omit<Supplier, "id" | "createdAt" | "updatedAt">) => void
+  onSave: (supplier: Supplier) => void
+  supplier: Supplier | null
 }
 
-export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps) {
+export function EditSupplierModal({ open, onClose, onSave, supplier }: EditSupplierModalProps) {
   const [loading, setLoading] = useState(false)
 
   const {
@@ -45,29 +47,36 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<AddSupplierFormValues>({
-    resolver: zodResolver(addSupplierSchema),
+  } = useForm<EditSupplierFormValues>({
+    resolver: zodResolver(editSupplierSchema),
   })
 
-  const onSubmit = async (data: AddSupplierFormValues) => {
+  useEffect(() => {
+    if (supplier) {
+      reset(supplier)
+    }
+  }, [supplier, reset])
+
+  const onSubmit = async (data: EditSupplierFormValues) => {
     setLoading(true)
     try {
-      await onAdd(data)
-      reset()
+      await onSave(data as Supplier)
       onClose()
     } catch (error) {
-      console.error("Error adding supplier:", error)
+      console.error("Error updating supplier:", error)
     } finally {
       setLoading(false)
     }
   }
+
+  if (!supplier) return null
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
         <AlertDialogHeader>
           <div className="flex justify-center items-center relative">
-            <AlertDialogTitle>Add New Supplier</AlertDialogTitle>
+            <AlertDialogTitle>Edit Supplier</AlertDialogTitle>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full"
@@ -75,9 +84,10 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
               <X className="w-5 h-5 " />
             </button>
           </div>
-          <AlertDialogDescription>Enter the details for the new supplier.</AlertDialogDescription>
+          <AlertDialogDescription>Update the supplier's information below.</AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <input type="hidden" {...register("id")} />
           <div className="space-y-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" {...register("name")} className="input-focus input-hover" />
@@ -125,7 +135,7 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Supplier"}
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </AlertDialogFooter>
         </form>
