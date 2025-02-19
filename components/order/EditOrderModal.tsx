@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { Loader2 } from "lucide-react"
+import { Loader2, X } from "lucide-react"
 import { OrderDetailsForm } from "./OrderDetailsForm"
 import { OrderItemsForm } from "./OrderItemsForm"
 import { PaymentModal } from "./PaymentModal"
@@ -119,7 +119,12 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Edit Order: {editedOrder.orderNumber}</AlertDialogTitle>
+          <div className="flex justify-center items-center relative">
+            <AlertDialogTitle>Edit Order: {editedOrder.orderNumber}</AlertDialogTitle>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full">
+              <X className="w-5 h-5 " />
+            </button>
+          </div>
           <AlertDialogDescription>Update the order details below. Click save when you're done.</AlertDialogDescription>
         </AlertDialogHeader>
 

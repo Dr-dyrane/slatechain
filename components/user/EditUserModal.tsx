@@ -22,6 +22,7 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { X } from "lucide-react"
 
 const editUserSchema = z.object({
     id: z.string().min(1, "ID is required"),
@@ -79,9 +80,14 @@ export const EditUserModal = ({ open, onClose, user }: EditUserModalProps) => {
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent>
+            <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Edit User</AlertDialogTitle>
+                    <div className="flex justify-center items-center relative">
+                        <AlertDialogTitle>Edit User</AlertDialogTitle>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full">
+                            <X className="w-5 h-5 " />
+                        </button>
+                    </div>
                     <AlertDialogDescription>Update the user's information below.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

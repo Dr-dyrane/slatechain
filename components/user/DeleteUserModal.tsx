@@ -21,6 +21,7 @@ import { removeUser } from "@/lib/slices/user/user"
 import { useState } from "react"
 import type { User } from "@/lib/types"
 import { toast } from "sonner"
+import { X } from "lucide-react"
 
 const deleteSchema = z.object({
     confirmation: z.string().min(1, "Confirmation is required"),
@@ -70,9 +71,14 @@ export const DeleteUserModal = ({ open, onClose, user }: DeleteUserModalProps) =
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent>
+            <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Confirm Delete User</AlertDialogTitle>
+                    <div className="flex justify-center items-center relative">
+                        <AlertDialogTitle>Confirm Delete User</AlertDialogTitle>
+                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 -right-4 p-2 bg-muted rounded-full">
+                            <X className="w-5 h-5 " />
+                        </button>
+                    </div>
                     <AlertDialogDescription>
                         Are you sure you want to delete the user{" "}
                         <b>

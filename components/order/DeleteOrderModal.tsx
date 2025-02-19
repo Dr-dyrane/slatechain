@@ -22,6 +22,7 @@ import { useEffect, useState } from "react";
 import { removeOrder } from "@/lib/slices/orderSlice";
 import { toast } from "sonner";
 import { Order } from "@/lib/types";
+import { X } from "lucide-react";
 
 const deleteSchema = z.object({
   id: z.number(),
@@ -72,9 +73,14 @@ export function DeleteOrderModal({ open, onClose, order }: DeleteOrderModalProps
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Order</AlertDialogTitle>
+          <div className="flex justify-center items-center relative">
+            <AlertDialogTitle>Delete Order</AlertDialogTitle>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 -right-4 p-2 bg-muted rounded-full">
+              <X className="w-5 h-5 " />
+            </button>
+          </div>
           <AlertDialogDescription>
             You are about to delete order <b>{orderNum}</b>. Please enter the order number below to confirm.
           </AlertDialogDescription>
