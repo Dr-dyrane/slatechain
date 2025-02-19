@@ -5,49 +5,74 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ChatMessage, Supplier } from "@/lib/types"
 
 interface CommunicationCenterProps {
-  supplier: Supplier
-  messages: ChatMessage[]
-  onSendMessage: (message: string) => void
+    suppliers: Supplier[]
+    messages: Record<string, ChatMessage[]>
+    onSendMessage: (supplierId: string, message: string) => void
 }
 
-export function CommunicationCenter({ supplier, messages, onSendMessage }: CommunicationCenterProps) {
-  const [newMessage, setNewMessage] = useState("")
+export function CommunicationCenter({ suppliers, messages, onSendMessage }: CommunicationCenterProps) {
+    const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
+    const [newMessage, setNewMessage] = useState("")
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      onSendMessage(newMessage)
-      setNewMessage("")
+    const handleSendMessage = () => {
+        if (selectedSupplierId && newMessage.trim()) {
+            onSendMessage(selectedSupplierId, newMessage)
+            setNewMessage("")
+        }
     }
-  }
 
-  return (
-    <Card className="h-[600px] flex flex-col">
-      <CardHeader>
-        <CardTitle>Communication with {supplier.name}</CardTitle>
-        <CardDescription>Chat with your supplier</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow flex flex-col">
-        <ScrollArea className="flex-grow mb-4">
-          {messages.map((message) => (
-            <div key={message.id} className="mb-2">
-              <strong>{message.senderName}:</strong> {message.message}
-            </div>
-          ))}
-        </ScrollArea>
-        <div className="flex">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-grow mr-2"
-          />
-          <Button onClick={handleSendMessage}>Send</Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
+    const selectedSupplierMessages = selectedSupplierId ? messages[selectedSupplierId] || [] : []
+
+    return (
+        <Card className="h-[600px] flex flex-col">
+            <CardHeader>
+                <CardTitle>Communication Center</CardTitle>
+                <CardDescription>Chat with your suppliers</CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow flex flex-col">
+                <Select onValueChange={(value) => setSelectedSupplierId(value)} value={selectedSupplierId || undefined}>
+                    <SelectTrigger className="mb-4">
+                        <SelectValue placeholder="Select a supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {suppliers.map((supplier) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                                {supplier.name}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                {selectedSupplierId && (
+                    <>
+                        <ScrollArea className="flex-grow mb-4 border rounded p-2">
+                            {selectedSupplierMessages.map((message) => (
+                                <div key={message.id} className="mb-2">
+                                    <strong>{message.senderName}:</strong> {message.message}
+                                </div>
+                            ))}
+                        </ScrollArea>
+                        <div className="flex">
+                            <Input
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Type your message..."
+                                className="flex-grow mr-2"
+                            />
+                            <Button onClick={handleSendMessage}>Send</Button>
+                        </div>
+                    </>
+                )}
+                {!selectedSupplierId && (
+                    <div className="flex-grow flex items-center justify-center text-muted-foreground">
+                        Select a supplier to start chatting
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    )
 }
 
