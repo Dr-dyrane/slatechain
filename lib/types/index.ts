@@ -215,16 +215,36 @@ export interface OrderItem {
 }
 
 // Shipment
-export interface Shipment {
-	id: string;
-	orderId: string;
-	trackingNumber: string;
-	carrier: string;
-	status: "PREPARING" | "IN_TRANSIT" | "DELIVERED";
-	destination?: string; // Added destination
-	estimatedDeliveryDate: string;
-	actualDeliveryDate?: string;
-}
+export interface GeoLocation {
+	latitude: number
+	longitude: number
+  }
+  
+  export interface ShipmentStatus {
+	PREPARING: "PREPARING"
+	IN_TRANSIT: "IN_TRANSIT"
+	DELIVERED: "DELIVERED"
+  }
+  
+  export interface Shipment {
+	id: string
+	orderId: string
+	trackingNumber: string
+	carrier: string
+	status: keyof ShipmentStatus
+	destination: string
+	estimatedDeliveryDate: string
+	actualDeliveryDate?: string
+	currentLocation?: GeoLocation
+  }
+  
+  export interface Transport {
+	id: string
+	type: "TRUCK" | "SHIP" | "PLANE"
+	capacity: number
+	currentLocation: GeoLocation
+	status: "AVAILABLE" | "IN_TRANSIT" | "MAINTENANCE"
+  }
 
 // Supplier
 export interface Supplier {

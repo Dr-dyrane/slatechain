@@ -15,6 +15,32 @@ import {
 	Supplier,
 } from "@/lib/types";
 
+interface Transport {
+	id: string;
+	type: "TRUCK" | "SHIP" | "PLANE";
+	capacity: number;
+	currentLocation: { latitude: number; longitude: number };
+	status: "AVAILABLE" | "IN_TRANSIT" | "UNAVAILABLE";
+}
+
+const mockTransports: Transport[] = [
+	{
+		id: "T001",
+		type: "TRUCK",
+		capacity: 1000,
+		currentLocation: { latitude: 34.0522, longitude: -118.2437 },
+		status: "IN_TRANSIT",
+	},
+	{
+		id: "T002",
+		type: "SHIP",
+		capacity: 10000,
+		currentLocation: { latitude: 37.8199, longitude: -122.4783 },
+		status: "AVAILABLE",
+	},
+	// Add more mock transports...
+];
+
 export const mockApiResponses: Record<string, Record<string, any>> = {
 	post: {
 		"/auth/register": (data: Partial<User>): AuthResponse => ({
@@ -120,6 +146,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/suppliers": (data: Omit<Supplier, "id">): Supplier => ({
 			...data,
 			id: Math.floor(Math.random() * 100).toString(),
+		}),
+		"/transports": (data: Omit<Transport, "id">) => ({
+			...data,
+			id: `TRANS${Math.floor(Math.random() * 1000)}`,
 		}),
 		"/auth/password/change": (data: any) => {
 			return { success: true };
@@ -285,6 +315,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				status: "IN_TRANSIT",
 				destination: "Los Angeles",
 				estimatedDeliveryDate: "2024-08-01T12:00:00Z",
+				currentLocation: { latitude: 40.7128, longitude: -74.006 },
 			},
 			{
 				id: "2",
@@ -344,6 +375,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				updatedAt: "2023-03-30T00:00:00Z",
 			},
 		],
+		"/transports": () => mockTransports,
 		"/users": (): User[] => [
 			mockApiResponses.get["/users/me"](),
 			{
@@ -439,6 +471,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/suppliers/:id": (data: Supplier): Supplier => {
 			return data;
 		},
+		"/transports/:id": (data: Transport) => data,
 		"/users/:id": (data: User): User => {
 			return data;
 		},
@@ -448,6 +481,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/transports/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/users/:id": (id: string) => ({ success: true, deletedId: id }),
 	},
 };
