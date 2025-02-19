@@ -37,6 +37,8 @@ export interface User {
 	kycStatus: KYCStatus;
 	onboardingStatus: OnboardingStatus;
 	avatarUrl?: string;
+	createdAt: string
+	updatedAt: string
 }
 
 // Auth

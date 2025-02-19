@@ -1,113 +1,93 @@
-// src/app/users/page.tsx
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useRouter } from "next/navigation";
-import { DataTable } from "@/components/table/DataTable";
-import { Button } from "@/components/ui/button";
-import { PlusIcon } from 'lucide-react'
-import { RootState, AppDispatch } from "@/lib/store";
-import { UserRole, User } from "@/lib/types";
-import { fetchUsers } from "@/lib/slices/user/user";
-
-import UsersPageSkeleton from "./loading";
-import { UserModal } from "@/components/user/UserModal";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-
-import { useReactTable, getCoreRowModel } from "@tanstack/react-table";
-import { Columns } from "@/components/user/UserColumns";
-import 'aos/dist/aos.css'
-import AOS from 'aos'
-import { ErrorState } from "@/components/ui/error";
-import { useToast } from "@/hooks/use-toast";
-
+import { useEffect, useState } from "react"
+import { useSelector, useDispatch } from "react-redux"
+import { useRouter } from "next/navigation"
+import { DataTable } from "@/components/table/DataTable"
+import { Button } from "@/components/ui/button"
+import { PlusIcon } from "lucide-react"
+import type { RootState, AppDispatch } from "@/lib/store"
+import type { User } from "@/lib/types"
+import { fetchUsers } from "@/lib/slices/user/user"
+import LayoutLoader from "@/components/layout/loading"
+import { EditUserModal } from "@/components/user/EditUserModal"
+import { DeleteUserModal } from "@/components/user/DeleteUserModal"
+import { UserModal } from "@/components/user/UserModal"
+import { Columns } from "@/components/user/UserColumns"
+import { ErrorState } from "@/components/ui/error"
 
 export default function UsersPage() {
-    const dispatch = useDispatch<AppDispatch>();
-    const router = useRouter();
-    const user = useSelector((state: RootState) => state.auth.user);
-    const { items, loading, error } = useSelector((state: RootState) => state.user);
-    const [addUserOpen, setAddUserOpen] = useState(false);
-    const [pageIndex, setPageIndex] = useState(0);
-    const [pageSize, setPageSize] = useState(5);
-    const { toast } = useToast();
+  const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter()
+  const { user: currentUser } = useSelector((state: RootState) => state.auth)
+  const { items: users, loading, error } = useSelector((state: RootState) => state.user)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
-    useEffect(() => {
-        AOS.init({
-            once: true,
-        });
-    }, [])
-    useEffect(() => {
-        if (user?.role !== UserRole.ADMIN) {
-            router.push('/dashboard')
-        }
-        dispatch(fetchUsers());
-    }, [dispatch, router, user]);
-
-    const table = useReactTable({
-        data: items || [],
-        columns: Columns,
-        getCoreRowModel: getCoreRowModel(),
-        initialState: {
-            pagination: {
-                pageIndex,
-                pageSize,
-            },
-        },
-        onStateChange: (updater) => {
-            if (typeof updater === 'function') {
-                const updated = updater(table.getState());
-                if (updated.pagination) {
-                    setPageIndex(updated.pagination.pageIndex);
-                    setPageSize(updated.pagination.pageSize);
-                }
-            }
-        }
-    });
-
-    const formattedUsers = table.getRowModel().rows.map(row => ({
-        ...row.original,
-        id: row.original.id?.toString() || '',
-    }));
-
-    const handleAddUserOpen = () => {
-        setAddUserOpen(true)
+  useEffect(() => {
+    if (currentUser?.role !== "admin") {
+      router.push("/dashboard")
+      return
     }
-    const handleAddUserClose = () => {
-        setAddUserOpen(false)
-    };
+    dispatch(fetchUsers())
+  }, [dispatch, router, currentUser])
 
-    if (loading) {
-        return <UsersPageSkeleton />
-    }
+  const handleAddUserOpen = () => setAddModalOpen(true)
+  const handleAddUserClose = () => setAddModalOpen(false)
 
-    if (error) {
-        return (
-            <div className="flex h-full items-center justify-center bg-none">
-                <ErrorState message="There was an error fetching user data" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
-            </div>
-        )
-    }
-    if (user?.role !== UserRole.ADMIN) {
-        return (
-            <div className="flex h-full items-center justify-center bg-none">
-                <ErrorState
-                    message="You do not have permission to see this page" onCancel={() => router.push("/dashboard")} onRetry={() => router.refresh()} />
-            </div>
-        )
-    }
+  const handleEditUserOpen = (user: User) => {
+    setSelectedUser(user)
+    setEditModalOpen(true)
+  }
 
+  const handleEditUserClose = () => {
+    setEditModalOpen(false)
+    setSelectedUser(null)
+  }
+
+  const handleDeleteUserOpen = (user: User) => {
+    setSelectedUser(user)
+    setDeleteModalOpen(true)
+  }
+
+  const handleDeleteUserClose = () => {
+    setDeleteModalOpen(false)
+    setSelectedUser(null)
+  }
+
+  if (loading) {
+    return <LayoutLoader />
+  }
+
+  if (error) {
     return (
-        <div className="space-y-4" data-aos="fade-in" data-aos-duration="500" >
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
-                <Button onClick={handleAddUserOpen}>
-                    <PlusIcon className="mr-2 h-4 w-4" /> Add User
-                </Button>
-            </div>
-            <DataTable columns={Columns} data={formattedUsers} />
-            <UserModal open={addUserOpen} onClose={handleAddUserClose} />
-        </div>
-    );
+      <div className="flex h-full items-center justify-center bg-none">
+        <ErrorState
+          message="There was an error fetching user data"
+          onRetry={() => {
+            dispatch(fetchUsers())
+          }}
+          onCancel={() => router.push("/dashboard")}
+        />
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <Button onClick={handleAddUserOpen}>
+          <PlusIcon className="mr-2 h-4 w-4" /> Add User
+        </Button>
+      </div>
+      <DataTable columns={Columns} data={users} onEdit={handleEditUserOpen} onDelete={handleDeleteUserOpen} />
+      <UserModal open={addModalOpen} onClose={handleAddUserClose} />
+      <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} />
+      <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} />
+    </div>
+  )
 }
+
