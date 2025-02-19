@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { DataTable } from "@/components/table/DataTable"
@@ -15,6 +15,7 @@ import { DeleteUserModal } from "@/components/user/DeleteUserModal"
 import { UserModal } from "@/components/user/UserModal"
 import { Columns } from "@/components/user/UserColumns"
 import { ErrorState } from "@/components/ui/error"
+import DashboardCard from "@/components/dashboard/DashboardCard"
 
 export default function UsersPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -57,6 +58,27 @@ export default function UsersPage() {
     setSelectedUser(null)
   }
 
+  // Calculate KPIs
+  const kpis = useMemo(() => {
+    const totalUsers = users.length
+    const activeUsers = users.filter((user) => user.onboardingStatus === "COMPLETED").length
+    const pendingKYC = users.filter((user) => user.kycStatus === "PENDING_REVIEW").length
+    const userRoles = users.reduce(
+      (acc, user) => {
+        acc[user.role] = (acc[user.role] || 0) + 1
+        return acc
+      },
+      {} as Record<string, number>,
+    )
+
+    return {
+      totalUsers,
+      activeUsers,
+      pendingKYC,
+      userRoles,
+    }
+  }, [users])
+
   if (loading) {
     return <LayoutLoader />
   }
@@ -83,6 +105,52 @@ export default function UsersPage() {
           <PlusIcon className="mr-2 h-4 w-4" /> Add User
         </Button>
       </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <DashboardCard
+          card={{
+            title: "Total Users",
+            value: kpis.totalUsers.toString(),
+            type: "number",
+            icon: "Users",
+            description: "Total number of users",
+            sparklineData: [kpis.totalUsers],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "Active Users",
+            value: kpis.activeUsers.toString(),
+            type: "number",
+            icon: "UserCheck",
+            description: "Users with completed onboarding",
+            sparklineData: [kpis.activeUsers],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "Pending KYC",
+            value: kpis.pendingKYC.toString(),
+            type: "number",
+            icon: "UserCog",
+            description: "Users awaiting KYC review",
+            sparklineData: [kpis.pendingKYC],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "",
+            type: "donut",
+            icon: "PieChart",
+            // description: "Distribution of user roles",
+            donutData: Object.values(kpis.userRoles),
+            donutLabels: Object.keys(kpis.userRoles),
+            colors: ["#4ade80", "#f97316", "#38bdf8", "#a78bfa"],
+          }}
+        />
+      </div>
+
       <DataTable columns={Columns} data={users} onEdit={handleEditUserOpen} onDelete={handleDeleteUserOpen} />
       <UserModal open={addModalOpen} onClose={handleAddUserClose} />
       <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} />
