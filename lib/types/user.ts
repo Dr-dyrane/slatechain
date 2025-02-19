@@ -10,6 +10,9 @@ export interface User {
 	isPhoneVerified: boolean;
 	kycStatus: "IN_PROGRESS" | "PENDING" | "APPROVED" | "REJECTED";
 	onboardingStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED";
+	avatarUrl?: string;
+	createdAt: string
+	updatedAt: string
 }
 
 export interface AuthResponse {

@@ -14,11 +14,12 @@ import { DeleteOrderModal } from "@/components/order/DeleteOrderModal"
 import { Label } from "@/components/ui/label"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import DashboardCard from "@/components/dashboard/DashboardCard"
 
 interface OrderRow {
   id: string
   orderNumber: string
-  name: string // Changed from customerId to name
+  name: string
   status: Order["status"]
   totalAmount: number
   paid: boolean
@@ -31,7 +32,7 @@ const columns: ColumnDef<OrderRow>[] = [
     header: "Order Number",
   },
   {
-    accessorKey: "name", // Changed from customerId to name
+    accessorKey: "name",
     header: "Customer ID",
   },
   {
@@ -53,8 +54,8 @@ const columns: ColumnDef<OrderRow>[] = [
     accessorKey: "totalAmount",
     header: "Total",
     cell: ({ row }) => {
-      const total = row.getValue("totalAmount") as number;
-      return <div className="font-medium">${total.toFixed(2)}</div>;
+      const total = row.getValue("totalAmount") as number
+      return <div className="font-medium">${total.toFixed(2)}</div>
     },
   },
   {
@@ -66,13 +67,15 @@ const columns: ColumnDef<OrderRow>[] = [
 
       return (
         <TooltipProvider>
-          <Tooltip >
+          <Tooltip>
             <TooltipTrigger asChild>
-              <div className="flex items-center space-x-2 cursor-pointer"
+              <div
+                className="flex items-center space-x-2 cursor-pointer"
                 onClick={(e) => {
                   e.stopPropagation()
                   e.preventDefault()
-                }}>
+                }}
+              >
                 <Package className="w-4 h-4 text-gray-500" />
                 <span className="text-sm font-medium">
                   {totalItems} item{totalItems !== 1 ? "s" : ""}
@@ -151,13 +154,19 @@ export default function OrdersPage() {
     return filteredOrders.map((order) => ({
       id: order.id.toString(),
       orderNumber: order.orderNumber,
-      name: order.customerId, // Changed from customerId to name
+      name: order.customerId,
       status: order.status,
       totalAmount: Number(order.totalAmount),
       paid: order.paid,
       items: order.items,
     }))
   }, [filteredOrders])
+
+  // Calculate KPIs
+  const totalOrders = formattedOrders.length
+  const totalRevenue = formattedOrders.reduce((sum, order) => sum + order.totalAmount, 0)
+  const pendingOrders = formattedOrders.filter((order) => order.status === "PENDING").length
+  const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   return (
     <div className="space-y-4">
@@ -166,6 +175,50 @@ export default function OrdersPage() {
         <Button onClick={handleAddModalOpen}>
           <PlusIcon className="mr-2 h-4 w-4" /> Create Order
         </Button>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <DashboardCard
+          card={{
+            title: "Total Orders",
+            value: totalOrders.toString(),
+            type: "number",
+            icon: "Package",
+            description: "Total number of orders",
+            sparklineData: [totalOrders],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "Total Revenue",
+            value: `$${totalRevenue.toFixed(2)}`,
+            type: "revenue",
+            icon: "DollarSign",
+            description: "Total revenue from all orders",
+            sparklineData: [totalRevenue],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "Pending Orders",
+            value: pendingOrders.toString(),
+            type: "number",
+            icon: "Clock",
+            description: "Orders awaiting processing",
+            sparklineData: [pendingOrders],
+          }}
+        />
+        <DashboardCard
+          card={{
+            title: "Average Order Value",
+            value: `$${averageOrderValue.toFixed(2)}`,
+            type: "revenue",
+            icon: "TrendingUp",
+            description: "Average value per order",
+            sparklineData: [averageOrderValue],
+          }}
+        />
       </div>
 
       <div className="flex items-center space-x-4">
