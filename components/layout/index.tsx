@@ -8,8 +8,9 @@ import { Footer } from "./Footer";
 import { RightBar } from "./RightBar";
 import { BottomNav } from "./BottomNav";
 import { UserRole } from "@/lib/types";
-import { useIsTab } from "@/hooks/use-Tab";
-import { useIsDesk } from "@/hooks/use-Desk";
+import { useIsTab } from "@/hooks/use-tab";
+import { useIsDesk } from "@/hooks/use-desk";
+
 
 
 interface LayoutProps {

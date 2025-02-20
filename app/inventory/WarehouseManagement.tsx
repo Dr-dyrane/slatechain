@@ -1,170 +1,98 @@
-"use client"
+"use client";
 
-import type React from "react"
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "@/lib/store";
+import { fetchWarehouses } from "@/lib/slices/inventorySlice";
+import { Warehouse } from "@/lib/types";
+import { DataTable } from "@/components/table/DataTable";
+import { Button } from "@/components/ui/button";
+import { PlusIcon } from "lucide-react";
+import { AddWarehouseModal } from "@/components/inventory/warehouse/AddWarehouseModal";
+import { EditWarehouseModal } from "@/components/inventory/warehouse/EditWarehouseModal";
+import { DeleteWarehouseModal } from "@/components/inventory/warehouse/DeleteWarehouseModal";
 
-import { useState, useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import type { AppDispatch, RootState } from "@/lib/store"
-import { fetchWarehouses, addWarehouse, updateWarehouse, deleteWarehouse } from "@/lib/slices/inventorySlice"
-import type { Warehouse } from "@/lib/types"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DataTable } from "@/components/table/DataTable"
-import type { ColumnDef } from "@tanstack/react-table"
-import { toast } from "sonner"
-
-export function WarehouseManagement() {
-  const dispatch = useDispatch<AppDispatch>()
-  const { warehouses, loading } = useSelector((state: RootState) => state.inventory)
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
-  const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null)
-  const [formData, setFormData] = useState<Partial<Warehouse>>({})
-
-  useEffect(() => {
-    dispatch(fetchWarehouses())
-  }, [dispatch])
-
-  const columns: ColumnDef<Warehouse>[] = [
+const columns = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "location", header: "Location" },
     { accessorKey: "capacity", header: "Capacity" },
-    { accessorKey: "utilizationPercentage", header: "Utilization %" },
+    { accessorKey: "utilizationPercentage", header: "Utilization" },
     { accessorKey: "status", header: "Status" },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleEdit(row.original)}>
-            Edit
-          </Button>
-          <Button variant="destructive" size="sm" onClick={() => handleDelete(row.original.id)}>
-            Delete
-          </Button>
+];
+
+export function WarehouseManagement() {
+    const dispatch = useDispatch<AppDispatch>();
+    const warehouses = useSelector((state: RootState) => state.inventory.warehouses);
+
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+
+    useEffect(() => {
+        dispatch(fetchWarehouses());
+    }, [dispatch]);
+
+    const handleAddModalOpen = () => {
+        setAddModalOpen(true);
+    };
+
+    const handleAddModalClose = () => {
+        setAddModalOpen(false);
+    };
+
+    const handleEditWarehouse = (warehouse: Warehouse) => {
+        setSelectedWarehouse(warehouse);
+        setEditModalOpen(true);
+    };
+
+    const handleEditModalClose = () => {
+        setSelectedWarehouse(null);
+        setEditModalOpen(false);
+    };
+
+    const handleDeleteWarehouse = (warehouse: Warehouse) => {
+        setSelectedWarehouse(warehouse);
+        setDeleteModalOpen(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setSelectedWarehouse(null);
+        setDeleteModalOpen(false);
+    };
+
+    return (
+        <div className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+                <p className="text-muted-foreground">Manage your warehouses and their details.</p>
+                <Button onClick={handleAddModalOpen}>
+                    <PlusIcon className="mr-2 h-4 w-4" /> Add Warehouse
+                </Button>
+            </div>
+
+            <DataTable
+                columns={columns}
+                data={warehouses}
+                onEdit={handleEditWarehouse}
+                onDelete={handleDeleteWarehouse}
+            />
+
+            <AddWarehouseModal open={addModalOpen} onClose={handleAddModalClose} />
+            {selectedWarehouse && (
+                <EditWarehouseModal
+                    open={editModalOpen}
+                    onClose={handleEditModalClose}
+                    warehouse={selectedWarehouse}
+                />
+            )}
+            {selectedWarehouse && (
+                <DeleteWarehouseModal
+                    open={deleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    warehouse={selectedWarehouse}
+                    deleteModalTitle="Delete Warehouse"
+                />
+            )}
         </div>
-      ),
-    },
-  ]
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      if (selectedWarehouse) {
-        await dispatch(updateWarehouse({ ...selectedWarehouse, ...formData } as Warehouse)).unwrap()
-        toast.success("Warehouse updated successfully")
-      } else {
-        await dispatch(
-          addWarehouse({
-            ...formData,
-            zones: [],
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          } as Warehouse),
-        ).unwrap()
-        toast.success("Warehouse added successfully")
-      }
-      setIsAddModalOpen(false)
-      resetForm()
-    } catch (error) {
-      toast.error("Failed to save warehouse")
-    }
-  }
-
-  const handleEdit = (warehouse: Warehouse) => {
-    setSelectedWarehouse(warehouse)
-    setFormData(warehouse)
-    setIsAddModalOpen(true)
-  }
-
-  const handleDelete = async (id: string) => {
-    try {
-      await dispatch(deleteWarehouse(id)).unwrap()
-      toast.success("Warehouse deleted successfully")
-    } catch (error) {
-      toast.error("Failed to delete warehouse")
-    }
-  }
-
-  const resetForm = () => {
-    setSelectedWarehouse(null)
-    setFormData({})
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Warehouse Management</h2>
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogTrigger asChild>
-            <Button>Add Warehouse</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selectedWarehouse ? "Edit" : "Add"} Warehouse</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name || ""}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location || ""}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="capacity">Capacity</Label>
-                <Input
-                  id="capacity"
-                  type="number"
-                  value={formData.capacity || ""}
-                  onChange={(e) => setFormData({ ...formData, capacity: Number(e.target.value) })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value as Warehouse["status"] })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="INACTIVE">Inactive</SelectItem>
-                    <SelectItem value="MAINTENANCE">Maintenance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-
-      <DataTable columns={columns} data={warehouses} />
-    </div>
-  )
+    );
 }
-
