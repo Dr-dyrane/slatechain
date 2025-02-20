@@ -1,12 +1,17 @@
 "use client"
 
-import { useState, useMemo, use, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 import type { Shipment } from "@/lib/types"
 import { ListCard } from "@/components/table/List-card"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ShipmentDetails } from "./ShipmentDetails"
+import { Button } from "@/components/ui/button"; // Import Button component
+import { PlusIcon, EditIcon, Trash2Icon } from "lucide-react"; // Import icons
+import { AddShipmentModal } from "./AddShipmentModal"; // Import AddShipmentModal
+import { EditShipmentModal } from "./EditShipmentModal"; // Import EditShipmentModal
+import { DeleteShipmentModal } from "./DeleteShipmentModal"; // Import DeleteShipmentModal
 
 interface ShipmentListProps {
     shipments: Shipment[]
@@ -18,6 +23,13 @@ export function ShipmentList({ shipments, onSelectShipment }: ShipmentListProps)
     const [statusFilter, setStatusFilter] = useState<string>("ALL");
     const [sortBy, setSortBy] = useState<keyof Shipment>("estimatedDeliveryDate")
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+
+    // State variables for modal visibility and selected shipment
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+
 
     const columns: ColumnDef<Shipment>[] = [
         {
@@ -76,13 +88,45 @@ export function ShipmentList({ shipments, onSelectShipment }: ShipmentListProps)
         return sorted;
     }, [shipments, searchTerm, statusFilter, sortBy, sortOrder]);
 
+    // Modal Handlers
+    const handleOpenAddModal = () => {
+        setAddModalOpen(true);
+    };
 
+    const handleCloseAddModal = () => {
+        setAddModalOpen(false);
+    };
 
+    const handleEditShipment = (shipment: Shipment) => {
+        setSelectedShipment(shipment);
+        setEditModalOpen(true);
+    };
+
+    const handleCloseEditModal = () => {
+        setSelectedShipment(null);
+        setEditModalOpen(false);
+    };
+
+    const handleDeleteShipment = (shipment: Shipment) => {
+        setSelectedShipment(shipment);
+        setDeleteModalOpen(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setSelectedShipment(null);
+        setDeleteModalOpen(false);
+    };
 
 
     return (
         <div>
             <div className="mb-4 flex flex-col gap-2">
+               <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-lg font-semibold">Shipment List</h2>
+                    <Button size='icon' onClick={handleOpenAddModal} className="rounded-full">
+                        <PlusIcon className="h-4 w-4" />
+                    </Button>
+                </div>
                 <Input
                     placeholder="Search by shipment name"
                     value={searchTerm}
@@ -123,11 +167,27 @@ export function ShipmentList({ shipments, onSelectShipment }: ShipmentListProps)
                 <ListCard
                     columns={columns}
                     data={filteredAndSortedShipments}
-                    onEdit={onSelectShipment}
+                    onEdit={handleEditShipment}
+                    onDelete={handleDeleteShipment}
                 />
             </div>
+            <AddShipmentModal open={addModalOpen} onClose={handleCloseAddModal} />
+            {selectedShipment && (
+                <EditShipmentModal
+                    open={editModalOpen}
+                    onClose={handleCloseEditModal}
+                    shipment={selectedShipment}
+                />
+            )}
+            {selectedShipment && (
+                <DeleteShipmentModal
+                    open={deleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    data={selectedShipment}
+                    deleteModalTitle="Delete Shipment"
+                />
+            )}
 
         </div>
     )
 }
-

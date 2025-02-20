@@ -145,7 +145,7 @@ export default function UsersPage() {
             icon: "PieChart",
             // description: "Distribution of user roles",
             donutData: Object.values(kpis.userRoles),
-            donutLabels: Object.keys(kpis.userRoles),
+            // donutLabels: Object.keys(kpis.userRoles),
             colors: ["#4ade80", "#f97316", "#38bdf8", "#a78bfa"],
           }}
         />
