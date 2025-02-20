@@ -1,86 +1,82 @@
-"use client";
-import React from "react";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { AreaChartData, ForecastDataPoint } from "@/lib/types";
+"use client"
+
+import { format } from "date-fns"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts"
 
 interface AreaChartGradientProps {
-    data: AreaChartData | null;
+    data: any
 }
 
-function AreaChartGradient({ data }: AreaChartGradientProps) {
+export function AreaChartGradient({ data }: AreaChartGradientProps) {
     if (!data || !data.data || data.data.length === 0) {
-        return <p>No data to display</p>;
+        return (
+            <div className="flex h-[400px] items-center justify-center">
+                <p className="text-muted-foreground">No data available</p>
+            </div>
+        )
     }
 
-    // console.log(data);
-    // {
-    //     "title": "Monthly Demand Forecast",
-    //     "xAxisKey": "date",
-    //     "yAxisKey": "quantity",
-    //     "upperKey": "confidenceIntervalUpper",
-    //     "lowerKey": "confidenceIntervalLower",
-    //     "data": [
-    //         {
-    //             "date": "2024-08-01",
-    //             "quantity": 120,
-    //             "confidenceIntervalUpper": 150,
-    //             "confidenceIntervalLower": 90
-    //         },
-    //         {
-    //             "date": "2024-09-01",
-    //             "quantity": 180,
-    //             "confidenceIntervalUpper": 220,
-    //             "confidenceIntervalLower": 140
-    //         },
-    //         {
-    //             "date": "2024-10-01",
-    //             "quantity": 80,
-    //             "confidenceIntervalUpper": 100,
-    //             "confidenceIntervalLower": 60
-    //         },
-    //         {
-    //             "date": "2024-11-01",
-    //             "quantity": 150,
-    //             "confidenceIntervalUpper": 170,
-    //             "confidenceIntervalLower": 130
-    //         },
-    //         {
-    //             "date": "2024-12-01",
-    //             "quantity": 200,
-    //             "confidenceIntervalUpper": 250,
-    //             "confidenceIntervalLower": 150
-    //         }
-    //     ]
-    // }
+    // Custom colors for the chart
+    const colors = {
+        quantity: "#2563eb", // blue-600
+        upper: "#16a34a", // green-600
+        lower: "#dc2626", // red-600
+    }
+
+    // Format numbers with commas and handle nulls
+    const formatValue = (value: number | null) => {
+        if (value === null || value === undefined) return "N/A"
+        return new Intl.NumberFormat().format(value)
+    }
 
     return (
-        <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={data.data}
-                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                <defs>
-                    <linearGradient id="quantityGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="confidenceGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                    </linearGradient>
-                        <linearGradient id="lowerGradient" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#FFBB28" stopOpacity={0.8} />
-                            <stop offset="95%" stopColor="#FFBB28" stopOpacity={0} />
+        <div className="w-full h-[500px] border rounded-lg p-6 bg-white">
+            <h3 className="text-lg font-semibold mb-4">{data.title}</h3>
+            <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                    width={500}
+                    height={400}
+                    data={data.data}
+                    margin={{
+                        top: 10,
+                        right: 30,
+                        left: 0,
+                        bottom: 0,
+                    }}
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey={data.xAxisKey} tickFormatter={(value) => format(new Date(value), "MMM yyyy")} />
+                    <YAxis tickFormatter={formatValue} />
+                    <Tooltip
+                        formatter={(value: number) => [formatValue(value), "Value"]}
+                        labelFormatter={(label) => format(new Date(label), "MMM dd, yyyy")}
+                    />
+                    <defs>
+                        <linearGradient id="colorQuantity" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={colors.quantity} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={colors.quantity} stopOpacity={0.1} />
                         </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey={data.xAxisKey} />
-                <YAxis />
-                <Tooltip />
-                <Area type="monotone" dataKey={data.yAxisKey} stroke="#8884d8" fillOpacity={1} fill="url(#quantityGradient)" />
-                <Area type="monotone" dataKey={data.upperKey} stroke="#82ca9d" fillOpacity={1} fill="url(#upperGradient)" />
-                <Area type="monotone" dataKey={data.lowerKey} stroke="#a4de6c" fillOpacity={1} fill="url(#lowerGradient)" />
-            </AreaChart>
-        </ResponsiveContainer>
-    );
+                        <linearGradient id="colorUpper" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={colors.upper} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={colors.upper} stopOpacity={0.1} />
+                        </linearGradient>
+                        <linearGradient id="colorLower" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor={colors.lower} stopOpacity={0.8} />
+                            <stop offset="95%" stopColor={colors.lower} stopOpacity={0.1} />
+                        </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey={data.lowerKey} stroke={colors.lower} fill="url(#colorLower)" strokeWidth={2} />
+                    <Area
+                        type="monotone"
+                        dataKey={data.yAxisKey}
+                        stroke={colors.quantity}
+                        fill="url(#colorQuantity)"
+                        strokeWidth={2}
+                    />
+                    <Area type="monotone" dataKey={data.upperKey} stroke={colors.upper} fill="url(#colorUpper)" strokeWidth={2} />
+                </AreaChart>
+            </ResponsiveContainer>
+        </div>
+    )
 }
 
-export default AreaChartGradient;

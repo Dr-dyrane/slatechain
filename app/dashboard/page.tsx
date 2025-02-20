@@ -14,7 +14,7 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DemandForecast } from "@/lib/types";
-import AreaChartGradient from "@/components/chart/AreaChartGradient";
+import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
