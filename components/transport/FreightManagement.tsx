@@ -17,6 +17,7 @@ import { CheckedState } from "@radix-ui/react-checkbox"
 import { AddFreightModal } from "@/components/transport/freight/AddFreightModal"
 import { EditFreightModal } from "@/components/transport/freight/EditFreightModal"
 import { DeleteFreightModal } from "@/components/transport/freight/DeleteFreightModal"
+import { Check, X } from "lucide-react"
 
 export function FreightManagement() {
     const dispatch = useDispatch<AppDispatch>()
@@ -40,7 +41,24 @@ export function FreightManagement() {
         },
         { accessorKey: "weight", header: "Weight (kg)" },
         { accessorKey: "volume", header: "Volume (m³)" },
-        { accessorKey: "hazardous", header: "Hazardous" },
+        {
+            accessorKey: "hazardous",
+            header: "Hazardous",
+            cell: ({ row }) => {
+                const isHazardous = row.original.hazardous === true;
+                return isHazardous ? (
+                    <div className="flex items-center space-x-2">
+                        <X className="w-4 h-4 text-red-500" />
+                        <span>Yes</span>
+                    </div>
+                ) : (
+                    <div className="flex items-center space-x-2">
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span>No</span>
+                    </div>
+                );
+            },
+        },
         { accessorKey: "specialInstructions", header: "Special Instructions" },
     ]
 
