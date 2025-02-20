@@ -9,13 +9,13 @@ import { PlusIcon } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import type { User } from "@/lib/types"
 import { fetchUsers } from "@/lib/slices/user/user"
-import LayoutLoader from "@/components/layout/loading"
 import { EditUserModal } from "@/components/user/EditUserModal"
 import { DeleteUserModal } from "@/components/user/DeleteUserModal"
 import { UserModal } from "@/components/user/UserModal"
 import { Columns } from "@/components/user/UserColumns"
 import { ErrorState } from "@/components/ui/error"
 import DashboardCard from "@/components/dashboard/DashboardCard"
+import UsersPageSkeleton from "./loading"
 
 export default function UsersPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -80,7 +80,7 @@ export default function UsersPage() {
   }, [users])
 
   if (loading) {
-    return <LayoutLoader />
+    return <UsersPageSkeleton />
   }
 
   if (error) {
