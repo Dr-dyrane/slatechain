@@ -22,12 +22,12 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
     // Define date format based on screen size
     const dateFormat = isSmallScreen ? "MMM" : "MMM yyyy";
 
-    // Custom colors for the chart
+    // Custom colors for the chart with better visibility
     const colors = {
-        quantity: "#2563eb", // blue-600
-        upper: "#16a34a", // green-600
-        lower: "#dc2626", // red-600
-    };
+        quantity: "#3b82f6", // blue-500
+        upper: "#22c55e", // green-500
+        lower: "#ef4444", // red-500
+    }
 
     // Format numbers with commas and handle nulls
     const formatValue = (value: number | null) => {
@@ -44,9 +44,28 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
         }
     };
 
+    // Custom tooltip formatter
+    const CustomTooltip = ({ active, payload, label }: any) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="bg-muted p-4 border rounded-xl shadow-lg">
+                    <p className="text-sm font-medium mb-2">{format(new Date(label), "MMMM d, yyyy")}</p>
+                    {payload.map((entry: any, index: number) => (
+                        <div key={`item-${index}`} className="flex items-center gap-2 text-sm">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
+                            <span className="font-medium">{entry.name}:</span>
+                            <span>{formatValue(entry.value)}</span>
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+        return null
+    }
+
     return (
         <div className="w-full h-[500px] border rounded-lg p-0 relative">
-            <div className="p-4 pb-0"> {/* Container for title and subtitle */}
+            <div className="p-4"> {/* Container for title and subtitle */}
                 <h3 className="text-lg sm:text-xl font-semibold">{data.title}</h3>
                 <p className="text-sm text-muted-foreground">Monthly trend analysis</p>
             </div>
@@ -57,42 +76,65 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
                         height={400}
                         data={data.data}
                         margin={{
-                            top: 50,
+                            top: 10,
                             right: 30,
                             left: 0,
                             bottom: 0,
                         }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey={data.xAxisKey} tickFormatter={dateFormatter} />
-                        <YAxis tickFormatter={formatValue} />
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <XAxis dataKey={data.xAxisKey} tickFormatter={dateFormatter} tick={{ fill: "#6b7280" }}
+                            tickLine={false}
+                            axisLine={{ stroke: "#e5e7eb" }} />
+                        <YAxis tickFormatter={formatValue} tick={{ fill: "#6b7280" }}
+                            tickLine={false}
+                            axisLine={{ stroke: "#e5e7eb" }} />
                         <Tooltip
                             formatter={(value: number) => [formatValue(value), "Value"]}
                             labelFormatter={(label) => format(new Date(label), "MMM dd, yyyy")}
                         />
+                        <Tooltip content={CustomTooltip} />
                         <defs>
                             <linearGradient id="colorQuantity" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={colors.quantity} stopOpacity={0.8} />
-                                <stop offset="95%" stopColor={colors.quantity} stopOpacity={0.1} />
+                                <stop offset="5%" stopColor={colors.quantity} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={colors.quantity} stopOpacity={0.05} />
                             </linearGradient>
                             <linearGradient id="colorUpper" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={colors.upper} stopOpacity={0.8} />
-                                <stop offset="95%" stopColor={colors.upper} stopOpacity={0.1} />
+                                <stop offset="5%" stopColor={colors.upper} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={colors.upper} stopOpacity={0.05} />
                             </linearGradient>
                             <linearGradient id="colorLower" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor={colors.lower} stopOpacity={0.8} />
-                                <stop offset="95%" stopColor={colors.lower} stopOpacity={0.1} />
+                                <stop offset="5%" stopColor={colors.lower} stopOpacity={0.3} />
+                                <stop offset="95%" stopColor={colors.lower} stopOpacity={0.05} />
                             </linearGradient>
                         </defs>
-                        <Area type="monotone" dataKey={data.lowerKey} stroke={colors.lower} fill="url(#colorLower)" strokeWidth={2} />
+                        <Area
+                            type="monotone"
+                            dataKey={data.lowerKey}
+                            name="Lower Confidence"
+                            stroke={colors.lower}
+                            fill="url(#colorLower)"
+                            strokeWidth={2}
+                            dot={false}
+                        />
                         <Area
                             type="monotone"
                             dataKey={data.yAxisKey}
+                            name="Quantity"
                             stroke={colors.quantity}
                             fill="url(#colorQuantity)"
                             strokeWidth={2}
+                            dot={false}
                         />
-                        <Area type="monotone" dataKey={data.upperKey} stroke={colors.upper} fill="url(#colorUpper)" strokeWidth={2} />
+                        <Area
+                            type="monotone"
+                            dataKey={data.upperKey}
+                            name="Upper Confidence"
+                            stroke={colors.upper}
+                            fill="url(#colorUpper)"
+                            strokeWidth={2}
+                            dot={false}
+                        />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
