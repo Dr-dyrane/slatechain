@@ -45,7 +45,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
     };
 
     return (
-        <div className="w-full h-[500px] border rounded-lg p-6 bg-white relative">
+        <div className="w-full h-[500px] border rounded-lg p-6 relative">
             <h3 className="text-lg font-semibold mb-4 absolute top-6 left-6">
                 {data.title}
             </h3>
