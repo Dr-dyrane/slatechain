@@ -46,7 +46,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
 
     return (
         <div className="w-full h-[500px] border rounded-lg p-0 relative">
-            <div className="p-4"> {/* Container for title and subtitle */}
+            <div className="p-4 pb-0"> {/* Container for title and subtitle */}
                 <h3 className="text-lg sm:text-xl font-semibold">{data.title}</h3>
                 <p className="text-sm text-muted-foreground">Monthly trend analysis</p>
             </div>
