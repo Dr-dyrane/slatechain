@@ -4,12 +4,16 @@ import { format } from "date-fns";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from "recharts";
 import type { AreaChartData } from "@/lib/types";
 import useMediaQuery from "@/hooks/use-media-query";
+import { useEffect, useRef, useState } from "react";
 
 interface AreaChartGradientProps {
     data: AreaChartData | null;
 }
 
 export function AreaChartGradient({ data }: AreaChartGradientProps) {
+    const containerRef = useRef<HTMLDivElement>(null)
+    const [containerWidth, setContainerWidth] = useState(0)
+
     const isSmallScreen = useMediaQuery("(max-width: 640px)"); //Example breakpoint
     if (!data || !data.data || data.data.length === 0) {
         return (
@@ -18,6 +22,24 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
             </div>
         );
     }
+
+    useEffect(() => {
+        if (!containerRef.current) return
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const width = entry.contentRect.width
+                setContainerWidth(Math.max(width * 0.9, 300))
+            }
+        })
+
+        resizeObserver.observe(containerRef.current)
+
+        return () => {
+            resizeObserver.disconnect()
+        }
+    }, [])
+
 
     // Define date format based on screen size
     const dateFormat = isSmallScreen ? "MMM" : "MMM yyyy";
@@ -63,17 +85,27 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
         return null
     }
 
+    const getChartDimensions = () => {
+        const minWidth = 300
+        const maxWidth = 1200
+        const padding = 0
+
+        if (!containerWidth) return minWidth
+
+        return Math.min(Math.max(containerWidth - padding, minWidth), maxWidth)
+    }
+
     return (
-        <div className="w-full h-[500px] border rounded-lg p-0 relative">
+        <div className="w-full h-[400px] border rounded-lg p-0 relative" ref={containerRef}>
             <div className="p-4"> {/* Container for title and subtitle */}
                 <h3 className="text-lg sm:text-xl font-semibold">{data.title}</h3>
                 <p className="text-sm text-muted-foreground">Monthly trend analysis</p>
             </div>
-            <div className="h-[400px] overflow-x-auto">
-                <ResponsiveContainer width="100%" height="100%">
+            <div className="h-[300px] overflow-x-auto">
+                <ResponsiveContainer width="100%" height="100%" >
                     <AreaChart
-                        width={500}
-                        height={400}
+                        width={getChartDimensions()}
+                        height={300}
                         data={data.data}
                         margin={{
                             top: 10,
@@ -82,7 +114,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
                             bottom: 0,
                         }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                        <CartesianGrid strokeDasharray="3 3" vertical={true} stroke="#e5e7eb" strokeWidth={0.125} />
                         <XAxis dataKey={data.xAxisKey} tickFormatter={dateFormatter} tick={{ fill: "#6b7280" }}
                             tickLine={false}
                             axisLine={{ stroke: "#e5e7eb" }} />
