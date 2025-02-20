@@ -146,7 +146,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
                             name="Lower Confidence"
                             stroke={colors.lower}
                             fill="url(#colorLower)"
-                            strokeWidth={2}
+                            strokeWidth={1}
                             dot={false}
                         />
                         <Area
@@ -155,7 +155,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
                             name="Quantity"
                             stroke={colors.quantity}
                             fill="url(#colorQuantity)"
-                            strokeWidth={2}
+                            strokeWidth={1}
                             dot={false}
                         />
                         <Area
@@ -164,7 +164,7 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
                             name="Upper Confidence"
                             stroke={colors.upper}
                             fill="url(#colorUpper)"
-                            strokeWidth={2}
+                            strokeWidth={1}
                             dot={false}
                         />
                     </AreaChart>
