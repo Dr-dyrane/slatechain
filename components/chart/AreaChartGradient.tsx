@@ -45,10 +45,11 @@ export function AreaChartGradient({ data }: AreaChartGradientProps) {
     };
 
     return (
-        <div className="w-full h-[500px] border rounded-lg p-6 relative">
-            <h3 className="text-lg font-semibold mb-4 absolute top-6 left-6">
-                {data.title}
-            </h3>
+        <div className="w-full h-[500px] border rounded-lg p-0 relative">
+            <div className="p-4"> {/* Container for title and subtitle */}
+                <h3 className="text-lg sm:text-xl font-semibold">{data.title}</h3>
+                <p className="text-sm text-muted-foreground">Monthly trend analysis</p>
+            </div>
             <div className="h-[400px] overflow-x-auto">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
