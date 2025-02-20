@@ -1,3 +1,4 @@
+// src/components/transport/CarrierManagement.tsx
 "use client"
 
 import type React from "react"
@@ -11,14 +12,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTable } from "@/components/table/DataTable"
 import type { ColumnDef } from "@tanstack/react-table"
-import { addCarrier, fetchCarriers, removeCarrier, updateCarrier } from "@/lib/slices/shipmentSlice"
+import { fetchCarriers, removeCarrier, updateCarrier, addCarrier } from "@/lib/slices/shipmentSlice"
+import {AddCarrierModal} from "@/components/transport/carrier/AddCarrierModal"
+import {EditCarrierModal} from "@/components/transport/carrier/EditCarrierModal"
+import {DeleteCarrierModal} from "@/components/transport/carrier/DeleteCarrierModal"
+
 
 export function CarrierManagement() {
     const dispatch = useDispatch<AppDispatch>()
     const carriers = useSelector((state: RootState) => state.shipment.carriers)
     const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null)
     const [isAddingCarrier, setIsAddingCarrier] = useState(false)
-    const [formData, setFormData] = useState<Partial<Carrier>>({})
+
+    const [addModalOpen, setAddModalOpen] = useState(false)
+    const [editModalOpen, setEditModalOpen] = useState(false)
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
     useEffect(() => {
         dispatch(fetchCarriers())
@@ -29,92 +37,66 @@ export function CarrierManagement() {
         { accessorKey: "contactPerson", header: "Contact Person" },
         { accessorKey: "email", header: "Email" },
         { accessorKey: "phone", header: "Phone" },
-        {
-            id: "actions",
-            cell: ({ row }) => (
-                <div>
-                    <Button onClick={() => handleEdit(row.original)}>Edit</Button>
-                    <Button onClick={() => handleDelete(row.original.id)} variant="destructive">
-                        Delete
-                    </Button>
-                </div>
-            ),
-        },
     ]
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value })
+    const handleAddModalOpen = () => {
+        setAddModalOpen(true)
     }
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault()
-        if (selectedCarrier) {
-            dispatch(updateCarrier({ ...selectedCarrier, ...formData } as Carrier))
-        } else {
-            dispatch(addCarrier(formData as Carrier))
-        }
-        resetForm()
+    const handleAddModalClose = () => {
+        setAddModalOpen(false)
     }
 
-    const handleEdit = (carrier: Carrier) => {
+    const handleEditCarrier = (carrier: Carrier) => {
         setSelectedCarrier(carrier)
-        setFormData(carrier)
-        setIsAddingCarrier(true)
+        setEditModalOpen(true)
     }
 
-    const handleDelete = (id: string) => {
-        dispatch(removeCarrier(id))
-    }
-
-    const resetForm = () => {
+    const handleEditModalClose = () => {
         setSelectedCarrier(null)
-        setFormData({})
-        setIsAddingCarrier(false)
+        setEditModalOpen(false)
+    }
+
+    const handleDeleteCarrier = (carrier: Carrier) => {
+        setSelectedCarrier(carrier)
+        setDeleteModalOpen(true)
+    }
+
+    const handleCloseDeleteModal = () => {
+        setSelectedCarrier(null)
+        setDeleteModalOpen(false)
     }
 
     return (
         <div>
             <div className="flex justify-between flex-wrap items-center">
                 <h3 className="text-xl font-semibold mb-4">Carrier Management</h3>
-                <Button onClick={() => setIsAddingCarrier(true)} className="mb-4">
+                <Button onClick={handleAddModalOpen} className="mb-4">
                     Add Carrier
                 </Button>
             </div>
-
-            {isAddingCarrier && (
-                <form onSubmit={handleSubmit} className="mb-4 space-y-4">
-                    <Input
-                        name="name"
-                        placeholder="Carrier Name"
-                        value={formData.name || ""}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <Input
-                        name="contactPerson"
-                        placeholder="Contact Person"
-                        value={formData.contactPerson || ""}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <Input
-                        name="email"
-                        type="email"
-                        placeholder="Email"
-                        value={formData.email || ""}
-                        onChange={handleInputChange}
-                        required
-                    />
-                    <Input name="phone" placeholder="Phone" value={formData.phone || ""} onChange={handleInputChange} required />
-                    <Button type="submit">{selectedCarrier ? "Update" : "Add"} Carrier</Button>
-                    <Button type="button" onClick={resetForm} variant="outline">
-                        Cancel
-                    </Button>
-                </form>
+            <DataTable
+                columns={columns}
+                data={carriers}
+                onEdit={handleEditCarrier}
+                onDelete={handleDeleteCarrier}
+            />
+            <AddCarrierModal open={addModalOpen} onClose={handleAddModalClose} />
+            {selectedCarrier && (
+                <EditCarrierModal
+                    open={editModalOpen}
+                    onClose={handleEditModalClose}
+                    carrier={selectedCarrier}
+                />
             )}
-
-            <DataTable columns={columns} data={carriers} />
+            {selectedCarrier && (
+                <DeleteCarrierModal
+                    open={deleteModalOpen}
+                    onClose={handleCloseDeleteModal}
+                    carrier={selectedCarrier}
+                    deleteModalTitle="Delete Carrier"
+                />
+            )}
         </div>
     )
 }
-
