@@ -66,6 +66,18 @@ export default function Dashboard() {
     })) || [];
   }, [inventory.items]);
 
+  const formattedDemandForecasts = useMemo(() => {
+    return demandForecasts?.map((item) => ({
+      ...item,
+      forecastDate: new Date(item.forecastDate).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      }),
+    })) || [];
+  }, [demandForecasts]);
+  
+
   //KPI Cards
   const kpiCards = useMemo(() => {
     switch (activeTab) {
@@ -136,7 +148,7 @@ export default function Dashboard() {
           <div className="flex justify-between items-center mb-4">
             <p className="text-muted-foreground">Demand Forecasts</p>
           </div>
-          <DataTable columns={demandColumns} data={demandForecasts as any} />
+          <DataTable columns={demandColumns} data={formattedDemandForecasts as any} />
         </TabsContent>
       </Tabs>
     </div>
