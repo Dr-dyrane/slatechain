@@ -1,4 +1,3 @@
-// src/app/inventory/page.tsx
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -19,181 +18,153 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WarehouseManagement } from "./WarehouseManagement";
 import { ManufacturingManagement } from "./ManufacturingManagement";
+import { fetchWarehouses, fetchManufacturingOrders } from "@/lib/slices/inventorySlice";
+import { CardData } from "@/components/supplier/SupplierKPIs";
 
 export const columns = [
-  { accessorKey: "name", header: "Name" },
-  { accessorKey: "sku", header: "SKU" },
-  { accessorKey: "quantity", header: "Quantity" },
-  { accessorKey: "minAmount", header: "Min. Amount" },
-  { accessorKey: "location", header: "Location" },
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "sku", header: "SKU" },
+    { accessorKey: "quantity", header: "Quantity" },
+    { accessorKey: "minAmount", header: "Min. Amount" },
+    { accessorKey: "location", header: "Location" },
 ];
 
 export default function InventoryPage() {
-  const inventory = useSelector((state: RootState) => state.inventory);
-  const dispatch = useDispatch<AppDispatch>();
-  const [addModalOpen, setAddModalOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState("stock")
+    const inventory = useSelector((state: RootState) => state.inventory);
+    const dispatch = useDispatch<AppDispatch>();
+    const [addModalOpen, setAddModalOpen] = useState(false);
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState("stock")
 
-  // Fetch inventory on mount
-  useEffect(() => {
-    dispatch(setLoading(true));
-    dispatch(fetchInventory()).finally(() => dispatch(setLoading(false)));
-  }, [dispatch]);
+    useEffect(() => {
+        dispatch(setLoading(true));
+        Promise.all([dispatch(fetchInventory()), dispatch(fetchWarehouses()), dispatch(fetchManufacturingOrders())])
+            .finally(() => dispatch(setLoading(false)));
+    }, [dispatch]);
 
-  // Compute inventory KPIs
-  const totalStock = useMemo(
-    () => inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0,
-    [inventory.items]
-  );
+    // Memoized KPI cards based on active tab
+    const kpiCards = useMemo(() => {
+        switch (activeTab) {
+            case "stock":
+                return [
+                    { title: "Total Stock", value: (inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0).toString(), type: "number", icon: "Package2", description: "Total items in stock", sparklineData: [inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0] },
+                    { title: "Low Stock Items", value: (inventory.items?.filter(item => item.quantity < item.minAmount) || []).length.toString(), type: "number", icon: "Truck", description: "Items that need replenishment", sparklineData: [(inventory.items?.filter(item => item.quantity < item.minAmount) || []).length] },
+                    { title: "Most Stocked Item", value: inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }).name || "N/A", type: "orders", icon: "Package", description: "Item with highest stock", sparklineData: [inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }).quantity || 0] }
+                ];
+            case "warehouse":
+                return [
+                    { title: "Total Warehouses", value: inventory.warehouses?.length.toString(), type: "number", icon: "Building", description: "Total number of warehouses", sparklineData: [inventory.warehouses?.length || 0] },
+                    { title: "Average Utilization", value: inventory.warehouses?.reduce((sum, wh) => sum + wh.utilizationPercentage, 0).toString(), type: "number", icon: "BarChart", description: "Average warehouse utilization", sparklineData: [inventory.warehouses?.reduce((sum, wh) => sum + wh.utilizationPercentage, 0) || 0] },
+                    { title: "Active Warehouses", value: (inventory.warehouses?.filter(wh => wh.status === "ACTIVE") || []).length.toString(), type: "number", icon: "CheckCircle", description: "Number of active warehouses", sparklineData: [(inventory.warehouses?.filter(wh => wh.status === "ACTIVE") || []).length] }
+                ];
+            case "manufacturing":
+                return [
+                    { title: "Total Manufacturing Orders", value: inventory.manufacturingOrders?.length.toString(), type: "number", icon: "Factory", description: "Total manufacturing orders", sparklineData: [inventory.manufacturingOrders?.length || 0] },
+                    { title: "Orders Completed", value: (inventory.manufacturingOrders?.filter(mo => mo.status === "COMPLETED") || []).length.toString(), type: "number", icon: "CheckCircle", description: "Number of completed orders", sparklineData: [(inventory.manufacturingOrders?.filter(mo => mo.status === "COMPLETED") || []).length] },
+                    { title: "Orders In Progress", value: (inventory.manufacturingOrders?.filter(mo => mo.status === "IN_PROGRESS") || []).length.toString(), type: "number", icon: "Clock", description: "Number of orders in progress", sparklineData: [(inventory.manufacturingOrders?.filter(mo => mo.status === "IN_PROGRESS") || []).length] }
+                ];
+            default:
+                return [];
+        }
+    }, [inventory, activeTab]);
 
-  const lowStockItems = useMemo(
-    () => inventory.items?.filter(item => item.quantity < item.minAmount) || [],
-    [inventory.items]
-  );
 
-  const mostStockedItem = useMemo(
-    () => inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }),
-    [inventory.items]
-  );
+    // Modals handlers
+    const handleAddModalOpen = () => setAddModalOpen(true);
+    const handleAddModalClose = () => setAddModalOpen(false);
+    const handleEditModalOpen = (item: InventoryItem) => {
+        setSelectedItem(item);
+        setEditModalOpen(true);
+    };
+    const handleEditModalClose = () => {
+        setSelectedItem(null);
+        setEditModalOpen(false);
+    };
+    const handleOpenDeleteModal = (item: InventoryItem) => {
+        setItemToDelete(item);
+        setDeleteModalOpen(true);
+    };
+    const handleCloseDeleteModal = () => {
+        setItemToDelete(null);
+        setDeleteModalOpen(false);
+    };
 
-  // Show toast notification for low stock items
-  useEffect(() => {
-    if (lowStockItems.length > 0) {
-      toast({
-        title: "Low Stock Alert",
-        description: `Low stock: ${lowStockItems.map(item => item.name).join(", ")}.`,
-        action: (
-          <Button
-            variant="outline"
-            onClick={() => handleUpdateItem(lowStockItems[0], 10)}
-          >
-            Restock 10
-          </Button>
-        ),
-      });
+    // Ensure inventory data format is consistent
+    const formattedInventory = inventory.items?.map(item => ({
+        ...item,
+        id: item.id.toString(),
+    })) || [];
+
+    if (inventory.error) {
+        return (
+            <div className="flex h-full items-center justify-center bg-none">
+                <ErrorState
+                    message={inventory.error}
+                    onRetry={() => {
+                        dispatch(setLoading(true));
+                        dispatch(fetchInventory());
+                    }}
+                    onCancel={() => router.push("/dashboard")}
+                />
+            </div>
+        );
     }
-  }, [lowStockItems]);
 
-
-  // Handle inventory update
-  const handleUpdateItem = async (item: InventoryItem, replenishmentAmount: number | undefined) => {
-    try {
-      if (!replenishmentAmount || replenishmentAmount <= 0) {
-        toast({ title: "Error", description: "Invalid replenishment amount", variant: "destructive" });
-        return;
-      }
-
-      const updatedItem = { ...item, quantity: item.quantity + replenishmentAmount };
-
-      // Optimistically update Redux before API call
-      dispatch(updateInventoryItem(updatedItem));
-
-      // Call API
-      await dispatch(updateInventoryItem(updatedItem)).unwrap();
-
-      toast({ title: "Success", description: `"${item.name}" updated successfully!` });
-    } catch (error) {
-      toast({ title: "Error", description: "Failed to update inventory item", variant: "destructive" });
-    }
-  };
-
-  // Modals handlers
-  const handleAddModalOpen = () => setAddModalOpen(true);
-  const handleAddModalClose = () => setAddModalOpen(false);
-  const handleEditModalOpen = (item: InventoryItem) => {
-    setSelectedItem(item);
-    setEditModalOpen(true);
-  };
-  const handleEditModalClose = () => {
-    setSelectedItem(null);
-    setEditModalOpen(false);
-  };
-  const handleOpenDeleteModal = (item: InventoryItem) => {
-    setItemToDelete(item);
-    setDeleteModalOpen(true);
-  };
-  const handleCloseDeleteModal = () => {
-    setItemToDelete(null);
-    setDeleteModalOpen(false);
-  };
-
-  // Ensure inventory data format is consistent
-  const formattedInventory = inventory.items?.map(item => ({
-    ...item,
-    id: item.id.toString(),
-  })) || [];
-
-  if (inventory.error) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
-        <ErrorState
-          message={inventory.error}
-          onRetry={() => {
-            dispatch(setLoading(true));
-            dispatch(fetchInventory());
-          }}
-          onCancel={() => router.push("/dashboard")}
-        />
-      </div>
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <h1 className="text-2xl sm:text-3xl font-bold">Inventory Management</h1>
+            </div>
+
+            {/* KPI Cards */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {kpiCards.map((card, index) => (
+                    <DashboardCard key={index} card={card as CardData} />
+                ))}
+            </div>
+
+            <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="w-full mb-8 flex flex-wrap justify-start">
+                    <TabsTrigger value="stock">Stock Overview</TabsTrigger>
+                    <TabsTrigger value="warehouse">Warehouse</TabsTrigger>
+                    <TabsTrigger value="manufacturing">Manufacturing</TabsTrigger>
+                </TabsList>
+                <TabsContent value="stock">
+                    <div className="flex justify-between items-center mb-4">
+                        <p className="text-muted-foreground">Real-time stock levels</p>
+                        <Button onClick={handleAddModalOpen}>
+                            <PlusIcon className="mr-2 h-4 w-4" /> Add Stock
+                        </Button>
+                    </div>
+                    {/* Inventory Table */}
+                    <DataTable
+                        columns={columns}
+                        data={formattedInventory as any}
+                        onDelete={handleOpenDeleteModal}
+                        onEdit={handleEditModalOpen}
+                    />
+                    <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
+                    <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
+                    <DeleteModal
+                        open={deleteModalOpen}
+                        onClose={handleCloseDeleteModal}
+                        data={itemToDelete}
+                        deleteModalTitle={"Delete Inventory Item"}
+                    />
+                </TabsContent>
+                <TabsContent value="warehouse">
+                    <WarehouseManagement />
+                </TabsContent>
+                <TabsContent value="manufacturing">
+                    <ManufacturingManagement />
+                </TabsContent>
+            </Tabs>
+
+
+        </div>
     );
-  }
-
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl sm:text-3xl font-bold">Inventory Management</h1>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <DashboardCard card={{ title: "Total Stock", value: totalStock.toString(), type: "number", icon: "Package", description: "Total items in stock", sparklineData: [totalStock] }} />
-        <DashboardCard card={{ title: "Low Stock Items", value: lowStockItems.length.toString(), type: "number", icon: "Truck", description: "Items that need replenishment", sparklineData: [lowStockItems.length] }} />
-        <DashboardCard card={{ title: "Most Stocked Item", value: mostStockedItem?.name || "N/A", type: "orders", icon: "Package", description: "Item with highest stock", sparklineData: [mostStockedItem?.quantity || 0] }} />
-      </div>
-
-      <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
-          <TabsTrigger value="stock">Stock Overview</TabsTrigger>
-          <TabsTrigger value="warehouse">Warehouse</TabsTrigger>
-          <TabsTrigger value="manufacturing">Manufacturing</TabsTrigger>
-        </TabsList>
-        <TabsContent value="stock">
-          <div className="flex justify-between items-center mb-4">
-            <p className="text-muted-foreground">Real-time stock levels</p>
-            <Button onClick={handleAddModalOpen}>
-              <PlusIcon className="mr-2 h-4 w-4" /> Add Stock
-            </Button>
-          </div>
-          {/* Inventory Table */}
-          <DataTable
-            columns={columns}
-            data={formattedInventory as any}
-            onDelete={handleOpenDeleteModal}
-            onEdit={handleEditModalOpen}
-          />
-          <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
-          <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
-          <DeleteModal
-            open={deleteModalOpen}
-            onClose={handleCloseDeleteModal}
-            data={itemToDelete}
-            deleteModalTitle={"Delete Inventory Item"}
-          />
-        </TabsContent>
-        <TabsContent value="warehouse">
-          <WarehouseManagement />
-        </TabsContent>
-        <TabsContent value="manufacturing">
-          <ManufacturingManagement />
-        </TabsContent>
-      </Tabs>
-
-
-    </div>
-  );
 }

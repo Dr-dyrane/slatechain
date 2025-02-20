@@ -163,39 +163,6 @@ export function WarehouseManagement() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Warehouses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{warehouses.length}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Capacity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{warehouses.reduce((sum, warehouse) => sum + warehouse.capacity, 0)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Average Utilization</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {Math.round(
-                warehouses.reduce((sum, warehouse) => sum + warehouse.utilizationPercentage, 0) /
-                  (warehouses.length || 1),
-              )}
-              %
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       <DataTable columns={columns} data={warehouses} />
     </div>
   )

@@ -20,6 +20,10 @@ import {
     type LucideIcon,
     Star,
     CheckCircle,
+    Building,
+    BarChart,
+    Package2,
+    Factory,
 } from "lucide-react"
 import type { CardData, OtherChartData } from "@/lib/slices/kpi/kpiSlice"
 
@@ -40,7 +44,11 @@ const iconMap: { [key: string]: LucideIcon } = {
     Clock,
     TrendingUp,
     Star,
-    CheckCircle
+    CheckCircle,
+    Building,
+    BarChart,
+    Package2,
+    Factory,
 }
 
 const DashboardCard = ({ card }: DashboardCardProps) => {

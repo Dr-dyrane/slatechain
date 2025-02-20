@@ -215,33 +215,6 @@ export function ManufacturingManagement() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>In Progress</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{inProgressOrders}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Completed</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{completedOrders}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Planned</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{plannedOrders}</p>
-          </CardContent>
-        </Card>
-      </div>
-
       <DataTable columns={columns} data={manufacturingOrders} />
     </div>
   )
