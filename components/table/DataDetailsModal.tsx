@@ -14,6 +14,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { Edit, MoreVertical, Trash } from "lucide-react";
+import { ReactNode } from "react";
 
 interface DataDetailsModalProps<TData> {
     open: boolean;
@@ -45,8 +46,10 @@ export function DataDetailsModal<TData extends Record<string, any>>({
     return (
         <AlertDialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
             <AlertDialogContent
-                className="rounded-lg shadow-lg ring-1 ring-secondary-foreground/50 hover:ring-2 hover:ring-secondary-foreground focus:ring-2 focus:ring-secondary-foreground transition-all duration-300 
-                bg-gradient-to-br from-secondary to-muted dark:from-muted dark:to-secondary text-foreground"
+                className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto
+                shadow-lg ring-1 ring-secondary-foreground/50 hover:ring-2 hover:ring-secondary-foreground focus:ring-2 focus:ring-secondary-foreground transition-all duration-300 
+                bg-gradient-to-br from-secondary to-muted dark:from-muted dark:to-secondary text-foreground
+                "
             >
 
                 <AlertDialogHeader className="relative">
@@ -91,7 +94,7 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                             {columns.map((column, index) => (
                                 <div key={index} className="flex flex-col bg-primary/10 hover:bg-primary/15 hover:scale-105 transition-all ease-linear duration-150 p-4 rounded-xl">
                                     <span className="font-semibold text-sm text-muted-foreground">
-                                        {column.header}:
+                                        {column.header as ReactNode}:
                                     </span>
                                     <span className="font-medium text-secondary-foreground break-words">
                                         {renderValue(column, data)}
