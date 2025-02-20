@@ -47,7 +47,6 @@ export default function Dashboard() {
     dispatch(fetchDemandPlanningData() as any);
     dispatch(fetchAreaChartData() as any)
 
-    console.log(areaChartData, demandPlanningKPIs, demandForecasts)
   }, [dispatch]);
 
   const handleResumeOnboarding = () => {
