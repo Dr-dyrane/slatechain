@@ -74,10 +74,10 @@ export default function Dashboard() {
         return cardData;
       case "demand":
         return [
-          { title: "Forecast Accuracy", icon: "TrendingUp", value: demandPlanningKPIs?.forecastAccuracy.toString() || "N/A", description: "Overall forecast accuracy", type: "demand", sparklineData: null },
-          { title: "Mean Absolute Deviation", icon: "Activity", value: demandPlanningKPIs?.meanAbsoluteDeviation.toString() || "N/A", description: "Average forecast deviation", type: "demand", sparklineData: null },
-          { title: "Bias", icon: "ArrowRight", value: demandPlanningKPIs?.bias.toString() || "N/A", description: "Directional forecast bias", type: "demand", sparklineData: null },
-          { title: "Service Level", icon: "CheckCircle", value: demandPlanningKPIs?.serviceLevel.toString() || "N/A", description: "Probability of meeting demand", type: "demand", sparklineData: null }
+          { title: "Forecast Accuracy", icon: "TrendingUp", value: demandPlanningKPIs?.forecastAccuracy.toString() || "N/A", description: "Overall forecast accuracy", type: "number", sparklineData: null },
+          { title: "Mean Absolute Deviation", icon: "Activity", value: demandPlanningKPIs?.meanAbsoluteDeviation.toString() || "N/A", description: "Average forecast deviation", type: "number", sparklineData: null },
+          { title: "Bias", icon: "ArrowRight", value: demandPlanningKPIs?.bias.toString() || "N/A", description: "Directional forecast bias", type: "number", sparklineData: null },
+          { title: "Service Level", icon: "CheckCircle", value: demandPlanningKPIs?.serviceLevel.toString() || "N/A", description: "Probability of meeting demand", type: "number", sparklineData: null }
         ] as CardData[];
       default:
         return cardData;
