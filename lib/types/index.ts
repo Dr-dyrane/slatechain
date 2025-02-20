@@ -189,9 +189,121 @@ export interface InventoryItem {
 	minAmount: number;
 	replenishmentAmount?: number;
 	location?: string;
+	warehouseId?: string;
+	zoneId?: string;
+	lotNumber?: string;
+	expirationDate?: string;
+	serialNumber?: string;
 	price: number;
+	unitCost: number;
 	category: string;
+	description: string;
 	supplierId: string;
+}
+
+// Warehouse Management Types
+export interface Warehouse {
+	id: string;
+	name: string;
+	location: string;
+	capacity: number;
+	utilizationPercentage: number;
+	zones: WarehouseZone[];
+	status: "ACTIVE" | "INACTIVE" | "MAINTENANCE";
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface WarehouseZone {
+	id: string;
+	name: string;
+	type: "BULK" | "PICKING" | "COLD_STORAGE" | "HAZMAT" | "HIGH_VALUE";
+	capacity: number;
+	currentOccupancy: number;
+	temperature?: number; // For cold storage
+	humidity?: number;
+	restrictions?: string[];
+}
+
+export interface StockMovement {
+	id: string;
+	type: "RECEIVING" | "DISPATCH" | "TRANSFER";
+	sourceLocationId: string;
+	destinationLocationId: string;
+	items: StockMovementItem[];
+	status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+	scheduledDate: string;
+	completedDate?: string;
+	handledBy: string;
+}
+
+export interface StockMovementItem {
+	inventoryItemId: string;
+	quantity: number;
+	lotNumber?: string;
+	serialNumber?: string;
+}
+
+// Manufacturing & Production Types
+export interface ManufacturingOrder {
+	id: string;
+	name: string;
+	orderNumber: string;
+	inventoryItemId: string;
+	quantity: number;
+	status: "PLANNED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED";
+	startDate: string;
+	endDate: string;
+	actualStartDate?: string;
+	actualEndDate?: string;
+	priority: "LOW" | "MEDIUM" | "HIGH";
+	qualityChecks: QualityCheck[];
+	billOfMaterials: BillOfMaterials;
+}
+
+export interface BillOfMaterials {
+	id: string;
+	inventoryItemId: string;
+	materials: BOMItem[];
+	laborHours: number;
+	machineHours: number;
+	instructions: string;
+	version: string;
+}
+
+export interface BOMItem {
+	materialId: string;
+	quantity: number;
+	unit: string;
+	wastageAllowance: number;
+}
+
+export interface QualityCheck {
+	id: string;
+	type: string;
+	status: "PENDING" | "PASSED" | "FAILED";
+	checkedBy: string;
+	checkedAt: string;
+	parameters: QualityParameter[];
+	notes?: string;
+}
+
+export interface QualityParameter {
+	name: string;
+	expected: string | number;
+	actual: string | number;
+	tolerance?: number;
+	passed: boolean;
+	type: "STRING" | "NUMBER";
+}
+
+export interface InventoryState {
+	items: InventoryItem[];
+	warehouses: Warehouse[];
+	stockMovements: StockMovement[];
+	manufacturingOrders: ManufacturingOrder[];
+	loading: boolean;
+	error: string | null;
 }
 
 // Order

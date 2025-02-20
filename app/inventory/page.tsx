@@ -16,6 +16,9 @@ import { ErrorState } from "@/components/ui/error";
 import { useRouter } from "next/navigation";
 import { InventoryItem } from "@/lib/types";
 import DashboardCard from "@/components/dashboard/DashboardCard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WarehouseManagement } from "./WarehouseManagement";
+import { ManufacturingManagement } from "./ManufacturingManagement";
 
 export const columns = [
   { accessorKey: "name", header: "Name" },
@@ -34,6 +37,7 @@ export default function InventoryPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<InventoryItem | null>(null);
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState("stock")
 
   // Fetch inventory on mount
   useEffect(() => {
@@ -143,9 +147,6 @@ export default function InventoryPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl sm:text-3xl font-bold">Inventory Management</h1>
-        <Button onClick={handleAddModalOpen}>
-          <PlusIcon className="mr-2 h-4 w-4" /> Add Item
-        </Button>
       </div>
 
       {/* KPI Cards */}
@@ -155,21 +156,44 @@ export default function InventoryPage() {
         <DashboardCard card={{ title: "Most Stocked Item", value: mostStockedItem?.name || "N/A", type: "orders", icon: "Package", description: "Item with highest stock", sparklineData: [mostStockedItem?.quantity || 0] }} />
       </div>
 
-      {/* Inventory Table */}
-      <DataTable
-        columns={columns}
-        data={formattedInventory as any}
-        onDelete={handleOpenDeleteModal}
-        onEdit={handleEditModalOpen}
-      />
-      <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
-      <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
-      <DeleteModal
-        open={deleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        data={itemToDelete}
-        deleteModalTitle={"Delete Inventory Item"}
-      />
+      <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
+          <TabsTrigger value="stock">Stock Overview</TabsTrigger>
+          <TabsTrigger value="warehouse">Warehouse</TabsTrigger>
+          <TabsTrigger value="manufacturing">Manufacturing</TabsTrigger>
+        </TabsList>
+        <TabsContent value="stock">
+          <div className="flex justify-between items-center mb-4">
+            <p className="text-muted-foreground">Real-time stock levels</p>
+            <Button onClick={handleAddModalOpen}>
+              <PlusIcon className="mr-2 h-4 w-4" /> Add Stock
+            </Button>
+          </div>
+          {/* Inventory Table */}
+          <DataTable
+            columns={columns}
+            data={formattedInventory as any}
+            onDelete={handleOpenDeleteModal}
+            onEdit={handleEditModalOpen}
+          />
+          <AddInventoryModal open={addModalOpen} onClose={handleAddModalClose} />
+          <EditInventoryModal open={editModalOpen} onClose={handleEditModalClose} data={selectedItem} />
+          <DeleteModal
+            open={deleteModalOpen}
+            onClose={handleCloseDeleteModal}
+            data={itemToDelete}
+            deleteModalTitle={"Delete Inventory Item"}
+          />
+        </TabsContent>
+        <TabsContent value="warehouse">
+          <WarehouseManagement />
+        </TabsContent>
+        <TabsContent value="manufacturing">
+          <ManufacturingManagement />
+        </TabsContent>
+      </Tabs>
+
+
     </div>
   );
 }

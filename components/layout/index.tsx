@@ -8,6 +8,9 @@ import { Footer } from "./Footer";
 import { RightBar } from "./RightBar";
 import { BottomNav } from "./BottomNav";
 import { UserRole } from "@/lib/types";
+import { useIsTab } from "@/hooks/use-Tab";
+import { useIsDesk } from "@/hooks/use-Desk";
+
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -25,10 +28,18 @@ export const sidebarItems = [
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
+  const isTab  = useIsTab();
+  const isDesk  = useIsDesk();
 
   // Check if the current route matches one of the sidebar item hrefs
   // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar
-  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings" ;
+  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
+
+  // Auto-collapse sidebar for tablets but keep visible
+  React.useEffect(() => {
+    if (isTab) setIsSidebarCollapsed(!isSidebarCollapsed);
+    if (isDesk) setIsSidebarCollapsed(false);
+  }, [isTab, isDesk]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);

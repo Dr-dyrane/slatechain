@@ -18,12 +18,169 @@ import {
 	Freight,
 	Transport,
 	GeoLocation,
+	Warehouse,
+	WarehouseZone,
+	StockMovement,
+	StockMovementItem,
+	ManufacturingOrder,
+	BillOfMaterials,
+	BOMItem,
+	QualityCheck,
+	QualityParameter,
 } from "@/lib/types";
 
 const mockGeoLocation: GeoLocation = {
 	latitude: 34.0522,
 	longitude: -118.2437,
 };
+
+const mockOrders: Order[] = [
+	{
+		id: 1,
+		orderNumber: "ORD12345",
+		customerId: "user-1",
+		items: [
+			{ productId: "product-1", quantity: 2, price: 100 },
+			{ productId: "product-2", quantity: 1, price: 50 },
+		],
+		totalAmount: 250,
+		status: "PROCESSING",
+		paid: true,
+		createdAt: "2024-07-26T10:00:00Z",
+		updatedAt: "2024-07-26T10:30:00Z",
+	},
+	{
+		id: 2,
+		orderNumber: "ORD67890",
+		customerId: "user-2",
+		items: [
+			{ productId: "product-3", quantity: 3, price: 20 },
+			{ productId: "product-4", quantity: 1, price: 30 },
+		],
+		totalAmount: 90,
+		status: "PENDING",
+		paid: false,
+		createdAt: "2024-07-27T14:00:00Z",
+		updatedAt: "2024-07-27T14:15:00Z",
+	},
+	{
+		id: 3,
+		orderNumber: "ORD67910",
+		customerId: "user-3",
+		items: [
+			{ productId: "product-5", quantity: 3, price: 20 },
+			{ productId: "product-6", quantity: 1, price: 30 },
+		],
+		totalAmount: 60,
+		status: "PENDING",
+		paid: false,
+		createdAt: "2024-07-27T14:00:00Z",
+		updatedAt: "2024-07-27T14:15:00Z",
+	},
+];
+
+const mockInventory: InventoryItem[] = [
+	{
+		id: 1,
+		name: "Product A",
+		sku: "SKU001",
+		quantity: 100,
+		minAmount: 50,
+		replenishmentAmount: 70,
+		warehouseId: "warehouse-1",
+		zoneId: "zone-1",
+		lotNumber: "LN123",
+		expirationDate: "2024-12-31T00:00:00Z",
+		serialNumber: "SN456",
+		price: 10,
+		unitCost: 5,
+		category: "Electronics",
+		description: "High-quality electronic component",
+		supplierId: "supplier-1",
+		location: "Warehouse 1"
+	},
+	{
+		id: 2,
+		name: "Product B",
+		sku: "SKU002",
+		quantity: 150,
+		minAmount: 100,
+		replenishmentAmount: 100,
+		warehouseId: "warehouse-2",
+		zoneId: "zone-2",
+		lotNumber: "LN789",
+		expirationDate: "2025-06-30T00:00:00Z",
+		serialNumber: "SN101",
+		price: 20,
+		unitCost: 10,
+		category: "Clothing",
+		description: "Comfortable cotton t-shirt",
+		supplierId: "supplier-2",
+		location: "Warehouse 2"
+	},
+	{
+		id: 3,
+		name: "Product C",
+		sku: "SKU003",
+		quantity: 75,
+		minAmount: 25,
+		replenishmentAmount: 25,
+		warehouseId: "warehouse-1",
+		zoneId: "zone-3",
+		lotNumber: "LN101",
+		expirationDate: "2024-11-30T00:00:00Z",
+		serialNumber: "SN202",
+		price: 30,
+		unitCost: 15,
+		category: "Books",
+		description: "Bestselling novel",
+		supplierId: "supplier-3",
+		location: "Warehouse 1"
+	},
+];
+
+const mockShipments: Shipment[] = [
+	{
+		id: "1",
+		name: "Shipment-1",
+		orderId: "1",
+		trackingNumber: "TN12345",
+		carrier: "carrier-1",
+		freightId: "freight-1",
+		routeId: "route-1",
+		status: "IN_TRANSIT",
+		destination: "Los Angeles",
+		estimatedDeliveryDate: "2024-08-01T12:00:00Z",
+		currentLocation: mockGeoLocation,
+	},
+	{
+		id: "2",
+		name: "Shipment-2",
+		orderId: "2",
+		trackingNumber: "TN67890",
+		carrier: "carrier-2",
+		freightId: "freight-2",
+		routeId: "route-2",
+		status: "DELIVERED",
+		destination: "Miami",
+		estimatedDeliveryDate: "2024-07-29T10:00:00Z",
+		actualDeliveryDate: "2024-07-29T09:45:00Z",
+		currentLocation: mockGeoLocation,
+	},
+	{
+		id: "3",
+		name: "Shipment-3",
+		orderId: "3",
+		trackingNumber: "TN11223",
+		carrier: "carrier-3",
+		freightId: "freight-3",
+		routeId: "route-3",
+		status: "PREPARING",
+		destination: "Boston",
+		estimatedDeliveryDate: "2024-08-05T12:00:00Z",
+		currentLocation: mockGeoLocation,
+	},
+];
 
 const mockTransports: Transport[] = [
 	{
@@ -179,126 +336,261 @@ const mockSuppliers: Supplier[] = [
 	},
 ];
 
-const mockInventory: InventoryItem[] = [
+const mockWarehouses: Warehouse[] = [
 	{
-		id: 1,
-		name: "Product A",
-		sku: "SKU001",
+		id: "warehouse-1",
+		name: "Main Warehouse",
+		location: "Los Angeles, CA",
+		capacity: 10000,
+		utilizationPercentage: 75,
+		zones: [],
+		status: "ACTIVE",
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	},
+	{
+		id: "warehouse-2",
+		name: "Distribution Center A",
+		location: "Chicago, IL",
+		capacity: 5000,
+		utilizationPercentage: 50,
+		zones: [],
+		status: "ACTIVE",
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	},
+	{
+		id: "warehouse-3",
+		name: "Returns Processing",
+		location: "New York, NY",
+		capacity: 2000,
+		utilizationPercentage: 90,
+		zones: [],
+		status: "MAINTENANCE",
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+	},
+];
+
+const mockWarehouseZones: WarehouseZone[] = [
+	{
+		id: "zone-1",
+		name: "Electronics Bulk",
+		type: "BULK",
+		capacity: 3000,
+		currentOccupancy: 2500,
+		restrictions: ["Fragile", "Electronics Only"],
+	},
+	{
+		id: "zone-2",
+		name: "Clothing Picking",
+		type: "PICKING",
+		capacity: 1500,
+		currentOccupancy: 1200,
+		restrictions: ["Clothing Only"],
+	},
+	{
+		id: "zone-3",
+		name: "Cold Storage Food",
+		type: "COLD_STORAGE",
+		capacity: 500,
+		currentOccupancy: 400,
+		temperature: 2,
+		humidity: 85,
+		restrictions: ["Food Only", "Temperature Controlled"],
+	},
+];
+
+const mockStockMovements: StockMovement[] = [
+	{
+		id: "movement-1",
+		type: "RECEIVING",
+		sourceLocationId: "supplier-1",
+		destinationLocationId: "warehouse-1",
+		items: [{ inventoryItemId: "1", quantity: 100 }],
+		status: "COMPLETED",
+		scheduledDate: "2024-07-25T00:00:00Z",
+		completedDate: "2024-07-26T00:00:00Z",
+		handledBy: "user-1",
+	},
+	{
+		id: "movement-2",
+		type: "DISPATCH",
+		sourceLocationId: "warehouse-2",
+		destinationLocationId: "customer-1",
+		items: [{ inventoryItemId: "2", quantity: 50 }],
+		status: "IN_PROGRESS",
+		scheduledDate: "2024-07-28T00:00:00Z",
+		handledBy: "user-2",
+	},
+	{
+		id: "movement-3",
+		type: "TRANSFER",
+		sourceLocationId: "warehouse-1",
+		destinationLocationId: "warehouse-3",
+		items: [{ inventoryItemId: "3", quantity: 25 }],
+		status: "PENDING",
+		scheduledDate: "2024-07-30T00:00:00Z",
+		handledBy: "user-1",
+	},
+];
+
+const mockStockMovementItems: StockMovementItem[] = [
+	{ inventoryItemId: "1", quantity: 100, lotNumber: "LN123" },
+	{ inventoryItemId: "2", quantity: 50, serialNumber: "SN456" },
+	{ inventoryItemId: "3", quantity: 25, lotNumber: "LN789", serialNumber: "SN789" },
+];
+
+const mockBillOfMaterials: BillOfMaterials[] = [
+	{
+		id: "bom-1",
+		inventoryItemId: "1",
+		materials: [
+			{ materialId: "raw-material-1", quantity: 2, unit: "kg", wastageAllowance: 0.1 },
+			{ materialId: "raw-material-2", quantity: 1, unit: "piece", wastageAllowance: 0.05 },
+		],
+		laborHours: 8,
+		machineHours: 4,
+		instructions: "Assemble according to the blueprint.",
+		version: "1.0",
+	},
+	{
+		id: "bom-2",
+		inventoryItemId: "2",
+		materials: [
+			{ materialId: "raw-material-3", quantity: 1.5, unit: "meters", wastageAllowance: 0.02 },
+			{ materialId: "raw-material-4", quantity: 4, unit: "pieces", wastageAllowance: 0.08 },
+		],
+		laborHours: 12,
+		machineHours: 6,
+		instructions: "Sew and finish the seams.",
+		version: "1.1",
+	},
+	{
+		id: "bom-3",
+		inventoryItemId: "3",
+		materials: [
+			{ materialId: "raw-material-5", quantity: 500, unit: "grams", wastageAllowance: 0.01 },
+			{ materialId: "raw-material-6", quantity: 10, unit: "sheets", wastageAllowance: 0.03 },
+		],
+		laborHours: 4,
+		machineHours: 2,
+		instructions: "Print and bind the pages.",
+		version: "1.2",
+	},
+];
+
+const mockBOMItems: BOMItem[] = [
+	{ materialId: "raw-material-1", quantity: 2, unit: "kg", wastageAllowance: 0.1 },
+	{ materialId: "raw-material-2", quantity: 1, unit: "piece", wastageAllowance: 0.05 },
+	{ materialId: "raw-material-3", quantity: 1.5, unit: "meters", wastageAllowance: 0.02 },
+	{ materialId: "raw-material-4", quantity: 4, unit: "pieces", wastageAllowance: 0.08 },
+	{ materialId: "raw-material-5", quantity: 500, unit: "grams", wastageAllowance: 0.01 },
+	{ materialId: "raw-material-6", quantity: 10, unit: "sheets", wastageAllowance: 0.03 },
+];
+
+const mockQualityChecks: QualityCheck[] = [
+	{
+		id: "qc-1",
+		type: "Visual Inspection",
+		status: "PASSED",
+		checkedBy: "qc-inspector-1",
+		checkedAt: "2024-07-22T10:00:00Z",
+		parameters: [],
+		notes: "No defects found.",
+	},
+	{
+		id: "qc-2",
+		type: "Performance Test",
+		status: "PASSED",
+		checkedBy: "qc-inspector-2",
+		checkedAt: "2024-07-28T14:00:00Z",
+		parameters: [],
+		notes: "All performance metrics within acceptable range.",
+	},
+	{
+		id: "qc-3",
+		type: "Dimensional Measurement",
+		status: "PENDING",
+		checkedBy: "qc-inspector-1",
+		checkedAt: "2024-08-02T09:00:00Z",
+		parameters: [],
+	},
+];
+
+const mockQualityParameters: QualityParameter[] = [
+	{ name: "Dimensions", expected: "10x10x5 cm", actual: "10.1x9.9x5.0 cm", tolerance: 0.1, passed: true, type: "NUMBER" },
+	{ name: "Color", expected: "Blue", actual: "Blue", passed: true, type: "STRING" },
+	{ name: "Weight", expected: 500, actual: 498, tolerance: 2, passed: true, type: "NUMBER" },
+];
+
+const mockManufacturingOrders: ManufacturingOrder[] = [
+	{
+		id: "morder-1",
+		name: 'morder-1',
+		orderNumber: "MO001",
+		inventoryItemId: "1",
+		quantity: 50,
+		status: "COMPLETED",
+		startDate: "2024-07-20T00:00:00Z",
+		endDate: "2024-07-22T00:00:00Z",
+		actualStartDate: "2024-07-20T00:00:00Z",
+		actualEndDate: "2024-07-22T00:00:00Z",
+		priority: "HIGH",
+		qualityChecks: [],
+		billOfMaterials: {
+			id: "bom-1",
+			inventoryItemId: "1",
+			materials: [],
+			laborHours: 8,
+			machineHours: 4,
+			instructions: "Assemble according to the blueprint.",
+			version: "1.0",
+		},
+	},
+	{
+		id: "morder-2",
+		name: 'morder-1',
+		orderNumber: "MO002",
+		inventoryItemId: "2",
 		quantity: 100,
-		minAmount: 50,
-		location: "Warehouse 1",
-		price: 10,
-		category: "Electronics",
-		supplierId: "supplier-1",
+		status: "IN_PROGRESS",
+		startDate: "2024-07-27T00:00:00Z",
+		endDate: "2024-07-29T00:00:00Z",
+		actualStartDate: "2024-07-27T00:00:00Z",
+		actualEndDate: "2024-07-28T00:00:00Z",
+		priority: "MEDIUM",
+		qualityChecks: [],
+		billOfMaterials: {
+			id: "bom-2",
+			inventoryItemId: "2",
+			materials: [],
+			laborHours: 12,
+			machineHours: 6,
+			instructions: "Sew and finish the seams.",
+			version: "1.1",
+		},
 	},
 	{
-		id: 2,
-		name: "Product B",
-		sku: "SKU002",
-		quantity: 150,
-		minAmount: 100,
-		location: "Warehouse 2",
-		price: 20,
-		category: "Clothing",
-		supplierId: "supplier-2",
-	},
-	{
-		id: 3,
-		name: "Product C",
-		sku: "SKU003",
-		quantity: 75,
-		minAmount: 25,
-		location: "Warehouse 1",
-		price: 30,
-		category: "Books",
-		supplierId: "supplier-3",
-	},
-];
-
-const mockOrders: Order[] = [
-	{
-		id: 1,
-		orderNumber: "ORD12345",
-		customerId: "user-1",
-		items: [
-			{ productId: "product-1", quantity: 2, price: 100 },
-			{ productId: "product-2", quantity: 1, price: 50 },
-		],
-		totalAmount: 250,
-		status: "PROCESSING",
-		paid: true, // NEW: Tracks payment status
-		createdAt: "2024-07-26T10:00:00Z",
-		updatedAt: "2024-07-26T10:30:00Z",
-	},
-	{
-		id: 2,
-		orderNumber: "ORD67890",
-		customerId: "user-2",
-		items: [
-			{ productId: "product-3", quantity: 3, price: 20 },
-			{ productId: "product-4", quantity: 1, price: 30 },
-		],
-		totalAmount: 90,
-		status: "PENDING",
-		paid: false, // NEW: Unpaid order
-		createdAt: "2024-07-27T14:00:00Z",
-		updatedAt: "2024-07-27T14:15:00Z",
-	},
-	{
-		id: 3,
-		orderNumber: "ORD67910",
-		customerId: "user-3",
-		items: [
-			{ productId: "product-5", quantity: 3, price: 20 },
-			{ productId: "product-6", quantity: 1, price: 30 },
-		],
-		totalAmount: 60,
-		status: "PENDING",
-		paid: false,
-		createdAt: "2024-07-27T14:00:00Z",
-		updatedAt: "2024-07-27T14:15:00Z",
-	},
-];
-
-const mockShipments: Shipment[] = [
-	{
-		id: "1",
-		name: "Shipment-1",
-		orderId: "1",
-		trackingNumber: "TN12345",
-		carrier: "carrier-1",
-		freightId: "freight-1",
-		routeId: "route-1",
-		status: "IN_TRANSIT",
-		destination: "Los Angeles",
-		estimatedDeliveryDate: "2024-08-01T12:00:00Z",
-		currentLocation: mockGeoLocation,
-	},
-	{
-		id: "2",
-		name: "Shipment-2",
-		orderId: "2",
-		trackingNumber: "TN67890",
-		carrier: "carrier-2",
-		freightId: "freight-2",
-		routeId: "route-2",
-		status: "DELIVERED",
-		destination: "Miami",
-		estimatedDeliveryDate: "2024-07-29T10:00:00Z",
-		actualDeliveryDate: "2024-07-29T09:45:00Z",
-		currentLocation: mockGeoLocation,
-	},
-	{
-		id: "3",
-		name: "Shipment-3",
-		orderId: "3",
-		trackingNumber: "TN11223",
-		carrier: "carrier-3",
-		freightId: "freight-3",
-		routeId: "route-3",
-		status: "PREPARING",
-		destination: "Boston",
-		estimatedDeliveryDate: "2024-08-05T12:00:00Z",
+		id: "morder-3",
+		name: 'morder-1',
+		orderNumber: "MO003",
+		inventoryItemId: "3",
+		quantity: 200,
+		status: "PLANNED",
+		startDate: "2024-08-01T00:00:00Z",
+		endDate: "2024-08-05T00:00:00Z",
+		priority: "LOW",
+		qualityChecks: [],
+		billOfMaterials: {
+			id: "bom-3",
+			inventoryItemId: "3",
+			materials: [],
+			laborHours: 4,
+			machineHours: 2,
+			instructions: "Print and bind the pages.",
+			version: "1.2",
+		},
 	},
 ];
 
@@ -352,141 +644,7 @@ const mockUsers: User[] = [
 		updatedAt: "2023-01-01T00:00:00Z",
 	},
 ];
-
 export const mockApiResponses: Record<string, Record<string, any>> = {
-	post: {
-		"/auth/register": (data: Partial<User>): AuthResponse => ({
-			user: {
-				id: "user-123",
-				firstName: data.firstName || "",
-				lastName: data.lastName || "",
-				name: `${data.firstName} ${data.lastName}`,
-				email: data.email || "",
-				phoneNumber: data.phoneNumber || "",
-				role: (data.role as UserRole) || UserRole.ADMIN,
-				isEmailVerified: false,
-				isPhoneVerified: false,
-				kycStatus: KYCStatus.NOT_STARTED,
-				onboardingStatus: OnboardingStatus.NOT_STARTED,
-				avatarUrl: data.avatarUrl || "/placeholder.svg",
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			},
-			accessToken: "mock_access_token",
-			refreshToken: "mock_refresh_token",
-		}),
-		"/auth/login": (data: {
-			email: string;
-			password: string;
-		}): AuthResponse => ({
-			user: mockUsers[0],
-			accessToken: "mock_access_token",
-			refreshToken: "mock_refresh_token",
-		}),
-		"/auth/refresh": (): AuthResponse => ({
-			user: mockUsers[0],
-			accessToken: "new_mock_access_token",
-			refreshToken: "new_mock_refresh_token",
-		}),
-		"/auth/logout": () => ({ success: true }),
-		"/auth/google": (): AuthResponse => ({
-			user: mockUsers[0],
-			accessToken: "new_mock_access_token",
-			refreshToken: "new_mock_refresh_token",
-		}),
-		"/kyc/start": (): KYCStatus => KYCStatus.IN_PROGRESS,
-		"/kyc/documents": (data: FormData): KYCDocument => ({
-			id: "doc-123",
-			type: data.get("type") as string,
-			status: "PENDING",
-			uploadedAt: new Date().toISOString(),
-			url: "https://example.com/document.pdf",
-		}),
-		"/kyc/submit": (data: any): { status: KYCStatus; referenceId: string } => ({
-			status: KYCStatus.PENDING_REVIEW,
-			referenceId: "kyc-ref-123",
-		}),
-		"/onboarding/start": (): OnboardingProgress => ({
-			currentStep: 0,
-			completedSteps: [],
-			completed: false,
-		}),
-		"/onboarding/steps": (data: {
-			stepId: number;
-			stepData: any;
-		}): OnboardingStep => ({
-			id: data.stepId,
-			title: `Step ${data.stepId}`,
-			status: "COMPLETED",
-		}),
-		"/onboarding/complete": (): { success: boolean; completedAt: string } => ({
-			success: true,
-			completedAt: new Date().toISOString(),
-		}),
-		"/inventory": (data: Omit<InventoryItem, "id">): InventoryItem => ({
-			...data,
-			id: Math.floor(Math.random() * 100),
-			supplierId: "supplier-1", // Add a default or dynamic supplier ID
-		}),
-		"/orders": (
-			data: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">
-		): Order => ({
-			...data,
-			id: Math.floor(Math.random() * 100),
-			orderNumber: `ORD${Math.floor(10000 + Math.random() * 90000)}`,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		}),
-		"/shipments": (data: Omit<Shipment, "id">): Shipment => ({
-			...data,
-			id: Math.floor(Math.random() * 100).toString(),
-			carrier: "carrier-1", // Add a default or dynamic carrier ID
-			routeId: "route-1", // Add a default or dynamic route ID
-			freightId: "freight-1",
-			name: `Shipment-${Math.floor(Math.random() * 100)}`,
-		}),
-		"/suppliers": (data: Omit<Supplier, "id">): Supplier => ({
-			...data,
-			id: `SUPP${Math.floor(Math.random() * 1000)}`,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		}),
-		"/transports": (data: Omit<Transport, "id">): Transport => ({
-			...data,
-			id: `TRANS${Math.floor(Math.random() * 1000)}`,
-			currentLocation: mockGeoLocation,
-		}),
-		"/carriers": (data: Omit<Carrier, "id">): Carrier => ({
-			...data,
-			id: `CAR${Math.floor(Math.random() * 1000)}`,
-		}),
-		"/routes": (data: Omit<Route, "id">): Route => ({
-			...data,
-			id: `ROUTE${Math.floor(Math.random() * 1000)}`,
-		}),
-		"/freights": (data: Omit<Freight, "id">): Freight => ({
-			...data,
-			id: `FREIGHT${Math.floor(Math.random() * 1000)}`,
-		}),
-		"/auth/password/change": (data: any) => {
-			return { success: true };
-		},
-		"/auth/password/forgot": (data: any) => {
-			return {
-				success: true,
-				code: Math.floor(100000 + Math.random() * 900000).toString(),
-			};
-		},
-		"/auth/password/reset": () => {
-			return { success: true };
-		},
-		"/users": (data: Omit<User, "id">): User => {
-			return {
-				...data,
-				id: Math.random().toString(),
-			};
-		},
-	},
 	get: {
 		"/auth/me": {
 			user: mockUsers[0],
@@ -519,6 +677,9 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			completed: false,
 		}),
 		"/inventory": (): InventoryItem[] => mockInventory,
+		"/warehouses": (): Warehouse[] => mockWarehouses,
+		"/stock-movements": (): StockMovement[] => mockStockMovements,
+		"/manufacturing-orders": (): ManufacturingOrder[] => mockManufacturingOrders,
 		"/orders": (): Order[] => mockOrders,
 		"/orders/:id": (id: number): Order =>
 			mockOrders.find((order: Order) => order.id === id) || mockOrders[0],
@@ -596,17 +757,24 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			...data,
 		}),
 		"/inventory/:id": (data: InventoryItem): InventoryItem => data,
+		"/warehouses/:id": (data: Warehouse): Warehouse => data,
+		"/stock-movements/:id": (data: StockMovement): StockMovement => data,
+		"/manufacturing-orders/:id": (data: ManufacturingOrder): ManufacturingOrder =>
+			data,
 		"/orders/:id": (data: Order): Order => data,
 		"/shipments/:id": (data: Shipment): Shipment => data,
 		"/suppliers/:id": (data: Supplier): Supplier => data,
 		"/transports/:id": (data: Transport) => data,
 		"/carriers/:id": (data: Carrier): Carrier => data,
 		"/routes/:id": (data: Route): Route => data,
-		"/freights/:id": (data: Freight): Freight => data,
+		"/freights/:id": (data: Freight) => data,
 		"/users/:id": (data: User): User => data,
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
+		"/warehouses/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/stock-movements/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/manufacturing-orders/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
@@ -615,5 +783,156 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/routes/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/freights/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/users/:id": (id: string) => ({ success: true, deletedId: id }),
+	},
+	post: {
+		"/auth/register": (data: Partial<User>): AuthResponse => ({
+			user: {
+				id: "user-123",
+				firstName: data.firstName || "",
+				lastName: data.lastName || "",
+				name: `${data.firstName} ${data.lastName}`,
+				email: data.email || "",
+				phoneNumber: data.phoneNumber || "",
+				role: (data.role as UserRole) || UserRole.ADMIN,
+				isEmailVerified: false,
+				isPhoneVerified: false,
+				kycStatus: KYCStatus.NOT_STARTED,
+				onboardingStatus: OnboardingStatus.NOT_STARTED,
+				avatarUrl: data.avatarUrl || "/placeholder.svg",
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			},
+			accessToken: "mock_access_token",
+			refreshToken: "mock_refresh_token",
+		}),
+		"/auth/login": (data: {
+			email: string;
+			password: string;
+		}): AuthResponse => ({
+			user: mockUsers[0],
+			accessToken: "mock-access-token",
+			refreshToken: "mock-refresh-token",
+		}),
+		"/auth/refresh": (): AuthResponse => ({
+			user: mockUsers[0],
+			accessToken: "new_mock_access_token",
+			refreshToken: "new_mock_refresh_token",
+		}),
+		"/auth/logout": () => ({ success: true }),
+		"/auth/google": (): AuthResponse => ({
+			user: mockUsers[0],
+			accessToken: "new_mock_access_token",
+			refreshToken: "new_mock_refresh_token",
+		}),
+		"/kyc/start": (): KYCStatus => KYCStatus.IN_PROGRESS,
+		"/kyc/documents": (data: FormData): KYCDocument => ({
+			id: "doc-123",
+			type: data.get("type") as string,
+			status: "PENDING",
+			uploadedAt: new Date().toISOString(),
+			url: "https://example.com/document.pdf",
+		}),
+		"/kyc/submit": (data: any): { status: KYCStatus; referenceId: string } => ({
+			status: KYCStatus.PENDING_REVIEW,
+			referenceId: "kyc-ref-123",
+		}),
+		"/onboarding/start": (): OnboardingProgress => ({
+			currentStep: 0,
+			completedSteps: [],
+			completed: false,
+		}),
+		"/onboarding/steps": (data: {
+			stepId: number;
+			stepData: any;
+		}): OnboardingStep => ({
+			id: data.stepId,
+			title: `Step ${data.stepId}`,
+			status: "COMPLETED",
+		}),
+		"/onboarding/complete": (): { success: boolean; completedAt: string } => ({
+			success: true,
+			completedAt: new Date().toISOString(),
+		}),
+		"/inventory": (data: Omit<InventoryItem, "id">): InventoryItem => ({
+			...data,
+			id: Math.floor(Math.random() * 100),
+			supplierId: "supplier-1", // Add a default or dynamic supplier ID
+		}),
+		"/warehouses": (
+			data: Omit<Warehouse, "id" | "createdAt" | "updatedAt">
+		): Warehouse => ({
+			...data,
+			id: `WH${Math.floor(Math.random() * 1000)}`,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		}),
+		"/stock-movements": (data: Omit<StockMovement, "id">): StockMovement => ({
+			...data,
+			id: `SM${Math.floor(Math.random() * 1000)}`,
+		}),
+		"/manufacturing-orders": (
+			data: Omit<ManufacturingOrder, "id">
+		): ManufacturingOrder => ({
+			...data,
+			id: `MO${Math.floor(Math.random() * 1000)}`,
+		}),
+		"/orders": (
+			data: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">
+		): Order => ({
+			...data,
+			id: Math.floor(Math.random() * 100),
+			orderNumber: `ORD${Math.floor(10000 + Math.random() * 90000)}`,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		}),
+		"/shipments": (data: Omit<Shipment, "id">): Shipment => ({
+			...data,
+			id: Math.floor(Math.random() * 100).toString(),
+			carrier: "carrier-1", // Add a default or dynamic carrier ID
+			routeId: "route-1", // Add a default or dynamic route ID
+			freightId: "freight-1",
+			name: `Shipment-${Math.floor(Math.random() * 100)}`,
+		}),
+		"/suppliers": (data: Omit<Supplier, "id">): Supplier => ({
+			...data,
+			id: `SUPP${Math.floor(Math.random() * 1000)}`,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		}),
+		"/transports": (data: Omit<Transport, "id">): Transport => ({
+			...data,
+			id: `TRANS${Math.floor(Math.random() * 1000)}`,
+			currentLocation: mockGeoLocation,
+		}),
+		"/carriers": (data: Omit<Carrier, "id">): Carrier => ({
+			...data,
+			id: `CAR${Math.floor(Math.random() * 1000)}`,
+		}),
+		"/routes": (data: Omit<Route, "id">): Route => ({
+			...data,
+			id: `ROUTE${Math.floor(Math.random() * 1000)}`,
+		}),
+		"/freights": (data: Omit<Freight, "id">): Freight => ({
+			...data,
+			id: `FREIGHT${Math.floor(Math.random() * 1000)}`,
+		}),
+		"/auth/password/change": (data: any) => {
+			return { success: true };
+		},
+		"/auth/password/forgot": (data: any) => {
+			return {
+				success: true,
+				code: Math.floor(100000 + Math.random() * 900000).toString(),
+			};
+		},
+		"/auth/password/reset": () => {
+			return { success: true };
+		},
+		"/users": (data: Omit<User, "id">): User => {
+			return {
+				...data,
+				id: Math.random().toString(),
+			};
+		},
 	},
 };
