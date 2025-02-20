@@ -24,6 +24,7 @@ import {
     BarChart,
     Package2,
     Factory,
+    ArrowRight,
 } from "lucide-react"
 import type { CardData, OtherChartData } from "@/lib/slices/kpi/kpiSlice"
 
@@ -49,6 +50,7 @@ const iconMap: { [key: string]: LucideIcon } = {
     BarChart,
     Package2,
     Factory,
+    ArrowRight,
 }
 
 const DashboardCard = ({ card }: DashboardCardProps) => {

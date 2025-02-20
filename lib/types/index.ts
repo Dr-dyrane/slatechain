@@ -437,5 +437,47 @@ export interface ChatMessage {
 	timestamp: string;
 }
 
-// These types cover the main entities and processes in your SlateChain application.
-// You may need to add or modify types as your application grows or requirements change.
+// Demand Planning and Forecasting
+
+export interface ForecastParameter {
+	name: string;
+	value: string | number;
+	description?: string;
+}
+
+export interface DemandForecast {
+	id: string;
+	name: string;
+	inventoryItemId: string;
+	forecastDate: string;
+	quantity: number;
+	confidenceIntervalUpper: number;
+	confidenceIntervalLower: number;
+	algorithmUsed: string;
+	parameters: ForecastParameter[];
+	notes?: string;
+}
+
+export interface DemandPlanningKPIs {
+	forecastAccuracy: number;
+	meanAbsoluteDeviation: number;
+	bias: number;
+	serviceLevel: number;
+}
+
+export interface ForecastDataPoint {
+	date: string; // e.g., "2024-08-01"
+	quantity: number;
+	confidenceIntervalUpper: number;
+	confidenceIntervalLower: number;
+}
+
+export interface AreaChartData {
+	title: string;
+	data: ForecastDataPoint[];
+	xAxisKey: string; // Key for the x-axis (e.g., "date")
+	yAxisKey: string; // Key for the y-axis (e.g., "quantity")
+	upperKey: string; //Key for the upper bound
+	lowerKey: string; // Key for the lower bound
+	xAxisFormatter?: (value: any) => string; //Optional formatter for the X axis to make it more pretty
+}

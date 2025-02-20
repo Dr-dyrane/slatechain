@@ -27,6 +27,9 @@ import {
 	BOMItem,
 	QualityCheck,
 	QualityParameter,
+	DemandForecast,
+	DemandPlanningKPIs,
+	AreaChartData,
 } from "@/lib/types";
 
 const mockGeoLocation: GeoLocation = {
@@ -97,7 +100,7 @@ const mockInventory: InventoryItem[] = [
 		category: "Electronics",
 		description: "High-quality electronic component",
 		supplierId: "supplier-1",
-		location: "Warehouse 1"
+		location: "Warehouse 1",
 	},
 	{
 		id: 2,
@@ -116,7 +119,7 @@ const mockInventory: InventoryItem[] = [
 		category: "Clothing",
 		description: "Comfortable cotton t-shirt",
 		supplierId: "supplier-2",
-		location: "Warehouse 2"
+		location: "Warehouse 2",
 	},
 	{
 		id: 3,
@@ -135,7 +138,7 @@ const mockInventory: InventoryItem[] = [
 		category: "Books",
 		description: "Bestselling novel",
 		supplierId: "supplier-3",
-		location: "Warehouse 1"
+		location: "Warehouse 1",
 	},
 ];
 
@@ -438,7 +441,12 @@ const mockStockMovements: StockMovement[] = [
 const mockStockMovementItems: StockMovementItem[] = [
 	{ inventoryItemId: "1", quantity: 100, lotNumber: "LN123" },
 	{ inventoryItemId: "2", quantity: 50, serialNumber: "SN456" },
-	{ inventoryItemId: "3", quantity: 25, lotNumber: "LN789", serialNumber: "SN789" },
+	{
+		inventoryItemId: "3",
+		quantity: 25,
+		lotNumber: "LN789",
+		serialNumber: "SN789",
+	},
 ];
 
 const mockBillOfMaterials: BillOfMaterials[] = [
@@ -446,8 +454,18 @@ const mockBillOfMaterials: BillOfMaterials[] = [
 		id: "bom-1",
 		inventoryItemId: "1",
 		materials: [
-			{ materialId: "raw-material-1", quantity: 2, unit: "kg", wastageAllowance: 0.1 },
-			{ materialId: "raw-material-2", quantity: 1, unit: "piece", wastageAllowance: 0.05 },
+			{
+				materialId: "raw-material-1",
+				quantity: 2,
+				unit: "kg",
+				wastageAllowance: 0.1,
+			},
+			{
+				materialId: "raw-material-2",
+				quantity: 1,
+				unit: "piece",
+				wastageAllowance: 0.05,
+			},
 		],
 		laborHours: 8,
 		machineHours: 4,
@@ -458,8 +476,18 @@ const mockBillOfMaterials: BillOfMaterials[] = [
 		id: "bom-2",
 		inventoryItemId: "2",
 		materials: [
-			{ materialId: "raw-material-3", quantity: 1.5, unit: "meters", wastageAllowance: 0.02 },
-			{ materialId: "raw-material-4", quantity: 4, unit: "pieces", wastageAllowance: 0.08 },
+			{
+				materialId: "raw-material-3",
+				quantity: 1.5,
+				unit: "meters",
+				wastageAllowance: 0.02,
+			},
+			{
+				materialId: "raw-material-4",
+				quantity: 4,
+				unit: "pieces",
+				wastageAllowance: 0.08,
+			},
 		],
 		laborHours: 12,
 		machineHours: 6,
@@ -470,8 +498,18 @@ const mockBillOfMaterials: BillOfMaterials[] = [
 		id: "bom-3",
 		inventoryItemId: "3",
 		materials: [
-			{ materialId: "raw-material-5", quantity: 500, unit: "grams", wastageAllowance: 0.01 },
-			{ materialId: "raw-material-6", quantity: 10, unit: "sheets", wastageAllowance: 0.03 },
+			{
+				materialId: "raw-material-5",
+				quantity: 500,
+				unit: "grams",
+				wastageAllowance: 0.01,
+			},
+			{
+				materialId: "raw-material-6",
+				quantity: 10,
+				unit: "sheets",
+				wastageAllowance: 0.03,
+			},
 		],
 		laborHours: 4,
 		machineHours: 2,
@@ -481,12 +519,42 @@ const mockBillOfMaterials: BillOfMaterials[] = [
 ];
 
 const mockBOMItems: BOMItem[] = [
-	{ materialId: "raw-material-1", quantity: 2, unit: "kg", wastageAllowance: 0.1 },
-	{ materialId: "raw-material-2", quantity: 1, unit: "piece", wastageAllowance: 0.05 },
-	{ materialId: "raw-material-3", quantity: 1.5, unit: "meters", wastageAllowance: 0.02 },
-	{ materialId: "raw-material-4", quantity: 4, unit: "pieces", wastageAllowance: 0.08 },
-	{ materialId: "raw-material-5", quantity: 500, unit: "grams", wastageAllowance: 0.01 },
-	{ materialId: "raw-material-6", quantity: 10, unit: "sheets", wastageAllowance: 0.03 },
+	{
+		materialId: "raw-material-1",
+		quantity: 2,
+		unit: "kg",
+		wastageAllowance: 0.1,
+	},
+	{
+		materialId: "raw-material-2",
+		quantity: 1,
+		unit: "piece",
+		wastageAllowance: 0.05,
+	},
+	{
+		materialId: "raw-material-3",
+		quantity: 1.5,
+		unit: "meters",
+		wastageAllowance: 0.02,
+	},
+	{
+		materialId: "raw-material-4",
+		quantity: 4,
+		unit: "pieces",
+		wastageAllowance: 0.08,
+	},
+	{
+		materialId: "raw-material-5",
+		quantity: 500,
+		unit: "grams",
+		wastageAllowance: 0.01,
+	},
+	{
+		materialId: "raw-material-6",
+		quantity: 10,
+		unit: "sheets",
+		wastageAllowance: 0.03,
+	},
 ];
 
 const mockQualityChecks: QualityCheck[] = [
@@ -519,9 +587,29 @@ const mockQualityChecks: QualityCheck[] = [
 ];
 
 const mockQualityParameters: QualityParameter[] = [
-	{ name: "Dimensions", expected: "10x10x5 cm", actual: "10.1x9.9x5.0 cm", tolerance: 0.1, passed: true, type: "NUMBER" },
-	{ name: "Color", expected: "Blue", actual: "Blue", passed: true, type: "STRING" },
-	{ name: "Weight", expected: 500, actual: 498, tolerance: 2, passed: true, type: "NUMBER" },
+	{
+		name: "Dimensions",
+		expected: "10x10x5 cm",
+		actual: "10.1x9.9x5.0 cm",
+		tolerance: 0.1,
+		passed: true,
+		type: "NUMBER",
+	},
+	{
+		name: "Color",
+		expected: "Blue",
+		actual: "Blue",
+		passed: true,
+		type: "STRING",
+	},
+	{
+		name: "Weight",
+		expected: 500,
+		actual: 498,
+		tolerance: 2,
+		passed: true,
+		type: "NUMBER",
+	},
 ];
 
 const mockManufacturingOrders: ManufacturingOrder[] = [
@@ -644,6 +732,93 @@ const mockUsers: User[] = [
 		updatedAt: "2023-01-01T00:00:00Z",
 	},
 ];
+
+const mockDemandForecasts: DemandForecast[] = [
+	{
+		id: "forecast-1",
+		name: "Product A - August Forecast",
+		inventoryItemId: "1",
+		forecastDate: "2024-08-01T00:00:00Z",
+		quantity: 120,
+		confidenceIntervalUpper: 150,
+		confidenceIntervalLower: 90,
+		algorithmUsed: "ARIMA",
+		parameters: [{ name: "Seasonality", value: "High" }],
+		notes: "High promotional activity expected.",
+	},
+	{
+		id: "forecast-2",
+		name: "Product B - September Forecast",
+		inventoryItemId: "2",
+		forecastDate: "2024-09-01T00:00:00Z",
+		quantity: 180,
+		confidenceIntervalUpper: 220,
+		confidenceIntervalLower: 140,
+		algorithmUsed: "Exponential Smoothing",
+		parameters: [{ name: "Trend", value: "Upward" }],
+		notes: "Sustained growth trend observed.",
+	},
+	{
+		id: "forecast-3",
+		name: "Product C - October Forecast",
+		inventoryItemId: "3",
+		forecastDate: "2024-10-01T00:00:00Z",
+		quantity: 80,
+		confidenceIntervalUpper: 100,
+		confidenceIntervalLower: 60,
+		algorithmUsed: "Moving Average",
+		parameters: [{ name: "Cycle", value: "Stable" }],
+		notes: "Stable demand pattern expected.",
+	},
+];
+
+const mockDemandPlanningKPIs: DemandPlanningKPIs = {
+	forecastAccuracy: 0.85,
+	meanAbsoluteDeviation: 25,
+	bias: 5,
+	serviceLevel: 0.95,
+};
+
+const mockAreaChartData: AreaChartData = {
+	title: "Monthly Demand Forecast",
+	xAxisKey: "date",
+	yAxisKey: "quantity",
+	upperKey: "confidenceIntervalUpper",
+	lowerKey: "confidenceIntervalLower",
+	data: [
+		{
+			date: "2024-08-01",
+			quantity: 120,
+			confidenceIntervalUpper: 150,
+			confidenceIntervalLower: 90,
+		},
+		{
+			date: "2024-09-01",
+			quantity: 180,
+			confidenceIntervalUpper: 220,
+			confidenceIntervalLower: 140,
+		},
+		{
+			date: "2024-10-01",
+			quantity: 80,
+			confidenceIntervalUpper: 100,
+			confidenceIntervalLower: 60,
+		},
+		{
+			date: "2024-11-01",
+			quantity: 150,
+			confidenceIntervalUpper: 170,
+			confidenceIntervalLower: 130,
+		},
+		{
+			date: "2024-12-01",
+			quantity: 200,
+			confidenceIntervalUpper: 250,
+			confidenceIntervalLower: 150,
+		},
+	],
+};
+
 export const mockApiResponses: Record<string, Record<string, any>> = {
 	get: {
 		"/auth/me": {
@@ -679,7 +854,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/inventory": (): InventoryItem[] => mockInventory,
 		"/warehouses": (): Warehouse[] => mockWarehouses,
 		"/stock-movements": (): StockMovement[] => mockStockMovements,
-		"/manufacturing-orders": (): ManufacturingOrder[] => mockManufacturingOrders,
+		"/manufacturing-orders": (): ManufacturingOrder[] =>
+			mockManufacturingOrders,
 		"/orders": (): Order[] => mockOrders,
 		"/orders/:id": (id: number): Order =>
 			mockOrders.find((order: Order) => order.id === id) || mockOrders[0],
@@ -750,6 +926,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				},
 			],
 		}),
+		"/demand-planning": () => ({
+			demandPlanningKPIs: mockDemandPlanningKPIs,
+			demandForecasts: mockDemandForecasts,
+		}),
+		"/area-chart": () => ({
+			areaChartData: mockAreaChartData,
+		}),
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -759,8 +942,9 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/inventory/:id": (data: InventoryItem): InventoryItem => data,
 		"/warehouses/:id": (data: Warehouse): Warehouse => data,
 		"/stock-movements/:id": (data: StockMovement): StockMovement => data,
-		"/manufacturing-orders/:id": (data: ManufacturingOrder): ManufacturingOrder =>
-			data,
+		"/manufacturing-orders/:id": (
+			data: ManufacturingOrder
+		): ManufacturingOrder => data,
 		"/orders/:id": (data: Order): Order => data,
 		"/shipments/:id": (data: Shipment): Shipment => data,
 		"/suppliers/:id": (data: Supplier): Supplier => data,
@@ -774,7 +958,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/warehouses/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/stock-movements/:id": (id: string) => ({ success: true, deletedId: id }),
-		"/manufacturing-orders/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/manufacturing-orders/:id": (id: string) => ({
+			success: true,
+			deletedId: id,
+		}),
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
