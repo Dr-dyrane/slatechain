@@ -527,7 +527,7 @@ const mockQualityParameters: QualityParameter[] = [
 const mockManufacturingOrders: ManufacturingOrder[] = [
 	{
 		id: "morder-1",
-		name: 'morder-1',
+		name: "Electronics Assembly",
 		orderNumber: "MO001",
 		inventoryItemId: "1",
 		quantity: 50,
@@ -550,7 +550,7 @@ const mockManufacturingOrders: ManufacturingOrder[] = [
 	},
 	{
 		id: "morder-2",
-		name: 'morder-1',
+		name: "T-Shirt Production",
 		orderNumber: "MO002",
 		inventoryItemId: "2",
 		quantity: 100,
@@ -573,7 +573,7 @@ const mockManufacturingOrders: ManufacturingOrder[] = [
 	},
 	{
 		id: "morder-3",
-		name: 'morder-1',
+		name: "Novel Printing",
 		orderNumber: "MO003",
 		inventoryItemId: "3",
 		quantity: 200,
