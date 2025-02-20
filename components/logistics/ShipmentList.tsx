@@ -121,8 +121,11 @@ export function ShipmentList({ shipments, onSelectShipment }: ShipmentListProps)
     return (
         <div>
             <div className="mb-4 flex flex-col gap-2">
-               <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-lg font-semibold">Shipment List</h2>
+                <div className="flex justify-between items-center py-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold">Shipment List</h1>
+                        <p className="text-muted-foreground text-sm">Manage and track shipments</p>
+                    </div>
                     <Button size='icon' onClick={handleOpenAddModal} className="rounded-full">
                         <PlusIcon className="h-4 w-4" />
                     </Button>

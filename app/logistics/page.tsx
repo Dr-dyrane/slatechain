@@ -114,10 +114,6 @@ export default function LogisticsPage() {
 
             </Card>
             <Card className="col-span-1  md:col-span-2">
-              <CardHeader>
-                <CardTitle>Shipment List</CardTitle>
-                <CardDescription>Manage and track shipments</CardDescription>
-              </CardHeader>
               <CardContent>
                 <ShipmentList shipments={shipments} onSelectShipment={setSelectedShipment} />
               </CardContent>
