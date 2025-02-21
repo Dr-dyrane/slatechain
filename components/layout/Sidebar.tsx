@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog } from "lucide-react";
+import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog, LayoutGrid } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { UserRole } from "@/lib/types";
@@ -18,6 +18,7 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/suppliers": Users,
   "/settings": Settings,
   "/users": UserCog,
+  "/apps": LayoutGrid ,
 };
 
 interface SidebarProps {

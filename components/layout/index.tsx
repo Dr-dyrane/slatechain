@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { NotificationDrawer } from "../ui/NotificationDrawer";
 import useMediaQuery from "@/hooks/use-media-query";
+import { LayoutGrid } from "lucide-react";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -30,18 +31,33 @@ export const sidebarItems = [
 
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const user = useSelector((state: RootState) => state.auth.user);
+  const ecommerceService = user?.integrations?.ecommerce?.service
+  const hasIntegrations = user?.integrations?.ecommerce?.enabled && ecommerceService;
+
+
+  const finalSidebarItems = [
+    ...sidebarItems,
+    ...(hasIntegrations ? [{ href: "/apps", title: "Apps" }] : []),
+  ];
+
+
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
   const isTab = useIsTab();
   const isDesk = useIsDesk();
   const notifications = useSelector((state: RootState) => state.notifications.notifications) as Notification[];
+
+
   // Determine if the screen size is XL (1280px and up) and 2XL (1536px and up) based on tailwind breakpoints
   const isXLScreen = useMediaQuery("(min-width: 1280px)");
   const is2XLScreen = useMediaQuery("(min-width: 1536px)");
   const [showRightBar, setShowRightBar] = React.useState(isXLScreen);
 
+
   // Check if the current route matches one of the sidebar item hrefs
-  const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
+  const layoutRequired = finalSidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
 
   // Auto-collapse sidebar for tablets but keep visible
   React.useEffect(() => {
@@ -63,14 +79,14 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden flex-col">
+    <div className="flex h-screen overflow-hidden flex-col relative">
       {layoutRequired && <Navbar setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen} notifications={notifications as Notification[]} />}
       <div className="flex flex-1 overflow-hidden">
         {layoutRequired && (
           <aside className={`hidden md:block transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-20" : "w-64"
             }`}>
             <Sidebar
-              items={sidebarItems}
+              items={finalSidebarItems}
               isCollapsed={isSidebarCollapsed}
               toggleSidebar={toggleSidebar}
             />
@@ -96,6 +112,16 @@ export function Layout({ children }: LayoutProps) {
         onOpenChange={setIsMobileNotificationDrawerOpen}
         notifications={notifications}
       />
+      <Footer />
+      {hasIntegrations && pathname !== "/apps" && (
+        <button
+          className="fixed bottom-20 right-4 sm:right-8 md:hidden bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-dark transition"
+          onClick={() => router.push("/apps")}
+        >
+          <LayoutGrid className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6" />
+        </button>
+      )}
+
     </div>
   );
 }
