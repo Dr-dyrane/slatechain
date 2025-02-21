@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { ChevronLeft } from "lucide-react"
-import Image from "next/image"
-import { motion } from "framer-motion"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { ChevronLeft } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
 import type {
     UserIntegrations,
     EcommerceIntegration,
     ErpCrmIntegration,
     IoTIntegration,
     BIIntegration,
-} from "@/lib/types"
+} from "@/lib/types";
 
-type IntegrationCategory = keyof UserIntegrations
-type IntegrationData = EcommerceIntegration | ErpCrmIntegration | IoTIntegration | BIIntegration
+type IntegrationCategory = keyof UserIntegrations;
+type IntegrationData = EcommerceIntegration | ErpCrmIntegration | IoTIntegration | BIIntegration;
 
 interface ServiceSelectorProps {
-    category: IntegrationCategory
-    onBack: () => void
-    integration: IntegrationData | undefined
-    onSave: (service: string, apiKey: string, url?: string) => void
-    onToggle: (enabled: boolean) => void
+    category: IntegrationCategory;
+    onBack: () => void;
+    integration: IntegrationData | undefined;
+    onSave: (service: string, apiKey: string, url?: string) => void;
+    onToggle: (enabled: boolean) => void;
 }
 
 const services = {
@@ -32,11 +32,12 @@ const services = {
     erp_crm: [{ id: "sap", name: "SAP", logo: "/icons/sap.svg" }],
     iot: [{ id: "iot_monitoring", name: "IoT Monitoring", logo: "/icons/iot.svg" }],
     bi_tools: [{ id: "power_bi", name: "Power BI", logo: "/icons/powerbi.svg" }],
-} as const
+} as const;
 
 export function ServiceSelector({ category, onBack, integration, onSave, onToggle }: ServiceSelectorProps) {
-    const availableServices = services[category] || []
-    const selectedService = integration?.service
+    const availableServices = services[category] || [];
+    const selectedService = integration?.service;
+    const isConnected = integration?.enabled || false;
 
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -48,12 +49,14 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                         </Button>
                         <CardTitle>Select Service</CardTitle>
                     </div>
+
+                    {/* Toggle Connection */}
                     {selectedService && (
                         <div className="flex items-center space-x-2">
                             <Label htmlFor="integration-toggle" className="text-sm">
-                                {integration?.enabled ? "Connected" : "Disconnected"}
+                                {isConnected ? "Connected" : "Disconnected"}
                             </Label>
-                            <Switch id="integration-toggle" checked={integration?.enabled || false} onCheckedChange={onToggle} />
+                            <Switch id="integration-toggle" checked={isConnected} onCheckedChange={(e) => onToggle(e)} />
                         </div>
                     )}
                 </CardHeader>
@@ -64,8 +67,8 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                 <Card
                                     className={`cursor-pointer relative ${selectedService === service.id ? "ring-2 ring-primary" : ""}`}
                                     onClick={() => {
-                                        if (!integration?.enabled || integration?.service !== service.id) {
-                                            onSave(service.id, "", "")
+                                        if (!isConnected || integration?.service !== service.id) {
+                                            onSave(service.id, "", "");
                                         }
                                     }}
                                 >
@@ -81,7 +84,7 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                         <div className="flex-1">
                                             <h3 className="font-medium">{service.name}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                {integration?.enabled && integration?.service === service.id ? "Connected" : "Click to connect"}
+                                                {isConnected && integration?.service === service.id ? "Connected" : "Click to connect"}
                                             </p>
                                         </div>
                                     </CardContent>
@@ -90,7 +93,8 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                         ))}
                     </div>
 
-                    {selectedService && integration?.enabled && (
+                    {/* API Key Input & Store URL */}
+                    {selectedService && isConnected && (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                             <div className="space-y-2">
                                 <Label>API Key</Label>
@@ -98,11 +102,7 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                     placeholder="Enter API Key"
                                     value={integration?.apiKey || ""}
                                     onChange={(e) =>
-                                        onSave(
-                                            selectedService,
-                                            e.target.value,
-                                            "storeUrl" in integration ? integration.storeUrl : undefined,
-                                        )
+                                        onSave(selectedService, e.target.value, "storeUrl" in integration ? integration.storeUrl as string | undefined : undefined)
                                     }
                                 />
                             </div>
@@ -121,6 +121,6 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                 </CardContent>
             </Card>
         </motion.div>
-    )
+    );
 }
 
