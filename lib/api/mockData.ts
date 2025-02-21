@@ -701,10 +701,26 @@ const mockUsers: User[] = [
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
 		integrations: {
-			shopify: {
+			ecommerce: {
 				enabled: true,
+				service: "shopify",
 				apiKey: "shopify_admin_api_key",
 				storeUrl: "johns-apparel.myshopify.com",
+			},
+			erp_crm: {
+				enabled: true,
+				service: "sap",
+				apiKey: "sap_api_key",
+			},
+			iot: {
+				enabled: true,
+				service: "iot_monitoring",
+				apiKey: "iot_device_api_key",
+			},
+			bi_tools: {
+				enabled: true,
+				service: "power_bi",
+				apiKey: "power_bi_api_key",
 			},
 		},
 	},
@@ -724,10 +740,26 @@ const mockUsers: User[] = [
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
 		integrations: {
-			shopify: {
+			ecommerce: {
+				enabled: true,
+				service: "shopify",
+				apiKey: "shopify_admin_api_key",
+				storeUrl: "johns-apparel.myshopify.com",
+			},
+			erp_crm: {
 				enabled: false,
+				service: null,
 				apiKey: null,
-				storeUrl: null,
+			},
+			iot: {
+				enabled: false,
+				service: null,
+				apiKey: null,
+			},
+			bi_tools: {
+				enabled: true,
+				service: "power_bi",
+				apiKey: "tableau_api_key",
 			},
 		},
 	},
@@ -747,10 +779,26 @@ const mockUsers: User[] = [
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
 		integrations: {
-			shopify: {
+			ecommerce: {
 				enabled: false,
+				service: null,
 				apiKey: null,
 				storeUrl: null,
+			},
+			erp_crm: {
+				enabled: true,
+				service: "sap",
+				apiKey: "sap_api_key",
+			},
+			iot: {
+				enabled: false,
+				service: null,
+				apiKey: null,
+			},
+			bi_tools: {
+				enabled: false,
+				service: "power_bi",
+				apiKey: null,
 			},
 		},
 	},
@@ -1235,10 +1283,26 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				integrations: {
-					shopify: {
-						enabled: false,
-						apiKey: null,
-						storeUrl: null,
+					ecommerce: {
+						enabled: true,
+						service: "shopify",
+						apiKey: "shopify_admin_api_key",
+						storeUrl: "johns-apparel.myshopify.com",
+					},
+					erp_crm: {
+						enabled: true,
+						service: "sap",
+						apiKey: "sap_api_key",
+					},
+					iot: {
+						enabled: true,
+						service: "iot_monitoring",
+						apiKey: "iot_device_api_key",
+					},
+					bi_tools: {
+						enabled: true,
+						service: "power_bi",
+						apiKey: "power_bi_api_key",
 					},
 				},
 			},

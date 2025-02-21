@@ -106,6 +106,8 @@ export default function Dashboard() {
     return <div> {error}</div>
   }
 
+  const ecommerceService = user?.integrations?.ecommerce?.service
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
@@ -140,8 +142,8 @@ export default function Dashboard() {
         <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="demand">Demand Planning</TabsTrigger>
-          {user?.integrations?.shopify?.enabled && (
-            <TabsTrigger value="shopify">Shopify</TabsTrigger>
+          {user?.integrations?.ecommerce?.enabled && (
+            <TabsTrigger className="capitalize" value={ecommerceService as string}>{ecommerceService}</TabsTrigger>
           )}
         </TabsList>
         <TabsContent value="overview">
@@ -156,7 +158,7 @@ export default function Dashboard() {
           </div>
           <DataTable columns={demandColumns} data={formattedDemandForecasts as any} />
         </TabsContent>
-        {user?.integrations?.shopify?.enabled && (
+        {user?.integrations?.ecommerce?.enabled && (
           <TabsContent value="shopify"> {/* Add this to link */}
             <ShopifyComponent />
           </TabsContent>

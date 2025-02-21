@@ -23,7 +23,7 @@ export enum OnboardingStatus {
 	COMPLETED = "COMPLETED",
 }
 
-// User
+// User Interface
 export interface User {
 	id: string;
 	firstName: string;
@@ -42,15 +42,56 @@ export interface User {
 	integrations: UserIntegrations;
 }
 
+// User Integrations (Only One Service Enabled Per Category)
 export interface UserIntegrations {
-    shopify: ShopifyIntegrationSettings;
+	ecommerce?: EcommerceIntegration;
+	erp_crm?: ErpCrmIntegration;
+	iot?: IoTIntegration;
+	bi_tools?: BIIntegration;
 }
 
+// Integration Categories - One Service Per Category
+export interface EcommerceIntegration {
+	enabled: boolean;
+	service: EcommerceService;
+	apiKey?: string | null;
+	storeUrl?: string | null;
+}
+
+export interface ErpCrmIntegration {
+	enabled: boolean;
+	service: ErpCrmService;
+	apiKey?: string | null;
+}
+
+export interface IoTIntegration {
+	enabled: boolean;
+	service: IoTService;
+	apiKey?: string | null;
+}
+
+export interface BIIntegration {
+	enabled: boolean;
+	service: BIService;
+	apiKey?: string | null;
+}
+
+// Available Services per Category
+export type EcommerceService = "shopify" | null
+//  | "woocommerce" | "magento" | "bigcommerce";
+
+export type ErpCrmService = "sap" | null
+//  | "oracle" | "microsoft_dynamics";
+
+export type IoTService = "iot_monitoring" | null
+
+export type BIService = "power_bi" | null
+//  | "tableau";
 
 export interface ShopifyIntegrationSettings {
-    enabled: boolean;
-    apiKey: string | null;
-    storeUrl: string | null;
+	enabled: boolean;
+	apiKey: string | null;
+	storeUrl: string | null;
 }
 
 // Auth
@@ -494,82 +535,79 @@ export interface AreaChartData {
 	xAxisFormatter?: (value: any) => string; //Optional formatter for the X axis to make it more pretty
 }
 
-
 export interface ShopifyOrder {
-    id: string; // Shopify order ID
-    order_number: number; // Human-readable order number
-    created_at: string; // Date the order was created (ISO 8601 format)
-    total_price: string; // Total amount of the order (string to handle currency format)
-    customer: ShopifyCustomer; // Customer information
-    fulfillment_status: string | null; // Fulfillment Status, can be null
-    financial_status: string;
-    line_items: ShopifyLineItem[]; // List of items in the order
-    billing_address: ShopifyAddress | null;
-    shipping_address: ShopifyAddress | null;
-    transactions: ShopifyTransaction[];
-  }
+	id: string; // Shopify order ID
+	order_number: number; // Human-readable order number
+	created_at: string; // Date the order was created (ISO 8601 format)
+	total_price: string; // Total amount of the order (string to handle currency format)
+	customer: ShopifyCustomer; // Customer information
+	fulfillment_status: string | null; // Fulfillment Status, can be null
+	financial_status: string;
+	line_items: ShopifyLineItem[]; // List of items in the order
+	billing_address: ShopifyAddress | null;
+	shipping_address: ShopifyAddress | null;
+	transactions: ShopifyTransaction[];
+}
 
-  export interface ShopifyTransaction {
-    id: number;
-    kind: string;
-    status: string;
-    amount: string;
-    created_at: string;
-  }
+export interface ShopifyTransaction {
+	id: number;
+	kind: string;
+	status: string;
+	amount: string;
+	created_at: string;
+}
 export interface ShopifyCustomer {
-    id: number;
-    first_name: string;
-    last_name: string;
-    email: string;
-    orders_count: number;
-    total_spent: string;
-    default_address: ShopifyAddress | null;
+	id: number;
+	first_name: string;
+	last_name: string;
+	email: string;
+	orders_count: number;
+	total_spent: string;
+	default_address: ShopifyAddress | null;
 }
 
 export interface ShopifyLineItem {
-    id: number;
-    title: string;
-    quantity: number;
-    price: string;
-    sku: string;
-    name: string;
-    variant_id: number;
-    product_id: number;
+	id: number;
+	title: string;
+	quantity: number;
+	price: string;
+	sku: string;
+	name: string;
+	variant_id: number;
+	product_id: number;
 }
 
 export interface ShopifyAddress {
-    first_name: string;
-    last_name: string;
-    address1: string;
-    city: string;
-    province: string;
-    country: string;
-    zip: string;
-    phone: string;
-    address2?: string;
-    company?: string;
-    country_code?: string;
-    country_name?: string;
-    province_code?: string;
-
+	first_name: string;
+	last_name: string;
+	address1: string;
+	city: string;
+	province: string;
+	country: string;
+	zip: string;
+	phone: string;
+	address2?: string;
+	company?: string;
+	country_code?: string;
+	country_name?: string;
+	province_code?: string;
 }
 
-
 export interface ShopifyShop {
-    id: number;
-    name: string;
-    email: string;
-    domain: string;
+	id: number;
+	name: string;
+	email: string;
+	domain: string;
 }
 
 // New
 export interface ShopifyState {
-    shop: ShopifyShop | null,
-    orders: ShopifyOrder[];
-    totalRevenue: number;
-    loading: boolean;
-    error: string | null;
-    apiKey: string | null;
-    storeUrl: string | null;
-    integrationEnabled: boolean;
+	shop: ShopifyShop | null;
+	orders: ShopifyOrder[];
+	totalRevenue: number;
+	loading: boolean;
+	error: string | null;
+	apiKey: string | null;
+	storeUrl: string | null;
+	integrationEnabled: boolean;
 }

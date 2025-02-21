@@ -21,11 +21,12 @@ import supplierReducer from "./slices/supplierSlice";
 import userReducer from "./slices/user/user";
 import shopifyReducer from "./slices/shopifySlice";
 import { combineReducers } from "redux";
+import integrationReducer from "./slices/integrationSlice";
 
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
 	storage,
-	whitelist: ["auth", "onboarding", "kyc", "user", "kpi"],
+	whitelist: ["auth", "onboarding", "kyc", "user", "kpi", 'integration'],
 });
 
 const createRootReducer = () =>
@@ -40,6 +41,7 @@ const createRootReducer = () =>
 		user: userReducer,
 		kpi: kpiReducer,
 		shopify: shopifyReducer,
+		integration: integrationReducer,
 	});
 
 export const createStore = (userId: string | null) => {

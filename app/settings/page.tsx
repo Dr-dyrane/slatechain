@@ -9,8 +9,8 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold mb-8">Settings</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <UserPreferences />
         <Integrations />
+        <UserPreferences />
         <AccountActions />
       </div>
     </div>
