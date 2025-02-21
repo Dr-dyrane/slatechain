@@ -28,7 +28,7 @@ import notificationReducer from "./slices/notificationSlice";
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
 	storage,
-	whitelist: ["auth", "onboarding", "kyc", "user", "kpi", 'integration', 'notification'],
+	whitelist: ["auth", "onboarding", "kyc", "user", "kpi", 'integration', 'notifications'],
 });
 
 const createRootReducer = () =>
@@ -44,7 +44,7 @@ const createRootReducer = () =>
 		kpi: kpiReducer,
 		shopify: shopifyReducer,
 		integration: integrationReducer,
-		notification: notificationReducer,
+		notifications: notificationReducer,
 	});
 
 export const createStore = (userId: string | null) => {
