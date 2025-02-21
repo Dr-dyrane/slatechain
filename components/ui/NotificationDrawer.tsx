@@ -22,7 +22,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
-                className="sm:max-w-sm border-none text-white shadow-lg rounded-l-2xl p-0 overflow-hidden backdrop-blur-md bg-background/50 dark:bg-bacground/15"
+                className="sm:max-w-sm max-h-screen border-none text-white shadow-lg rounded-l-2xl p-0 overflow-hidden backdrop-blur-md bg-background/50 dark:bg-bacground/15"
                 side="right"
             >
                 <SheetHeader className="px-4 pt-4 pb-2">
