@@ -78,7 +78,7 @@ export function Layout({ children }: LayoutProps) {
         )}
         <div className="flex-1 flex flex-col overflow-hidden">
           <main
-            className={`flex-1 border bg-secondary/35 overflow-scroll ${layoutRequired ? "md:rounded-2xl p-6 pb-20 md:pb-6" : "p-0"
+            className={`flex-1 scrollbar-hide border bg-secondary/35 overflow-scroll ${layoutRequired ? "md:rounded-2xl p-6 pb-20 md:pb-6" : "p-0"
               }`}
           >
             {children}
