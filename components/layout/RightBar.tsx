@@ -11,7 +11,7 @@ export const RightBar: React.FC<Props> = ({
 }) => {
   return (
     <div className="hidden xl:block w-80 2xl:w-96 p-4 bg-background">
-      <div className="px-4 pt-4 pb-2">
+      <div className="px-4 pb-2">
         <div className="text-lg text-left font-semibold">
           Notifications
         </div>
