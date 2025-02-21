@@ -83,6 +83,14 @@ module.exports = {
 				".scrollbar-hide::-webkit-scrollbar": {
 					display: "none" /* Hide scrollbar for Chrome, Safari, and Opera */,
 				},
+				".scrollbar-show": {
+					"-ms-overflow-style": "auto",
+					"scrollbar-width": "thin",
+				},
+				".scrollbar-show::-webkit-scrollbar": {
+					display: "block",
+					width: "8px",
+				},
 			});
 		},
 	],
