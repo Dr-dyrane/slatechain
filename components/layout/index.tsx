@@ -35,7 +35,7 @@ export function Layout({ children }: LayoutProps) {
   const isTab = useIsTab();
   const isDesk = useIsDesk();
   const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
-  const notifications = useSelector((state: RootState) => state.notifications.notifications);
+  const notifications = useSelector((state: RootState) => state.notifications.notifications) as Notification[];
 
   // Check if the current route matches one of the sidebar item hrefs
   // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar

@@ -11,10 +11,11 @@ import { CircleUserRound, MoonIcon, SunIcon, Settings, Bell } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
 import { useRouter } from "next/navigation";
+import { Notification } from "@/lib/types";
 
 interface Props {
-  setIsMobileNotificationDrawerOpen: any
-  notifications: Notification[]
+  setIsMobileNotificationDrawerOpen: (open: boolean) => void;
+  notifications: Notification[];
 }
 
 export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Props) {
@@ -25,7 +26,7 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
   const router = useRouter()
 
   const unreadCount = notifications.filter(notification => !notification.read).length;
-  
+
   const handleLogout = async () => {
     await dispatch(logout());
     router.push('/login')
@@ -51,7 +52,7 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
           {isAuthenticated && (  // Show only if authenticated
             <Button size='icon' variant="ghost" className="md:hidden relative" onClick={() => setIsMobileNotificationDrawerOpen(true)}>
               <Bell className="h-5 w-5" />
-              {notifications.filter(notification => !notification.read).length > 0 && (
+              {unreadCount > 0 && (
                 <span className="animate-pulse absolute top-0 right-0 h-3 w-3 rounded-full bg-destructive border-2 border-background"></span>
               )}
             </Button>
