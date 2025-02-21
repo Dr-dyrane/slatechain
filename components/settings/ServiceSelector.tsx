@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,16 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
     const availableServices = services[category] || [];
     const selectedService = integration?.service;
     const isConnected = integration?.enabled || false;
+    const [localEnabled, setLocalEnabled] = useState(isConnected);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            setLocalEnabled(isConnected);
+        }, 3000); // Adjust the delay as needed
+
+        return () => clearTimeout(timeout);
+    }, [localEnabled]);
+
 
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -56,9 +66,16 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                     {selectedService && (
                         <div className="flex items-center space-x-2">
                             <Label htmlFor="integration-toggle" className="text-sm">
-                                {isConnected ? "Connected" : "Disconnected"}
+                                {localEnabled ? "Connected" : "Disconnected"}
                             </Label>
-                            <Switch id="integration-toggle" checked={isConnected} onCheckedChange={(e) => onToggle(e)} />
+                            <Switch
+                                id="integration-toggle"
+                                checked={localEnabled} // Use local state for UI feedback
+                                onCheckedChange={(checked) => {
+                                    setLocalEnabled(checked); // Instantly reflect change in UI
+                                    onToggle(checked); // Update Redux state/backend
+                                }}
+                            />
                         </div>
                     )}
                 </CardHeader>
@@ -69,9 +86,10 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                 <Card
                                     className={`cursor-pointer relative ${selectedService === service.id ? "ring-2 ring-primary" : ""}`}
                                     onClick={() => {
-                                        if (!isConnected || integration?.service !== service.id) {
+                                        if (!localEnabled || integration?.service !== service.id) {
                                             onSave(service.id, "", "");
                                         }
+                                        setLocalEnabled(true);
                                     }}
                                 >
                                     <CardContent className="p-4 flex items-center space-x-4">
@@ -86,7 +104,7 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                         <div className="flex-1">
                                             <h3 className="font-medium">{service.name}</h3>
                                             <p className="text-sm text-muted-foreground">
-                                                {isConnected && integration?.service === service.id ? "Connected" : "Click to connect"}
+                                                {localEnabled && integration?.service === service.id ? "Connected" : "Click to connect"}
                                             </p>
                                         </div>
                                     </CardContent>
@@ -96,7 +114,7 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                     </div>
 
                     {/* API Key Input & Store URL */}
-                    {selectedService && isConnected && (
+                    {selectedService && localEnabled && (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                             {/* API Key Field */}
                             <div className="space-y-2 relative">
