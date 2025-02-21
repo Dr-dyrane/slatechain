@@ -12,18 +12,68 @@ import { logout } from "@/lib/slices/authSlice";
 import { useRouter } from "next/navigation";
 import { AppDispatch } from "@/lib/store";
 import { LogOut, Moon, Sun, Bell, Plug } from 'lucide-react';
+import { Input } from "@/components/ui/input";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter()
   const [notifications, setNotifications] = useState(true)
-  const [integration, setIntegration] = useState("none")
+
+  //Integration State
+  const [shopifyEnabled, setShopifyEnabled] = useState(false)
+  const [shopifyApiKey, setShopifyApiKey] = useState("")
+  const [shopifyStoreUrl, setShopifyStoreUrl] = useState("")
 
   const handleLogout = async () => {
     await dispatch(logout());
     router.push('/login')
   };
+
+  const renderShopifySettings = () => (
+    <CardContent className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="flex flex-col items-center justify-center bg-muted rounded-3xl w-10 h-10">
+            <img src="/icons/shopify.svg" alt="shopify" className="w-6 h-6" />
+          </div>
+          <Label htmlFor="shopify" className="text-lg">Shopify Integration</Label>
+        </div>
+        <Switch
+          id="shopify"
+          checked={shopifyEnabled}
+          onCheckedChange={setShopifyEnabled}
+        />
+      </div>
+
+      {shopifyEnabled && (
+        <div className="flex gap-4 flex-col">
+          <div className="flex flex-col space-y-2">
+            <Label className="mb-2" htmlFor="shopifyApiKey">Shopify API Key</Label>
+            <Input
+              id="shopifyApiKey"
+              type="password"
+              placeholder="Enter API Key"
+              value={shopifyApiKey}
+              onChange={(e) => setShopifyApiKey(e.target.value)}
+            />
+          </div>
+          <div className="flex flex-col space-y-2">
+            <Label className="mb-2" htmlFor="shopifyStoreUrl">Shopify Store URL</Label>
+            <Input
+              id="shopifyStoreUrl"
+              type="url"
+              placeholder="Enter Store URL"
+              value={shopifyStoreUrl}
+              onChange={(e) => setShopifyStoreUrl(e.target.value)}
+            />
+          </div>
+          <Button className="w-full">Save Shopify Settings</Button>
+
+        </div>
+      )}
+    </CardContent>
+  )
 
   return (
     <div className="space-y-6">
@@ -72,23 +122,7 @@ export default function SettingsPage() {
             </CardTitle>
             <CardDescription>Connect SlateChain with your existing systems.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="erp-integration" className="text-lg">ERP Integration</Label>
-              <Select value={integration} onValueChange={setIntegration}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select ERP" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  <SelectItem value="sap">SAP</SelectItem>
-                  <SelectItem value="oracle">Oracle</SelectItem>
-                  <SelectItem value="microsoft">Microsoft Dynamics</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <Button className="w-full">Connect Integration</Button>
-          </CardContent>
+          {renderShopifySettings()}
         </Card>
         <Card>
           <CardHeader>
@@ -112,4 +146,3 @@ export default function SettingsPage() {
     </div>
   )
 }
-
