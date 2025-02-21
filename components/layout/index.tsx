@@ -13,8 +13,7 @@ import { useIsDesk } from "@/hooks/use-desk";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { NotificationDrawer } from "../ui/NotificationDrawer";
-
-
+import useMediaQuery from "@/hooks/use-media-query";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -32,14 +31,16 @@ export const sidebarItems = [
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
-  const [isRightBarOpen, setIsRightBarOpen] = React.useState(true);
+  const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
   const isTab = useIsTab();
   const isDesk = useIsDesk();
-  const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
   const notifications = useSelector((state: RootState) => state.notifications.notifications) as Notification[];
+  // Determine if the screen size is XL (1280px and up) and 2XL (1536px and up) based on tailwind breakpoints
+  const isXLScreen = useMediaQuery("(min-width: 1280px)");
+  const is2XLScreen = useMediaQuery("(min-width: 1536px)");
+  const [showRightBar, setShowRightBar] = React.useState(isXLScreen);
 
   // Check if the current route matches one of the sidebar item hrefs
-  // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar
   const layoutRequired = sidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
 
   // Auto-collapse sidebar for tablets but keep visible
@@ -48,10 +49,17 @@ export function Layout({ children }: LayoutProps) {
     if (isDesk) setIsSidebarCollapsed(false);
   }, [isTab, isDesk]);
 
+  // Manage the right sidebar open state based on the sidebar and screen size
+  React.useEffect(() => {
+    if (!is2XLScreen) {
+      setShowRightBar(isSidebarCollapsed);
+    } else {
+      setShowRightBar(true);
+    }
+  }, [isSidebarCollapsed, is2XLScreen]);
+
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
-    if (isSidebarCollapsed) setIsRightBarOpen(false);
-    if (!isSidebarCollapsed) setIsRightBarOpen(true);
   };
 
   return (
@@ -76,11 +84,10 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
-        {/* Render RightBar only if it's open */}
-        {layoutRequired && isRightBarOpen && <RightBar notifications={notifications} />}
+        {/* Conditionally render the RightBar */}
+        {layoutRequired && showRightBar && <RightBar notifications={notifications} />}
       </div>
-      {/* Only render Footer and BottomNav if not on the excluded routes */}
-      {layoutRequired && <Footer />}
+      {/* Bottom Bar Navigation for Small Screens */}
       {layoutRequired && <BottomNav items={sidebarItems} />}
 
       {/* Mobile Notification Drawer */}
@@ -92,4 +99,3 @@ export function Layout({ children }: LayoutProps) {
     </div>
   );
 }
-
