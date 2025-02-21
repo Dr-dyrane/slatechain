@@ -79,14 +79,14 @@ export default function ShopifyDashboard() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap gap-2 items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold tracking-tight">Shopify Integration</h2>
                     <p className="text-muted-foreground">
                         Connected to {shop?.name} ({shop?.domain})
                     </p>
                 </div>
-                <Badge variant="outline" className="flex items-center gap-2">
+                <Badge variant="success" className="flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
                     Store Active
                 </Badge>
