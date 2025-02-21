@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/lib/slices/authSlice";
 import { useRouter } from "next/navigation";
 import { AppDispatch, RootState } from "@/lib/store";
-import { LogOut, Moon, Sun, Bell, Plug } from 'lucide-react';
+import { LogOut, Moon, Sun, Bell, Plug, EyeOff, Eye } from 'lucide-react';
 import { Input } from "@/components/ui/input";
 
 import { setApiKey, setStoreUrl, setIntegrationEnabled } from "@/lib/slices/shopifySlice" //Actions
@@ -27,16 +27,18 @@ export default function SettingsPage() {
   const [notifications, setNotifications] = useState(true)
 
   //Integration State
-    const [shopifyEnabled, setShopifyEnabled] = useState(user?.integrations?.shopify?.enabled || false);
-    const [shopifyApiKey, setShopifyApiKey] = useState(user?.integrations?.shopify?.apiKey || "");
-    const [shopifyStoreUrl, setShopifyStoreUrl] = useState(user?.integrations?.shopify?.storeUrl || "");
+  const [shopifyEnabled, setShopifyEnabled] = useState(user?.integrations?.shopify?.enabled || false);
+  const [shopifyApiKey, setShopifyApiKey] = useState(user?.integrations?.shopify?.apiKey || "");
+  const [shopifyStoreUrl, setShopifyStoreUrl] = useState(user?.integrations?.shopify?.storeUrl || "");
+  const [isEditing, setIsEditing] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
 
   useEffect(() => {
     if (user) {
-            setShopifyEnabled(user.integrations?.shopify?.enabled || false);
-            setShopifyApiKey(user.integrations?.shopify?.apiKey || "");
-            setShopifyStoreUrl(user.integrations?.shopify?.storeUrl || "");
-        }
+      setShopifyEnabled(user.integrations?.shopify?.enabled || false);
+      setShopifyApiKey(user.integrations?.shopify?.apiKey || "");
+      setShopifyStoreUrl(user.integrations?.shopify?.storeUrl || "");
+    }
   }, [user]);
 
   const handleLogout = async () => {
@@ -45,14 +47,14 @@ export default function SettingsPage() {
   };
 
   const handleSaveShopifySettings = async () => {
-      dispatch(setApiKey(shopifyApiKey));
-      dispatch(setStoreUrl(shopifyStoreUrl));
-      dispatch(setIntegrationEnabled(shopifyEnabled)); // Set to true or false depending on your logic
-        toast({
-            title: "Settings Saved",
-            description: "Shopify settings have been updated.",
-        });
-    };
+    dispatch(setApiKey(shopifyApiKey));
+    dispatch(setStoreUrl(shopifyStoreUrl));
+    dispatch(setIntegrationEnabled(shopifyEnabled)); // Set to true or false depending on your logic
+    toast({
+      title: "Settings Saved",
+      description: "Shopify settings have been updated.",
+    });
+  };
 
   const renderShopifySettings = () => (
     <CardContent className="space-y-4">
@@ -66,38 +68,78 @@ export default function SettingsPage() {
         <Switch
           id="shopify"
           checked={shopifyEnabled}
-          onCheckedChange={setShopifyEnabled}
+          onCheckedChange={(checked) => {
+            setShopifyEnabled(checked);
+            if (!checked) setIsEditing(false); // Reset edit mode when turning off
+          }}
         />
       </div>
 
       {shopifyEnabled && (
-        <div className="flex gap-4 flex-col">
-          <div className="flex flex-col space-y-2">
-            <Label className="mb-2" htmlFor="shopifyApiKey">Shopify API Key</Label>
-            <Input
-              id="shopifyApiKey"
-              type="password"
-              placeholder="Enter API Key"
-              value={shopifyApiKey}
-              onChange={(e) => setShopifyApiKey(e.target.value)}
-            />
-          </div>
-          <div className="flex flex-col space-y-2">
-            <Label className="mb-2" htmlFor="shopifyStoreUrl">Shopify Store URL</Label>
-            <Input
-              id="shopifyStoreUrl"
-              type="url"
-              placeholder="Enter Store URL"
-              value={shopifyStoreUrl}
-              onChange={(e) => setShopifyStoreUrl(e.target.value)}
-            />
-          </div>
-            <Button className="w-full" onClick={handleSaveShopifySettings}>Save Shopify Settings</Button>
-        </div>
+        <>
+          {!isEditing ? (
+            <div className="space-y-4">
+              {/* API Key */}
+              <div className="relative">
+                <Label className="text-sm font-semibold">Shopify API Key</Label>
+                <p className="flex mt-2 items-center text-sm bg-muted/50 px-4 rounded-md border w-full overflow-hidden">
+                  {showApiKey ? shopifyApiKey || "Not Set" : "••••••••••••"}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="ml-auto"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                  >
+                    {showApiKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </Button>
+                </p>
+              </div>
+              {/* Store URL */}
+              <div>
+                <Label className="text-sm font-semibold">Shopify Store URL</Label>
+                <p className="text-sm p-3 bg-muted/50 rounded-md border">{shopifyStoreUrl || "Not Set"}</p>
+              </div>
+              <Button className="w-full mt-2" onClick={() => setIsEditing(true)}>
+                Edit
+              </Button>
+            </div>
+          ) : (
+            // Edit Mode (Form)
+            <div className="flex gap-4 flex-col">
+              <div className="flex flex-col space-y-2">
+                <Label className="mb-2" htmlFor="shopifyApiKey">Shopify API Key</Label>
+                <Input
+                  id="shopifyApiKey"
+                  type="password"
+                  placeholder="Enter API Key"
+                  value={shopifyApiKey}
+                  onChange={(e) => setShopifyApiKey(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Label className="mb-2" htmlFor="shopifyStoreUrl">Shopify Store URL</Label>
+                <Input
+                  id="shopifyStoreUrl"
+                  type="url"
+                  placeholder="Enter Store URL"
+                  value={shopifyStoreUrl}
+                  onChange={(e) => setShopifyStoreUrl(e.target.value)}
+                />
+              </div>
+              <div className="flex space-x-2">
+                <Button onClick={handleSaveShopifySettings} className="flex-1">
+                  Save
+                </Button>
+                <Button variant="outline" onClick={() => setIsEditing(false)} className="flex-1">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
       )}
     </CardContent>
-  )
-
+  );
   return (
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold mb-8">Settings</h1>
