@@ -12,11 +12,9 @@ const initialState: NotificationState = {
 // Async Thunks
 export const fetchNotifications = createAsyncThunk(
 	"notifications/fetchNotifications",
-	async (userId: string, thunkAPI) => {
+	async (_, thunkAPI) => {
 		try {
-			const notifications = await notificationApiClient.getNotifications(
-				userId
-			);
+			const notifications = await notificationApiClient.getNotifications();
 			return notifications;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(

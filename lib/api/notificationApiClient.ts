@@ -5,11 +5,10 @@ import { Notification } from "@/lib/types";
 
 class NotificationApiClient {
 	async getNotifications(
-		userId: string,
 		config?: AxiosRequestConfig
 	): Promise<Notification[]> {
 		return apiClient.get<Notification[]>(
-			`/notifications?userId=${userId}`,
+			`/notifications`,
 			config
 		);
 	}

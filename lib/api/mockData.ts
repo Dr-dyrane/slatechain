@@ -1276,12 +1276,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		}),
 		"/shopify/orders": (): ShopifyOrder[] => mockShopifyOrders,
 		"/shopify/shop": (): ShopifyShop => mockShop,
-		"/notifications": (params: { userId: string }): Notification[] => {
-			// Filter notifications by userId
-			const userId = params.userId;
-			return mockNotifications.filter(
-				(notification) => notification.userId === userId
-			);
+		"/notifications": (): Notification[] => {
+			return mockNotifications;
 		},
 	},
 	put: {

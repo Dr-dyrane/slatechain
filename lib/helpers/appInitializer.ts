@@ -8,6 +8,7 @@ import { fetchShipments } from "../slices/shipmentSlice";
 import { fetchSuppliers } from "../slices/supplierSlice";
 import { fetchUser } from "../slices/authSlice";
 import { fetchUsers } from "../slices/user/user";
+import { fetchNotifications } from "../slices/notificationSlice";
 // Import other slices and actions that you want to initialize
 // import {  AuthResponse } from "@/lib/types";
 // import { setTokens } from "@/lib/slices/authSlice";
@@ -22,6 +23,7 @@ export const initializeApp = async (dispatch: AppDispatch) => {
 	dispatch(fetchSuppliers());
 	dispatch(fetchUser());
 	dispatch(fetchUsers());
+	dispatch(fetchNotifications());
 	// Dispatch other slice actions
 	console.log("App Initialized: Data fetch started");
 };
