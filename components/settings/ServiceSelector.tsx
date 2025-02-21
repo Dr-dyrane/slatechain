@@ -1,11 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import type {
@@ -35,6 +36,7 @@ const services = {
 } as const;
 
 export function ServiceSelector({ category, onBack, integration, onSave, onToggle }: ServiceSelectorProps) {
+    const [showApiKey, setShowApiKey] = useState(false);
     const availableServices = services[category] || [];
     const selectedService = integration?.service;
     const isConnected = integration?.enabled || false;
@@ -96,16 +98,30 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                     {/* API Key Input & Store URL */}
                     {selectedService && isConnected && (
                         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                            <div className="space-y-2">
+                            {/* API Key Field */}
+                            <div className="space-y-2 relative">
                                 <Label>API Key</Label>
-                                <Input
-                                    placeholder="Enter API Key"
-                                    value={integration?.apiKey || ""}
-                                    onChange={(e) =>
-                                        onSave(selectedService, e.target.value, "storeUrl" in integration ? integration.storeUrl as string | undefined : undefined)
-                                    }
-                                />
+                                <div className="relative">
+                                    <Input
+                                        type={showApiKey ? "text" : "password"}
+                                        placeholder="Enter API Key"
+                                        value={integration?.apiKey || ""}
+                                        onChange={(e) =>
+                                            onSave(selectedService, e.target.value, "storeUrl" in integration ? integration.storeUrl as string | undefined : undefined)
+                                        }
+                                        className="pr-10"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowApiKey((prev) => !prev)}
+                                        className="absolute right-3 top-2.5 text-gray-500 hover:text-gray-700"
+                                    >
+                                        {showApiKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                    </button>
+                                </div>
                             </div>
+
+                            {/* Store URL for Ecommerce */}
                             {category === "ecommerce" && "storeUrl" in integration && (
                                 <div className="space-y-2">
                                     <Label>Store URL</Label>
@@ -123,4 +139,3 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
         </motion.div>
     );
 }
-
