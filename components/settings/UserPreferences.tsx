@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sun, Bell } from 'lucide-react';
+import { Sun, Bell, SunMoon, Settings2 } from 'lucide-react';
 
 export function UserPreferences() {
   const { theme, setTheme } = useTheme();
@@ -16,14 +16,17 @@ export function UserPreferences() {
     <Card className="">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center space-x-2">
-          <Sun className="h-6 w-6" />
+          <Settings2 className="h-6 w-6" />
           <span>User Preferences</span>
         </CardTitle>
         <CardDescription>Manage your account settings and preferences.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-col space-y-2">
-          <Label htmlFor="theme" className="text-lg">Theme</Label>
+        <div className="flex items-center space-x-2">
+            <SunMoon className="h-5 w-5" />
+            <Label htmlFor="theme" className="text-lg">Theme</Label>
+            </div>
           <Select value={theme} onValueChange={(value) => setTheme(value)}>
             <SelectTrigger className="w-full md:w-[250px]">
               <SelectValue placeholder="Select a theme" />

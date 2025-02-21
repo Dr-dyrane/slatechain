@@ -1058,9 +1058,9 @@ const mockShopifyOrders: ShopifyOrder[] = [
 
 const mockShop: ShopifyShop = {
 	id: 12345,
-	name: "Mock Shop",
-	email: "mock@shop.com",
-	domain: "mockshop.com",
+	name: "Johns Apparel",
+	email: "johndoe@example.com",
+	domain: "johns-apparel.myshopify.com",
 };
 
 export const mockApiResponses: Record<string, Record<string, any>> = {
