@@ -1,16 +1,34 @@
 import * as React from "react"
+import { NotificationCard } from "../ui/NotificationCard"
+import { Notification } from "@/lib/types";
 
-export function RightBar() {
+interface Props {
+  notifications: Notification[];
+}
+
+export const RightBar: React.FC<Props> = ({
+  notifications,
+}) => {
   return (
-    <div className="hidden xl:block w-64 p-4 bg-background">
-      <h2 className="text-lg font-semibold mb-4">Notifications</h2>
-      <div className="space-y-4">
-        <div className="p-3 bg-secondary rounded-md">
-          <p className="text-sm">New feature: Dark mode is now available!</p>
+    <div className="hidden xl:block w-80 2xl:w-96 p-4 bg-background">
+      <div className="px-4 pt-4 pb-2">
+        <div className="text-lg text-left font-semibold">
+          Notifications
         </div>
-        <div className="p-3 bg-secondary rounded-md">
-          <p className="text-sm">Your subscription will renew in 5 days.</p>
-        </div>
+      </div>
+      <div className="divide-y divide-border space-y-4 px-4 pb-4 mt-2">
+        {notifications.length > 0 ? (
+          notifications.map((notification) => (
+            <NotificationCard
+              key={notification.id}
+              notification={notification}
+            />
+          ))
+        ) : (
+          <p className="text-muted-foreground text-sm text-center py-4">
+            No new notifications
+          </p>
+        )}
       </div>
     </div>
   )

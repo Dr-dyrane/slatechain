@@ -74,7 +74,7 @@ export function Layout({ children }: LayoutProps) {
           </main>
         </div>
         {/* Only render RightBar if not on the excluded routes */}
-        {layoutRequired && <RightBar />}
+        {layoutRequired && <RightBar notifications={notifications as Notification[]}/>}
       </div>
       {/* Only render Footer and BottomNav if not on the excluded routes */}
       {layoutRequired && <Footer />}
