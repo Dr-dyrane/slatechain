@@ -32,6 +32,7 @@ export const sidebarItems = [
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
+  const [isRightBarOpen, setIsRightBarOpen] = React.useState(true);
   const isTab = useIsTab();
   const isDesk = useIsDesk();
   const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
@@ -49,6 +50,8 @@ export function Layout({ children }: LayoutProps) {
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
+    if (isSidebarCollapsed) setIsRightBarOpen(false);
+    if (!isSidebarCollapsed) setIsRightBarOpen(true);
   };
 
   return (
@@ -73,8 +76,8 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
-        {/* Only render RightBar if not on the excluded routes */}
-        {layoutRequired && <RightBar notifications={notifications as Notification[]}/>}
+        {/* Render RightBar only if it's open */}
+        {layoutRequired && isRightBarOpen && <RightBar notifications={notifications} />}
       </div>
       {/* Only render Footer and BottomNav if not on the excluded routes */}
       {layoutRequired && <Footer />}
