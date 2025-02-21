@@ -50,7 +50,7 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
             <MoonIcon className="h-5 w-5 hidden dark:block" />
           </Button>
           {isAuthenticated && (  // Show only if authenticated
-            <Button size='icon' variant="ghost" className="md:hidden relative" onClick={() => setIsMobileNotificationDrawerOpen(true)}>
+            <Button size='icon' variant="ghost" className="xl:hidden relative" onClick={() => setIsMobileNotificationDrawerOpen(true)}>
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="animate-pulse absolute top-0 right-0 h-3 w-3 rounded-full bg-destructive border-2 border-background"></span>
