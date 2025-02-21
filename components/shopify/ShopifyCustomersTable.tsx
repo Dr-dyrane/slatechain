@@ -55,6 +55,6 @@ export function ShopifyCustomersTable({ customers }: { customers: ShopifyCustome
     id: customer.id.toString(),
   })
 
-  return <DataTable columns={columns} data={customers.map(formatCustomerForDetails)} />
+  return <DataTable columns={columns as any} data={customers.map(formatCustomerForDetails)} />
 }
 
