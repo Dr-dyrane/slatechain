@@ -156,9 +156,9 @@ export default function Dashboard() {
       )}
 
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
+        <TabsList className="w-full mb-10 sm:mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="demand">Demand Planning</TabsTrigger>
+          <TabsTrigger value="demand">Demand <span className="hidden sm:block ml-1">Planning</span></TabsTrigger>
 
 
           {user?.integrations?.ecommerce?.enabled && ecommerceService && (

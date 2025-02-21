@@ -16,6 +16,7 @@ import { ErrorState } from "../ui/error"
 import DashboardSkeleton from "@/app/dashboard/loading"
 import { useRouter } from "next/navigation"
 import { CardData } from "@/lib/slices/kpi/kpiSlice"
+import { Avatar, AvatarImage } from "../ui/avatar"
 
 export default function ShopifyDashboard() {
     const dispatch = useDispatch<AppDispatch>()
@@ -79,12 +80,20 @@ export default function ShopifyDashboard() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-wrap gap-2 items-center justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Shopify Integration</h2>
-                    <p className="text-muted-foreground">
-                        Connected to {shop?.name} ({shop?.domain})
-                    </p>
+            <div className="flex flex-wrap gap-4 items-center justify-between">
+                <div className="flex items-center space-x-3">
+                    {/* Shopify Avatar */}
+                    <div className="flex items-center justify-center p-3 bg-muted rounded-full">
+                        <img className="w-10 h-10" src="/icons/shopify.svg" alt="Shopify" />
+                    </div>
+
+                    <div className="flex flex-col flex-wrap">
+                        <h2 className="text-2xl hidden md:block font-bold tracking-tight">Shopify</h2>
+                        <p className="text-muted-foreground">
+                            <span className="font-bold sm:font-normal">{shop?.name}</span> <br className="block md:hidden" />
+                            ({shop?.domain})
+                        </p>
+                    </div>
                 </div>
                 <Badge variant="success" className="flex items-center gap-2">
                     <Building2 className="h-4 w-4" />
@@ -99,7 +108,7 @@ export default function ShopifyDashboard() {
             </div>
 
             <Tabs defaultValue="orders" className="space-y-4">
-                <TabsList>
+                <TabsList className="w-full mb-8 flex flex-wrap justify-start">
                     <TabsTrigger value="orders">Orders</TabsTrigger>
                     <TabsTrigger value="customers">Customers</TabsTrigger>
                 </TabsList>
