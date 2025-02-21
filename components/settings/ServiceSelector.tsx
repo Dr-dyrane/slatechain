@@ -44,10 +44,10 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
     return (
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
+                <CardHeader className="flex flex-row items-center justify-between flex-wrap">
                     <div className="flex items-center space-x-4">
                         <Button variant="ghost" size="icon" onClick={onBack}>
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-5 w-5" />
                         </Button>
                         <CardTitle>Select Service</CardTitle>
                     </div>

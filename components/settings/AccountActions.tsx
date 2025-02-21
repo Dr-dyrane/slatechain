@@ -18,7 +18,7 @@ export function AccountActions() {
   }
 
   return (
-    <Card>
+    <Card className="col-span-1">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center space-x-2">
           <LogOut className="h-6 w-6" />

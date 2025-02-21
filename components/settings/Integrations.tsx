@@ -63,7 +63,7 @@ export function Integrations() {
   }
 
   return (
-    <Card className="col-span-2">
+    <Card className="col-span-1 md:col-span-2">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center space-x-2">
           <Plug className="h-6 w-6" />

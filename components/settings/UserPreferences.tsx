@@ -28,7 +28,7 @@ export function UserPreferences() {
             <Label htmlFor="theme" className="text-lg">Theme</Label>
             </div>
           <Select value={theme} onValueChange={(value) => setTheme(value)}>
-            <SelectTrigger className="w-full md:w-[250px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>
             <SelectContent>
