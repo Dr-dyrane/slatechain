@@ -7,18 +7,25 @@ import { useTheme } from "next-themes";
 import { useSelector, useDispatch } from "react-redux";
 import { AppDispatch, RootState } from "@/lib/store";
 import { logout } from "@/lib/slices/authSlice";
-import { CircleUserRound, MoonIcon, SunIcon, Settings } from "lucide-react";
+import { CircleUserRound, MoonIcon, SunIcon, Settings, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
 import { useRouter } from "next/navigation";
 
-export function Navbar() {
+interface Props {
+  setIsMobileNotificationDrawerOpen: any
+  notifications: Notification[]
+}
+
+export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Props) {
   const { theme, setTheme } = useTheme();
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const user = useSelector((state: RootState) => state.auth.user);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter()
 
+  const unreadCount = notifications.filter(notification => !notification.read).length;
+  
   const handleLogout = async () => {
     await dispatch(logout());
     router.push('/login')
@@ -41,10 +48,18 @@ export function Navbar() {
             <SunIcon className="h-5 w-5 dark:hidden" />
             <MoonIcon className="h-5 w-5 hidden dark:block" />
           </Button>
+          {isAuthenticated && (  // Show only if authenticated
+            <Button size='icon' variant="ghost" className="md:hidden relative" onClick={() => setIsMobileNotificationDrawerOpen(true)}>
+              <Bell className="h-5 w-5" />
+              {notifications.filter(notification => !notification.read).length > 0 && (
+                <span className="animate-pulse absolute top-0 right-0 h-3 w-3 rounded-full bg-destructive border-2 border-background"></span>
+              )}
+            </Button>
+          )}
           {isAuthenticated ? (
             <>
               <Button variant="outline" onClick={() => router.push('/profile')}>
-                <CircleUserRound size={20}/>
+                <CircleUserRound size={20} />
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
               <Button variant="outline" onClick={() => router.push('/settings')} >

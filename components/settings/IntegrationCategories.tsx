@@ -51,7 +51,7 @@ export function IntegrationCategories({ selected, onSelect }: IntegrationCategor
                 return (
                     <motion.div key={category.id} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         <Card
-                            className={cn("relative cursor-pointer transition-all duration-200", isSelected && "ring-2 ring-primary")}
+                            className={cn("relative cursor-pointer h-full transition-all duration-200", isSelected && "ring-2 ring-primary")}
                             onClick={() => onSelect(category.id)}
                         >
                             <CardContent className="p-6">

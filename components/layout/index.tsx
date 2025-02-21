@@ -7,9 +7,12 @@ import { Sidebar } from "./Sidebar";
 import { Footer } from "./Footer";
 import { RightBar } from "./RightBar";
 import { BottomNav } from "./BottomNav";
-import { UserRole } from "@/lib/types";
+import { Notification, UserRole } from "@/lib/types";
 import { useIsTab } from "@/hooks/use-tab";
 import { useIsDesk } from "@/hooks/use-desk";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { NotificationDrawer } from "../ui/NotificationDrawer";
 
 
 
@@ -29,8 +32,10 @@ export const sidebarItems = [
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
-  const isTab  = useIsTab();
-  const isDesk  = useIsDesk();
+  const isTab = useIsTab();
+  const isDesk = useIsDesk();
+  const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
+  const notifications = useSelector((state: RootState) => state.notifications.notifications);
 
   // Check if the current route matches one of the sidebar item hrefs
   // we need to create and array for the sidebar items we dot want to pass down to the bottom nav and sidebar
@@ -48,7 +53,7 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex h-screen overflow-hidden flex-col">
-      {layoutRequired && <Navbar />}
+      {layoutRequired && <Navbar setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen} notifications={notifications as Notification[]} />}
       <div className="flex flex-1 overflow-hidden">
         {layoutRequired && (
           <aside className={`hidden md:block transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-20" : "w-64"
@@ -74,6 +79,13 @@ export function Layout({ children }: LayoutProps) {
       {/* Only render Footer and BottomNav if not on the excluded routes */}
       {layoutRequired && <Footer />}
       {layoutRequired && <BottomNav items={sidebarItems} />}
+
+      {/* Mobile Notification Drawer */}
+      <NotificationDrawer
+        open={isMobileNotificationDrawerOpen}
+        onOpenChange={setIsMobileNotificationDrawerOpen}
+        notifications={notifications}
+      />
     </div>
   );
 }

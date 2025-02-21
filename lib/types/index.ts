@@ -617,6 +617,7 @@ export interface Notification {
 	id: string;
 	userId: string;
 	type: NotificationType;
+	title: string;
 	message: string;
 	data?: Record<string, any>;
 	read: boolean;
