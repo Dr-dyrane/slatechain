@@ -51,6 +51,7 @@ const iconMap: { [key: string]: LucideIcon } = {
     Package2,
     Factory,
     ArrowRight,
+    ShoppingCart: Package,
 }
 
 const DashboardCard = ({ card }: DashboardCardProps) => {

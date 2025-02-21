@@ -92,10 +92,7 @@ export default function Dashboard() {
           { title: "Service Level", icon: "CheckCircle", value: demandPlanningKPIs?.serviceLevel.toString() || "N/A", description: "Probability of meeting demand", type: "number", sparklineData: null }
         ] as CardData[];
       case "shopify":
-        return [
-          //Example Cards
-          { title: "Revenue", icon: "DollarSign", value: "$45,231.89", description: "+20.1% from last month", type: "revenue", sparklineData: [10, 15, 12, 18, 20, 25, 22, 28, 30, 35, 32, 40] },
-        ] as CardData[];
+        return
       default:
         return cardData;
     }
