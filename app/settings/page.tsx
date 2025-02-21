@@ -1,34 +1,58 @@
 "use client";
 
-import { useState } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/lib/slices/authSlice";
 import { useRouter } from "next/navigation";
-import { AppDispatch } from "@/lib/store";
+import { AppDispatch, RootState } from "@/lib/store";
 import { LogOut, Moon, Sun, Bell, Plug } from 'lucide-react';
 import { Input } from "@/components/ui/input";
+
+import { setApiKey, setStoreUrl, setIntegrationEnabled } from "@/lib/slices/shopifySlice" //Actions
+import { useToast } from "@/hooks/use-toast";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter()
+  const { toast } = useToast()
+  const { user } = useSelector((state: RootState) => state.auth);
+
   const [notifications, setNotifications] = useState(true)
 
   //Integration State
-  const [shopifyEnabled, setShopifyEnabled] = useState(false)
-  const [shopifyApiKey, setShopifyApiKey] = useState("")
-  const [shopifyStoreUrl, setShopifyStoreUrl] = useState("")
+    const [shopifyEnabled, setShopifyEnabled] = useState(user?.integrations?.shopify?.enabled || false);
+    const [shopifyApiKey, setShopifyApiKey] = useState(user?.integrations?.shopify?.apiKey || "");
+    const [shopifyStoreUrl, setShopifyStoreUrl] = useState(user?.integrations?.shopify?.storeUrl || "");
+
+  useEffect(() => {
+    if (user) {
+            setShopifyEnabled(user.integrations?.shopify?.enabled || false);
+            setShopifyApiKey(user.integrations?.shopify?.apiKey || "");
+            setShopifyStoreUrl(user.integrations?.shopify?.storeUrl || "");
+        }
+  }, [user]);
 
   const handleLogout = async () => {
     await dispatch(logout());
     router.push('/login')
   };
+
+  const handleSaveShopifySettings = async () => {
+      dispatch(setApiKey(shopifyApiKey));
+      dispatch(setStoreUrl(shopifyStoreUrl));
+      dispatch(setIntegrationEnabled(shopifyEnabled)); // Set to true or false depending on your logic
+        toast({
+            title: "Settings Saved",
+            description: "Shopify settings have been updated.",
+        });
+    };
 
   const renderShopifySettings = () => (
     <CardContent className="space-y-4">
@@ -68,8 +92,7 @@ export default function SettingsPage() {
               onChange={(e) => setShopifyStoreUrl(e.target.value)}
             />
           </div>
-          <Button className="w-full">Save Shopify Settings</Button>
-
+            <Button className="w-full" onClick={handleSaveShopifySettings}>Save Shopify Settings</Button>
         </div>
       )}
     </CardContent>
