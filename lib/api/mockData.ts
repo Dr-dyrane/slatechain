@@ -32,6 +32,8 @@ import {
 	AreaChartData,
 	ShopifyShop,
 	ShopifyOrder,
+	Notification,
+	NotificationType,
 } from "@/lib/types";
 
 const mockGeoLocation: GeoLocation = {
@@ -1111,6 +1113,53 @@ const mockShop: ShopifyShop = {
 	domain: "johns-apparel.myshopify.com",
 };
 
+// Mock Notifications Data
+const mockNotifications: Notification[] = [
+	{
+		id: "notification-1",
+		userId: "user-1",
+		type: "GENERAL",
+		message: "Welcome to our platform!",
+		read: false,
+		createdAt: "2024-08-01T10:00:00Z",
+	},
+	{
+		id: "notification-2",
+		userId: "user-1",
+		type: "ORDER_UPDATE",
+		message: "Your order ORD12345 has been shipped.",
+		read: false,
+		createdAt: "2024-08-02T12:30:00Z",
+		data: { orderId: "ORD12345" },
+	},
+	{
+		id: "notification-3",
+		userId: "user-1",
+		type: "INVENTORY_ALERT",
+		message: "Low stock alert for Product A.",
+		read: true,
+		createdAt: "2024-08-03T08:00:00Z",
+		data: { productId: "Product A" },
+	},
+	{
+		id: "notification-4",
+		userId: "user-2",
+		type: "INTEGRATION_STATUS",
+		message: "Shopify integration successful.",
+		read: false,
+		createdAt: "2024-08-04T15:45:00Z",
+		data: { integration: "Shopify" },
+	},
+	{
+		id: "notification-5",
+		userId: "user-2",
+		type: "GENERAL",
+		message: "New feature available: Advanced analytics dashboard.",
+		read: false,
+		createdAt: "2024-08-05T09:00:00Z",
+	},
+];
+
 export const mockApiResponses: Record<string, Record<string, any>> = {
 	get: {
 		"/auth/me": {
@@ -1227,6 +1276,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		}),
 		"/shopify/orders": (): ShopifyOrder[] => mockShopifyOrders,
 		"/shopify/shop": (): ShopifyShop => mockShop,
+		"/notifications": (params: { userId: string }): Notification[] => {
+			// Filter notifications by userId
+			const userId = params.userId;
+			return mockNotifications.filter(
+				(notification) => notification.userId === userId
+			);
+		},
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -1247,6 +1303,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/routes/:id": (data: Route): Route => data,
 		"/freights/:id": (data: Freight) => data,
 		"/users/:id": (data: User): User => data,
+		"/notifications/:id/read": (data: Notification) => {
+			console.log("mark notificaction read", data);
+			return { ...data, read: true };
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
@@ -1264,6 +1324,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/routes/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/freights/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/users/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/notification/:id": (id: string) => ({ success: true, deletedId: id }),
 	},
 	post: {
 		"/auth/register": (data: Partial<User>): AuthResponse => ({
@@ -1433,6 +1494,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			return { success: true };
 		},
 		"/users": (data: Omit<User, "id">): User => {
+			return {
+				...data,
+				id: Math.random().toString(),
+			};
+		},
+		"/notifications": (data: Omit<Notification, "id">): Notification => {
 			return {
 				...data,
 				id: Math.random().toString(),

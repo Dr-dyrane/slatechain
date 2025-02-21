@@ -611,3 +611,27 @@ export interface ShopifyState {
 	storeUrl: string | null;
 	integrationEnabled: boolean;
 }
+
+// Notification Types
+export interface Notification {
+	id: string;
+	userId: string;
+	type: NotificationType;
+	message: string;
+	data?: Record<string, any>;
+	read: boolean;
+	createdAt: string;
+  }
+  
+  export type NotificationType =
+	| "GENERAL"
+	| "ORDER_UPDATE"
+	| "INVENTORY_ALERT"
+	| "INTEGRATION_STATUS";
+  
+  // Notification State
+  export interface NotificationState {
+	notifications: Notification[];
+	loading: boolean;
+	error: string | null;
+  }
