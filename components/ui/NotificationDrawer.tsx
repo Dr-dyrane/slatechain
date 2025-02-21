@@ -26,7 +26,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({
                 side="right"
             >
                 <SheetHeader className="px-4 pt-4 pb-2">
-                    <SheetTitle className="text-lg font-semibold text-white">
+                    <SheetTitle className="text-lg text-left font-semibold text-white">
                         Notifications
                     </SheetTitle>
                 </SheetHeader>
