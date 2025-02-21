@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { CardTitle } from "@/components/ui/card"
 import { columns } from "../inventory/page"
 import { DataTable } from "@/components/table/DataTable"
@@ -13,9 +13,26 @@ import { fetchKPIs, fetchDemandPlanningData, CardData, OtherChartData, fetchArea
 import DashboardCard from "@/components/dashboard/DashboardCard";
 import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { DemandForecast } from "@/lib/types";
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
-import ShopifyComponent from "./ShopifyComponent"; //Import
+import ShopifyComponent from "./ShopifyComponent";
+
+// Define available integrations (only Shopify exists for now)
+const ecommerceServices: Record<string, React.FC | null> = {
+  shopify: ShopifyComponent,
+  woocommerce: null, // Future integration
+  magento: null, // Future integration
+  bigcommerce: null, // Future integration
+};
+
+// Placeholder component for future integrations
+const ComingSoonComponent = ({ service }: { service: string }) => (
+  <div className="p-6 text-center">
+    <h3 className="text-lg font-semibold">🚀 {service} Integration Coming Soon!</h3>
+    <p className="text-sm text-muted-foreground">
+      We’re working on adding support for {service}. Stay tuned!
+    </p>
+  </div>
+);
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -42,6 +59,7 @@ export default function Dashboard() {
   //Redirections
   const router = useRouter()
   const user = useSelector((state: RootState) => state.auth.user);
+  const ecommerceService = user?.integrations?.ecommerce?.service
 
   useEffect(() => {
     dispatch(fetchKPIs() as any);
@@ -91,7 +109,7 @@ export default function Dashboard() {
           { title: "Bias", icon: "ArrowRight", value: demandPlanningKPIs?.bias.toString() || "N/A", description: "Directional forecast bias", type: "number", sparklineData: null },
           { title: "Service Level", icon: "CheckCircle", value: demandPlanningKPIs?.serviceLevel.toString() || "N/A", description: "Probability of meeting demand", type: "number", sparklineData: null }
         ] as CardData[];
-      case "shopify":
+      case ecommerceService:
         return
       default:
         return cardData;
@@ -106,7 +124,6 @@ export default function Dashboard() {
     return <div> {error}</div>
   }
 
-  const ecommerceService = user?.integrations?.ecommerce?.service
 
   return (
     <div className="space-y-6">
@@ -142,25 +159,37 @@ export default function Dashboard() {
         <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="demand">Demand Planning</TabsTrigger>
-          {user?.integrations?.ecommerce?.enabled && (
+
+
+          {user?.integrations?.ecommerce?.enabled && ecommerceService && (
             <TabsTrigger className="capitalize" value={ecommerceService as string}>{ecommerceService}</TabsTrigger>
           )}
         </TabsList>
+
+
         <TabsContent value="overview">
           <div className="flex justify-between items-center mb-4">
             <p className="text-muted-foreground">Recent Inventory</p>
           </div>
           <DataTable columns={columns} data={formattedInventory as any} />
         </TabsContent>
+
+
         <TabsContent value="demand">
           <div className="flex justify-between items-center mb-4">
             <p className="text-muted-foreground">Demand Forecasts</p>
           </div>
           <DataTable columns={demandColumns} data={formattedDemandForecasts as any} />
         </TabsContent>
-        {user?.integrations?.ecommerce?.enabled && (
-          <TabsContent value="shopify"> {/* Add this to link */}
-            <ShopifyComponent />
+
+        {/* Dynamically render the correct e-commerce component */}
+        {user?.integrations?.ecommerce?.enabled && ecommerceService && (
+          <TabsContent value={ecommerceService}>
+            {ecommerceServices[ecommerceService] ? (
+              React.createElement(ecommerceServices[ecommerceService] as React.FC)
+            ) : (
+              <ComingSoonComponent service={ecommerceService} />
+            )}
           </TabsContent>
         )}
       </Tabs>
