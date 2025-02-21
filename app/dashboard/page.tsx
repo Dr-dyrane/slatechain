@@ -91,6 +91,11 @@ export default function Dashboard() {
           { title: "Bias", icon: "ArrowRight", value: demandPlanningKPIs?.bias.toString() || "N/A", description: "Directional forecast bias", type: "number", sparklineData: null },
           { title: "Service Level", icon: "CheckCircle", value: demandPlanningKPIs?.serviceLevel.toString() || "N/A", description: "Probability of meeting demand", type: "number", sparklineData: null }
         ] as CardData[];
+      case "shopify":
+        return [
+          //Example Cards
+          { title: "Revenue", icon: "DollarSign", value: "$45,231.89", description: "+20.1% from last month", type: "revenue", sparklineData: [10, 15, 12, 18, 20, 25, 22, 28, 30, 35, 32, 40] },
+        ] as CardData[];
       default:
         return cardData;
     }
@@ -138,7 +143,9 @@ export default function Dashboard() {
         <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="demand">Demand Planning</TabsTrigger>
-          <TabsTrigger value="shopify">Shopify</TabsTrigger> {/* Adding the shopify one */}
+          {user?.integrations?.shopify?.enabled && (
+            <TabsTrigger value="shopify">Shopify</TabsTrigger>
+          )}
         </TabsList>
         <TabsContent value="overview">
           <div className="flex justify-between items-center mb-4">
@@ -152,9 +159,11 @@ export default function Dashboard() {
           </div>
           <DataTable columns={demandColumns} data={formattedDemandForecasts as any} />
         </TabsContent>
-        <TabsContent value="shopify"> {/* Add this to link */}
-          <ShopifyComponent />
-        </TabsContent>
+        {user?.integrations?.shopify?.enabled && (
+          <TabsContent value="shopify"> {/* Add this to link */}
+            <ShopifyComponent />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )
