@@ -39,6 +39,18 @@ export interface User {
 	avatarUrl?: string;
 	createdAt: string;
 	updatedAt: string;
+	integrations: UserIntegrations;
+}
+
+export interface UserIntegrations {
+    shopify: ShopifyIntegrationSettings;
+}
+
+
+export interface ShopifyIntegrationSettings {
+    enabled: boolean;
+    apiKey: string | null;
+    storeUrl: string | null;
 }
 
 // Auth

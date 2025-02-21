@@ -32,9 +32,14 @@ export const fetchShopifyShop = createAsyncThunk<
     }
 });
 
-// Define the initial state
+// Define the initial state - ENSURE DATA FOR ALL STATE
 const initialState: ShopifyState = {
-    shop: null,
+    shop: {
+        id: 0,
+        name: "",
+        email: "",
+        domain: "",
+      },
     orders: [],
     totalRevenue: 0,
     loading: false,

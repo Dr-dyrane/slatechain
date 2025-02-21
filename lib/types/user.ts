@@ -11,8 +11,19 @@ export interface User {
 	kycStatus: "IN_PROGRESS" | "PENDING" | "APPROVED" | "REJECTED";
 	onboardingStatus: "PENDING" | "IN_PROGRESS" | "COMPLETED";
 	avatarUrl?: string;
-	createdAt: string
-	updatedAt: string
+	createdAt: string;
+	updatedAt: string;
+	integrations: UserIntegrations;
+}
+
+export interface UserIntegrations {
+	shopify: ShopifyIntegrationSettings;
+}
+
+export interface ShopifyIntegrationSettings {
+	enabled: boolean;
+	apiKey: string | null;
+	storeUrl: string | null;
 }
 
 export interface AuthResponse {

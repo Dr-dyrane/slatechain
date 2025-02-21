@@ -15,6 +15,7 @@ import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DemandForecast } from "@/lib/types";
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
+import ShopifyComponent from "./ShopifyComponent"; //Import
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -76,7 +77,7 @@ export default function Dashboard() {
       }),
     })) || [];
   }, [demandForecasts]);
-  
+
 
   //KPI Cards
   const kpiCards = useMemo(() => {
@@ -137,6 +138,7 @@ export default function Dashboard() {
         <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="demand">Demand Planning</TabsTrigger>
+          <TabsTrigger value="shopify">Shopify</TabsTrigger> {/* Adding the shopify one */}
         </TabsList>
         <TabsContent value="overview">
           <div className="flex justify-between items-center mb-4">
@@ -149,6 +151,9 @@ export default function Dashboard() {
             <p className="text-muted-foreground">Demand Forecasts</p>
           </div>
           <DataTable columns={demandColumns} data={formattedDemandForecasts as any} />
+        </TabsContent>
+        <TabsContent value="shopify"> {/* Add this to link */}
+          <ShopifyComponent />
         </TabsContent>
       </Tabs>
     </div>

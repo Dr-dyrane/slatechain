@@ -700,6 +700,13 @@ const mockUsers: User[] = [
 		avatarUrl: "https://example.com/avatar.jpg",
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
+		integrations: {
+			shopify: {
+				enabled: true,
+				apiKey: "shopify_admin_api_key",
+				storeUrl: "johns-apparel.myshopify.com",
+			},
+		},
 	},
 	{
 		id: "user-2",
@@ -716,6 +723,13 @@ const mockUsers: User[] = [
 		avatarUrl: "https://example.com/avatar.jpg",
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
+		integrations: {
+			shopify: {
+				enabled: false,
+				apiKey: null,
+				storeUrl: null,
+			},
+		},
 	},
 	{
 		id: "user-3",
@@ -732,6 +746,13 @@ const mockUsers: User[] = [
 		avatarUrl: "https://example.com/avatar.jpg",
 		createdAt: "2023-01-01T00:00:00Z",
 		updatedAt: "2023-01-01T00:00:00Z",
+		integrations: {
+			shopify: {
+				enabled: false,
+				apiKey: null,
+				storeUrl: null,
+			},
+		},
 	},
 ];
 
@@ -1213,6 +1234,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				avatarUrl: data.avatarUrl || "/placeholder.svg",
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
+				integrations: {
+					shopify: {
+						enabled: false,
+						apiKey: null,
+						storeUrl: null,
+					},
+				},
 			},
 			accessToken: "mock_access_token",
 			refreshToken: "mock_refresh_token",

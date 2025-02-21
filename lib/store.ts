@@ -19,6 +19,7 @@ import kycReducer from "./slices/kycSlice";
 import kpiReducer from "./slices/kpi/kpiSlice";
 import supplierReducer from "./slices/supplierSlice";
 import userReducer from "./slices/user/user";
+import shopifyReducer from "./slices/shopifySlice";
 import { combineReducers } from "redux";
 
 const createPersistConfig = (userId: string | null) => ({
@@ -38,6 +39,7 @@ const createRootReducer = () =>
 		supplier: supplierReducer,
 		user: userReducer,
 		kpi: kpiReducer,
+		shopify: shopifyReducer,
 	});
 
 export const createStore = (userId: string | null) => {
