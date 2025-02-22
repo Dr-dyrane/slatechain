@@ -82,7 +82,7 @@ export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
                   {meta.badge && (
                     <Badge
                       variant={meta.badge.variant}
-                      className={cn("ml-auto flex items-center justify-center leading-none aspect-square w-7 h-7", isCollapsed && "absolute -right-1 -top-1 text-[8px] p-2 py-0 border border-background w-6 h-6", !isCollapsed && "ml-2")}
+                      className={cn("ml-auto flex items-center text-xs justify-center leading-none aspect-square w-6 h-6", isCollapsed && "absolute -right-2 -top-2 text-[8px] p-2 py-0 border-2 border-background w-[22px] h-[22px]", !isCollapsed && "ml-2")}
                     >
                       {meta.badge.count}
                     </Badge>
