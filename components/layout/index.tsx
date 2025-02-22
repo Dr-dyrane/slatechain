@@ -115,7 +115,7 @@ export function Layout({ children }: LayoutProps) {
       <Footer />
       {hasIntegrations && pathname !== "/apps" && (
         <button
-          className="fixed bottom-20 right-4 sm:right-8 md:hidden bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-dark transition"
+          className="fixed z-40 bottom-20 right-4 sm:right-8 md:hidden bg-primary text-white p-3 rounded-full shadow-lg hover:bg-primary-dark transition"
           onClick={() => router.push("/apps")}
         >
           <LayoutGrid className="w-4 h-4 xs:w-5 xs:h-5 sm:w-6 sm:h-6" />
