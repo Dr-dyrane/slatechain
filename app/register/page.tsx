@@ -16,6 +16,7 @@ import { UserRole } from '@/lib/types';
 import { z } from 'zod';
 import { Eye, EyeOff, Check, X, User, Mail, Lock, Phone, ArrowRight, ArrowLeft } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { cn } from '@/lib/utils';
 
 const steps = ['Basic Info'];
 
@@ -121,9 +122,12 @@ export default function RegisterPage() {
   const handleBack = () => {
     if (currentStep > 0) {
       setStep(currentStep - 1);
-    } else {
-      router.push('/');
     }
+  };
+
+  const handleGoBack = () => {
+    router.push('/');
+
   };
 
   const validatePasswordStrength = (password: string) => {
@@ -349,11 +353,17 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-screen h-auto p-8 items-center justify-center bg-none">
-      <Card className="w-[350px] sm:w-[400px]">
+      <Card className="w-[350px] sm:w-[400px] relative">
         <CardHeader className='text-center'>
           <Logo />
           <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
           <CardDescription>Create your SlateChain account</CardDescription>
+          <Button variant='ghost'
+            size={'icon'}
+            onClick={handleGoBack}
+            className="absolute top-2 rounded-full right-3">
+            <X size={16} />
+          </Button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -368,16 +378,23 @@ export default function RegisterPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex justify-between w-full items-center">
-            <Button
-              variant="outline"
-              onClick={handleBack}
-              className="gap-1"
-            >
-              <ArrowLeft size={16} />
-              {currentStep === 0 ? 'Cancel' : 'Back'}
-            </Button>
-            <Button onClick={handleSubmit} disabled={loading} className="gap-1">
+          <div className={cn(
+            'flex  w-full items-center',
+            currentStep > 0 ? 'justify-between' : 'justify-end'
+          )
+          }>
+            {
+              currentStep > 0 && <Button
+                variant="outline"
+                onClick={handleBack}
+                className="gap-1"
+              >
+                <ArrowLeft size={16} />
+                Back
+              </Button>
+            }
+
+            <Button onClick={handleSubmit} disabled={loading} className="gap-1 w-full">
               {loading ? 'Registering...' : currentStep === steps.length - 1 ? 'Register' : 'Next'}
               <ArrowRight size={16} />
             </Button>

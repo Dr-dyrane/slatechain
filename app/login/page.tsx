@@ -62,9 +62,12 @@ export default function LoginPage() {
           <Logo />
           <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
-          <Button variant='ghost' size={'icon'} onClick={handleGoBack} className="absolute top-2 rounded-full right-3">
-              <X size={16}/>
-            </Button>
+          <Button variant='ghost'
+            size={'icon'}
+            onClick={handleGoBack}
+            className="absolute top-2 rounded-full right-3">
+            <X size={16} />
+          </Button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>

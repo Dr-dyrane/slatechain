@@ -152,11 +152,17 @@ export default function ResetPasswordPage() {
 
     return (
         <div className="flex h-auto min-h-screen p-8 items-center justify-center bg-none">
-            <Card className="w-[350px]">
+            <Card className="w-[350px] relative">
                 <CardHeader className="text-center">
                     <Logo />
                     <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
                     <CardDescription>Enter a code and your new password to reset your account.</CardDescription>
+                    <Button variant='ghost'
+                        size={'icon'}
+                        onClick={() => router.push('/login')}
+                        className="absolute top-2 rounded-full right-3">
+                        <X size={16} />
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -305,8 +311,7 @@ export default function ResetPasswordPage() {
                         )}
                     </form>
                 </CardContent>
-                <CardFooter className="flex flex-row gap-4 items-center">
-                    <Button variant='outline' size={'sm'} onClick={() => router.push('/login')} className="gap-1">  <ArrowLeft size={16} /> Cancel</Button>
+                <CardFooter className="flex flex-row gap-4 items-center justify-end">
                     <div className="text-sm text-center">
                         Don't have a chain?{" "}
                         <Link href="/register" className="text-primary hover:underline">
