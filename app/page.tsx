@@ -30,7 +30,7 @@ const LandingPage: React.FC = () => {
 
     return (
         <div className="relative min-h-screen flex flex-col p-4 group">
-            <div data-aos='fade-in' className="absolute inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10
+            <div data-aos='fade-in' className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10
             group-hover:opacity-100 group-hover:scale-110 transition-all ease-in-out
             ">SLATE<br />CHAIN</div>
             <Navbar />
@@ -39,7 +39,7 @@ const LandingPage: React.FC = () => {
                 <div className="absolute inset-0 blur-3xl rounded-3xl
   bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-purple-500/[0.05] 
   dark:from-indigo-900/[0.1] dark:via-transparent dark:to-purple-900/[0.1]" />
-                <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-75">
                     <ElegantLogo
                         delay={0.3}
                         width={600}
