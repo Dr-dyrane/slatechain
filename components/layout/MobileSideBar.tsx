@@ -96,6 +96,10 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
     router.push(path)
     setOpen(false)
   }
+  const handleNotificationNavigation = () => {
+    setIsMobileNotificationDrawerOpen(true)
+    setOpen(false)
+  }
 
   const handleLogout = async () => {
     await onLogout()
@@ -155,7 +159,9 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
             <MenuItem
               icon={<Bell className="h-5 w-5" />}
               label="Notifications"
-              onClick={() => setIsMobileNotificationDrawerOpen(true)}
+              onClick={() =>
+                handleNotificationNavigation()
+              }
               badge={unreadCount}
             />
             {user?.integrations?.ecommerce?.enabled && (
