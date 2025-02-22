@@ -133,12 +133,12 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className="text-lg">{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
               </Avatar>
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 overflow-scroll scrollbar-hide">
                 <h3 className="text-lg font-semibold tracking-tight">{user?.name}</h3>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <p className="text-sm text-muted-foreground text-wrap">{user?.email}</p>
               </div>
             </div>
-            <div className="flex w-full justify-end gap-4 items-center">
+            <div className="flex w-full justify-end gap-4 items-center overflow-scroll scrollbar-hide">
               {getKycStatusBadge(user.kycStatus)}
               <Badge variant="secondary" className="font-normal">
                 {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)}
@@ -149,7 +149,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
 
 
         {/* Middle Section - Menu Items */}
-        <div className="flex-1 p-2">
+        <div className="flex-1 p-2 overflow-scroll scrollbar-hide">
           <div className="space-y-1">
             <MenuItem
               icon={<User className="h-5 w-5" />}
