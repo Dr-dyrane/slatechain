@@ -73,7 +73,8 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
               )}
             </Button>
           )}
-          <ProfileSheet user={user as User} onLogout={handleLogout} unreadCount={unreadCount} setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen}/>
+          {isAuthenticated && (
+            <ProfileSheet user={user as User} onLogout={handleLogout} unreadCount={unreadCount} setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen} />)}
           {isAuthenticated ? (
             <>
               <Button className="hidden md:flex" variant="outline" onClick={() => router.push('/profile')}>
