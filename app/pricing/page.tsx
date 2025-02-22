@@ -104,7 +104,7 @@ export default function PricingPage() {
                                 </CardContent>
                                 <CardFooter>
                                     <Link href="/register" className="w-full">
-                                        <Button className="w-full gap-4 group relative bg-gradient-to-r from-primary hover:from-purple-500 hover:to-primary to-purple-500">
+                                        <Button className="w-full gap-4 group relative bg-gradient-to-r from-primary hover:from-purple-500 hover:to-primary to-purple-500 transition-all duration-300 ease-in-out rounded-lg">
                                             <div className="absolute inset-0 w-2 bg-accent transition-all duration-200 rounded-xl ease-out group-hover:w-full opacity-10"></div>
                                             {tier.price === "Custom" ? "Contact Sales" : "Get Started"}
                                             <CircleArrowRight />
@@ -124,9 +124,9 @@ export default function PricingPage() {
                             <Button
                                 variant="outline"
                                 size="lg"
-                                className="gap-4 group relative hover:bg-primary hover:text-primary-foreground"
+                                className="gap-4 group relative hover:bg-primary hover:text-primary-foreground transition-all duration-300 ease-in-out rounded-full py-6"
                             >
-                                <div className="absolute inset-0 w-2 bg-accent transition-all duration-200 rounded-xl ease-out group-hover:w-full opacity-10"></div>
+                                <div className="absolute inset-0 w-2 bg-accent transition-all duration-500 rounded-xl ease-out group-hover:w-full opacity-10"></div>
                                 Contact Sales
                                 <CircleArrowRight />
                             </Button>
