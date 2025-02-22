@@ -3,11 +3,12 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, getSidebarItemMeta } from "@/lib/utils";
 import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, UserCog } from "lucide-react";
 import { UserRole } from "@/lib/types";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { Badge } from "../ui/badge";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/": Home,
@@ -29,24 +30,27 @@ interface SidebarProps {
 
 export function BottomNav({ items }: SidebarProps) {
   const pathname = usePathname();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const state = useSelector((state: RootState) => state)
+  const user = state.auth.user
+
   const filteredItems = items.filter(item => {
     return !item.role || user?.role === item.role;
   })
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-40">
+    <nav className="w-full md:hidden fixed bottom-0 left-0 right-0 bg-background border-t z-40">
       <ul className="flex justify-around items-center h-16">
         {filteredItems.map((item) => {
           const Icon = icons[item.href] || Home; // Fallback to Home
           const isActive = pathname === item.href;
+          const meta = getSidebarItemMeta(state, item.href)
 
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center w-full h-full text-xs",
+                  "flex flex-col items-center justify-center w-full h-full text-xs relative",
                   isActive
                     ? ""
                     : "text-muted-foreground hover:text-secondary-foreground"
@@ -55,10 +59,20 @@ export function BottomNav({ items }: SidebarProps) {
               >
                 <Icon
                   className={cn(
-                    "h-5 w-5",
+                    "h-5 w-5 hover:fill-current",
                     isActive ? "fill-current" : "fill-none text-muted-foreground"
                   )} />
                 {/* <span>{item.title}</span> */}
+
+                {/* Badge */}
+                {meta.badge && (
+                  <Badge
+                    variant={meta.badge.variant}
+                    className="absolute -right-3 -top-3 text-[8px] py-0 px-1 justify-center items-center  w-5 h-5 aspect-square border border-background"
+                  >
+                    {meta.badge.count}
+                  </Badge>
+                )}
               </Link>
             </li>
           );
