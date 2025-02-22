@@ -77,7 +77,7 @@ export function MapComponent({ shipments }: MapComponentProps) {
 
       if (bounds.isValid()) {
         // ✅ Smooth zoom to fit all shipments
-        map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+        map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 17 });
 
         // ✅ Save last known location in localStorage
         const center = bounds.getCenter();
@@ -99,7 +99,7 @@ export function MapComponent({ shipments }: MapComponentProps) {
       updateMap();
     } else if (lastLocation) {
       // ✅ Restore last saved location before the next update
-      mapRef.current.flyTo([lastLocation.lat, lastLocation.lng], 10, { animate: true });
+      mapRef.current.flyTo([lastLocation.lat, lastLocation.lng], 17, { animate: true });
     }
 
     // ✅ Auto-update every 30 minutes
