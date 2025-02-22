@@ -1,105 +1,183 @@
 import Navbar from "@/components/marketing/Navbar"
 import Footer from "@/components/marketing/Footer"
 import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight } from "lucide-react"
+import {
+    ArrowRight,
+    Shield,
+    Server,
+    Users,
+    Scale,
+    Clock,
+    Globe,
+    Building2,
+    Warehouse,
+    Truck,
+    BadgeAlert,
+    FileWarning,
+    ScrollText,
+} from "lucide-react"
+
+const sections = [
+    {
+        icon: Shield,
+        title: "1. Platform Terms",
+        content:
+            "By accessing SlateChain's supply chain management platform, you agree to these terms. Our platform provides inventory management, order tracking, and logistics optimization services.",
+        highlights: [
+            "Access to supply chain management tools",
+            "Real-time inventory tracking system",
+            "Order management capabilities",
+            "Logistics optimization features",
+        ],
+    },
+    {
+        icon: Server,
+        title: "2. Data Processing",
+        content:
+            "We process supply chain data including inventory levels, order details, shipping information, and warehouse management data to provide our services.",
+        highlights: [
+            "Secure data storage and processing",
+            "Regular data backups",
+            "Data retention policies",
+            "Access control mechanisms",
+        ],
+    },
+    {
+        icon: Users,
+        title: "3. User Roles & Access",
+        content:
+            "SlateChain supports multiple user roles including administrators, warehouse managers, suppliers, and customers. Each role has specific access permissions and responsibilities.",
+        highlights: [
+            "Role-based access control",
+            "User permission management",
+            "Account security requirements",
+            "Multi-factor authentication options",
+        ],
+    },
+    {
+        icon: Scale,
+        title: "4. Service Level Agreement",
+        content:
+            "We commit to 99.9% platform uptime and provide support during business hours. Emergency support is available 24/7 for critical issues.",
+        highlights: ["99.9% uptime guarantee", "Response time commitments", "Support availability", "Maintenance windows"],
+    },
+    {
+        icon: Clock,
+        title: "5. Platform Usage",
+        content:
+            "Users must comply with usage limits and fair use policies. API rate limits and data storage quotas apply based on your subscription plan.",
+        highlights: ["API rate limits", "Storage quotas", "Usage monitoring", "Fair use guidelines"],
+    },
+    {
+        icon: Globe,
+        title: "6. International Operations",
+        content:
+            "SlateChain operates globally and complies with international trade and data protection regulations. Users must ensure compliance with local laws.",
+        highlights: [
+            "International data transfers",
+            "Regulatory compliance",
+            "Cross-border transactions",
+            "Local law adherence",
+        ],
+    },
+    {
+        icon: Building2,
+        title: "7. Third-Party Integrations",
+        content:
+            "Integration with third-party services (ERP, CRM, etc.) is subject to additional terms. Users are responsible for maintaining their integration credentials.",
+        highlights: [
+            "Integration requirements",
+            "API credentials security",
+            "Third-party compliance",
+            "Integration limitations",
+        ],
+    },
+    {
+        icon: Warehouse,
+        title: "8. Warehouse Management",
+        content:
+            "Users must maintain accurate warehouse data and follow inventory management best practices. Regular audits may be required.",
+        highlights: [
+            "Inventory accuracy requirements",
+            "Warehouse safety standards",
+            "Audit compliance",
+            "Storage guidelines",
+        ],
+    },
+    {
+        icon: Truck,
+        title: "9. Shipping & Logistics",
+        content:
+            "Users must provide accurate shipping information and comply with carrier requirements. SlateChain is not liable for carrier delays or errors.",
+        highlights: ["Shipping requirements", "Carrier compliance", "Delivery timeframes", "Insurance requirements"],
+    },
+    {
+        icon: BadgeAlert,
+        title: "10. Compliance Requirements",
+        content:
+            "Users must comply with industry regulations, including but not limited to FDA, FSMA, and other relevant standards for their industry.",
+        highlights: ["Regulatory compliance", "Industry standards", "Documentation requirements", "Audit trails"],
+    },
+    {
+        icon: FileWarning,
+        title: "11. Liability & Indemnification",
+        content:
+            "SlateChain's liability is limited to the terms specified in your subscription agreement. Users indemnify SlateChain against third-party claims.",
+        highlights: ["Liability limitations", "Indemnification terms", "Dispute resolution", "Insurance requirements"],
+    },
+    {
+        icon: ScrollText,
+        title: "12. Terms Updates",
+        content:
+            "SlateChain may update these terms with 30 days notice. Continued use of the platform constitutes acceptance of updated terms.",
+        highlights: ["Update notification process", "Change acceptance", "Prior version access", "Opt-out rights"],
+    },
+]
 
 export default function TermsPage() {
-  return (
-    <div className="relative min-h-screen flex flex-col">
-      <div className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10">
-        TERMS
-      </div>
-      <Navbar />
+    return (
+        <div className="relative min-h-screen flex flex-col p-4">
+            <div className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10">
+                TERMS
+            </div>
+            <Navbar />
 
-      <main className="flex-grow bg-gradient-to-b from-background to-secondary/20">
-        <div className="container max-w-4xl px-4 py-24 mx-auto prose dark:prose-invert">
-          <h1 className="text-4xl font-bold tracking-tight text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
-            Terms of Service
-          </h1>
+            <main className="flex-grow container min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
+                <div className="container max-w-4xl px-4 py-24 mx-auto">
+                    <h1 className="text-4xl font-bold tracking-tight text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
+                        Terms of Service
+                    </h1>
 
-          {[
-            {
-              title: "1. Acceptance of Terms",
-              content:
-                "By accessing and using SlateChain's services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.",
-            },
-            {
-              title: "2. Service Description",
-              content:
-                "SlateChain provides supply chain management solutions including inventory tracking, order management, and logistics optimization. Our services are provided 'as is' and may be updated or modified at any time.",
-            },
-          ].map((section) => (
-            <Card key={section.title} className="mb-8 group hover:scale-[1.02] transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4 group-hover:translate-x-2 transition-transform duration-300">
-                  <ArrowRight className="w-5 h-5 text-primary" />
-                  <h2 className="text-2xl font-semibold m-0">{section.title}</h2>
+                    <div className="grid gap-8">
+                        {sections.map((section) => (
+                            <Card key={section.title} className="group hover:scale-[1.02] transition-all duration-300">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
+                                            <section.icon className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <h2 className="text-2xl font-semibold">{section.title}</h2>
+                                    </div>
+                                    <p className="text-muted-foreground mb-4">{section.content}</p>
+                                    {section.highlights && (
+                                        <ul className="grid sm:grid-cols-2 gap-2">
+                                            {section.highlights.map((item) => (
+                                                <li key={item} className="flex items-center gap-2">
+                                                    <ArrowRight className="w-4 h-4 text-primary" />
+                                                    <span className="text-sm">{item}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
-                <p className="m-0">{section.content}</p>
-              </CardContent>
-            </Card>
-          ))}
+            </main>
 
-          <div className="space-y-8">
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">3. User Accounts</h2>
-              <p>
-                You are responsible for maintaining the confidentiality of your account credentials and for all
-                activities that occur under your account. Notify us immediately of any unauthorized use of your account.
-              </p>
-            </section>
-
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">4. Data Privacy</h2>
-              <p>
-                Your use of SlateChain is also governed by our Privacy Policy. By using our services, you consent to our
-                collection and use of data as outlined in the Privacy Policy.
-              </p>
-            </section>
-
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">5. Service Availability</h2>
-              <p>
-                While we strive for 99.9% uptime, we do not guarantee uninterrupted access to our services. We reserve
-                the right to suspend or terminate services for maintenance or updates.
-              </p>
-            </section>
-
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">6. Intellectual Property</h2>
-              <p>
-                All content and materials available through SlateChain, including but not limited to text, graphics,
-                website name, code, images and logos are the intellectual property of SlateChain.
-              </p>
-            </section>
-
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">7. Limitation of Liability</h2>
-              <p>
-                SlateChain shall not be liable for any indirect, incidental, special, consequential or punitive damages
-                resulting from your use or inability to use the service.
-              </p>
-            </section>
-
-            <section className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-              <h2 className="text-2xl font-semibold mb-4">8. Changes to Terms</h2>
-              <p>
-                We reserve the right to modify these terms at any time. We will notify users of any material changes via
-                email or through our service.
-              </p>
-            </section>
-          </div>
+            <Footer />
         </div>
-      </main>
-
-      <Footer />
-    </div>
-  )
+    )
 }
 
