@@ -68,12 +68,12 @@ export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
 
                   {/* Service Icon */}
                   {meta.serviceIcon && !isCollapsed && (
-                    <div className="relative h-6 w-6 rounded-full bg-muted/50 p-1">
+                    <div className="relative bg-muted/35 w-8 h-8 rounded-full overflow-clip">
                       <Image
                         src={meta.serviceIcon.src || "/placeholder.svg"}
                         alt={meta.serviceIcon.alt}
                         fill
-                        className="object-contain"
+                        className="object-cover h-8 w-8 p-1"
                       />
                     </div>
                   )}
@@ -82,7 +82,7 @@ export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
                   {meta.badge && (
                     <Badge
                       variant={meta.badge.variant}
-                      className={cn("ml-auto", isCollapsed && "absolute -right-2 -top-2 text-[8px] p-2 py-0 border border-background", !isCollapsed && "ml-2")}
+                      className={cn("ml-auto flex items-center justify-center leading-none aspect-square w-7 h-7", isCollapsed && "absolute -right-1 -top-1 text-[8px] p-2 py-0 border border-background w-6 h-6", !isCollapsed && "ml-2")}
                     >
                       {meta.badge.count}
                     </Badge>

@@ -68,7 +68,7 @@ export function BottomNav({ items }: SidebarProps) {
                 {meta.badge && (
                   <Badge
                     variant={meta.badge.variant}
-                    className="absolute -right-3 -top-3 text-[8px] py-0 px-1 justify-center items-center  w-5 h-5 aspect-square border border-background"
+                    className="flex absolute -right-3 -top-3 text-[8px] py-0 px-1 justify-center items-center leading-none  w-5 h-5 aspect-square border border-background"
                   >
                     {meta.badge.count}
                   </Badge>

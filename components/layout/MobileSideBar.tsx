@@ -50,7 +50,7 @@ export const MenuItem = ({ icon, label, onClick, variant = "default", badge, ser
         </div>
       )}
       {badge && (
-        <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0.5 rounded-full">{badge}</span>
+        <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0 w-7 h-7 flex items-center justify-center leading-none aspect-square rounded-full">{badge}</span>
       )}
       <ChevronRight className={cn('h-4 w-4 text-muted-foreground',
         variant === "danger" && "text-destructive"
