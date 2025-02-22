@@ -62,17 +62,16 @@ export default function PricingPage() {
             <Navbar />
 
             <main className="flex-grow container min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
-                <div className="container px-4 py-24 mx-auto">
                     <div className="text-center mb-16">
-                        <h1 className="text-4xl font-bold tracking-tight sm:text-6xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white animate-gradient-x">
+                        <h1 className="text-4xl font-bold tracking-tight text-justify sm:text-6xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white animate-gradient-x">
                             Simple, transparent pricing
                         </h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        <p className="text-xl text-justify text-muted-foreground max-w-2xl mx-auto">
                             Choose the perfect plan for your business. All plans include a 14-day free trial.
                         </p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {tiers.map((tier) => (
                             <Card
                                 key={tier.name}
@@ -132,7 +131,6 @@ export default function PricingPage() {
                             </Button>
                         </Link>
                     </div>
-                </div>
             </main>
 
             <Footer />

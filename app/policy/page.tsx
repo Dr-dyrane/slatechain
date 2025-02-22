@@ -171,28 +171,27 @@ export default function PolicyPage() {
             <Navbar />
 
             <main className="flex-grow container min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
-                <div className="container max-w-4xl px-4 py-24 mx-auto">
-                    <h1 className="text-4xl font-bold tracking-tight text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
+                    <h1 className="text-4xl font-bold tracking-tight text-left w-full mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
                         Privacy Policy
                     </h1>
 
-                    <div className="grid gap-8">
+                    <div className="grid gap-8 w-full">
                         {sections.map((section) => (
                             <Card key={section.title} className="group hover:scale-[1.02] transition-all duration-300">
                                 <CardContent className="p-6">
-                                    <div className="flex items-center gap-4 mb-4">
+                                    <div className="flex items-center gap-4 justify-between mb-4">
                                         <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
                                             <section.icon className="w-6 h-6 text-primary" />
                                         </div>
-                                        <h2 className="text-2xl font-semibold">{section.title}</h2>
+                                        <h2 className="text-2xl font-semibold text-right">{section.title}</h2>
                                     </div>
-                                    <p className="text-muted-foreground mb-4">{section.content}</p>
+                                    <p className="text-muted-foreground w-full text-justify mb-4">{section.content}</p>
                                     {section.items && (
                                         <ul className="grid sm:grid-cols-2 gap-2">
                                             {section.items.map((item) => (
                                                 <li key={item} className="flex items-center gap-2">
                                                     <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                    <span className="text-sm">{item}</span>
+                                                    <span className="text-sm text-nowrap text-ellipsis">{item}</span>
                                                 </li>
                                             ))}
                                         </ul>
@@ -201,7 +200,6 @@ export default function PolicyPage() {
                             </Card>
                         ))}
                     </div>
-                </div>
             </main>
 
             <Footer />
