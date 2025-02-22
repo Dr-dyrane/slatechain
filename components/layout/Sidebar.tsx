@@ -18,7 +18,7 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/suppliers": Users,
   "/settings": Settings,
   "/users": UserCog,
-  "/apps": LayoutGrid ,
+  "/apps": LayoutGrid,
 };
 
 interface SidebarProps {
