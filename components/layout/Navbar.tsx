@@ -11,7 +11,8 @@ import { CircleUserRound, MoonIcon, SunIcon, Settings, Bell } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Logo } from "../Logo";
 import { useRouter } from "next/navigation";
-import { Notification } from "@/lib/types";
+import { Notification, User } from "@/lib/types";
+import { ProfileSheet } from "./MobileSideBar";
 
 interface Props {
   setIsMobileNotificationDrawerOpen: (open: boolean) => void;
@@ -40,15 +41,30 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
           <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
         </Link>
         <div className="flex items-center space-x-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            aria-label="Toggle theme"
-          >
-            <SunIcon className="h-5 w-5 dark:hidden" />
-            <MoonIcon className="h-5 w-5 hidden dark:block" />
-          </Button>
+          {
+            isAuthenticated ?
+              (<Button
+                variant="ghost"
+                className="hidden md:flex"
+                size="icon"
+                onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                aria-label="Toggle theme"
+              >
+                <SunIcon className="h-5 w-5 dark:hidden" />
+                <MoonIcon className="h-5 w-5 hidden dark:block" />
+              </Button>
+              )
+              : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+                  aria-label="Toggle theme"
+                >
+                  <SunIcon className="h-5 w-5 dark:hidden" />
+                  <MoonIcon className="h-5 w-5 hidden dark:block" />
+                </Button>
+              )}
           {isAuthenticated && (  // Show only if authenticated
             <Button size='icon' variant="ghost" className="xl:hidden relative" onClick={() => setIsMobileNotificationDrawerOpen(true)}>
               <Bell className="h-5 w-5" />
@@ -57,13 +73,14 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
               )}
             </Button>
           )}
+          <ProfileSheet user={user as User} onLogout={handleLogout} unreadCount={unreadCount} setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen}/>
           {isAuthenticated ? (
             <>
-              <Button variant="outline" onClick={() => router.push('/profile')}>
+              <Button className="hidden md:flex" variant="outline" onClick={() => router.push('/profile')}>
                 <CircleUserRound size={20} />
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
-              <Button variant="outline" onClick={() => router.push('/settings')} >
+              <Button className="hidden md:flex" variant="outline" onClick={() => router.push('/settings')} >
                 <Settings className="h-5 w-5" />
                 <span className="hidden md:block ml-1">Settings
                 </span>
