@@ -112,7 +112,7 @@ export function Layout({ children }: LayoutProps) {
         onOpenChange={setIsMobileNotificationDrawerOpen}
         notifications={notifications}
       />
-      <Footer />
+      {layoutRequired && <Footer />}
     </div>
   );
 }
