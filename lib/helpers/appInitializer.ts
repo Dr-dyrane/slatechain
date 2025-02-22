@@ -4,11 +4,17 @@ import { fetchInventory } from "@/lib/slices/inventorySlice"; // use the updated
 import { fetchOrders } from "@/lib/slices/orderSlice"; // Example for orders slice, import the correct path for your order slice
 import { fetchProgress } from "../slices/onboardingSlice";
 import { fetchKYCStatusThunk } from "../slices/kycSlice";
-import { fetchShipments } from "../slices/shipmentSlice";
+import {
+	fetchCarriers,
+	fetchFreights,
+	fetchRoutes,
+	fetchShipments,
+} from "../slices/shipmentSlice";
 import { fetchSuppliers } from "../slices/supplierSlice";
 import { fetchUser } from "../slices/authSlice";
 import { fetchUsers } from "../slices/user/user";
 import { fetchNotifications } from "../slices/notificationSlice";
+import { fetchShopifyOrders, fetchShopifyShop } from "../slices/shopifySlice";
 // Import other slices and actions that you want to initialize
 // import {  AuthResponse } from "@/lib/types";
 // import { setTokens } from "@/lib/slices/authSlice";
@@ -24,6 +30,10 @@ export const initializeApp = async (dispatch: AppDispatch) => {
 	dispatch(fetchUser());
 	dispatch(fetchUsers());
 	dispatch(fetchNotifications());
+	dispatch(fetchCarriers());
+	dispatch(fetchFreights());
+	dispatch(fetchRoutes());
+
 	// Dispatch other slice actions
 	console.log("App Initialized: Data fetch started");
 };
