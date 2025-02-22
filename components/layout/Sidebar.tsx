@@ -3,12 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { cn, getSidebarItemMeta } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog, LayoutGrid } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { UserRole } from "@/lib/types";
+import Image from "next/image";
+import { Badge } from "../ui/badge";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/dashboard": Home,
@@ -33,7 +35,9 @@ interface SidebarProps {
 
 export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
-  const user = useSelector((state: RootState) => state.auth.user);
+  const state = useSelector((state: RootState) => state)
+  const user = state.auth.user
+
   const filteredItems = items.filter(item => {
     return !item.role || user?.role === item.role;
   })
@@ -45,18 +49,44 @@ export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
           {filteredItems.map((item) => {
             const Icon = icons[item.href] || Home;
             const isActive = pathname === item.href;
+            const meta = getSidebarItemMeta(state, item.href)
 
             return (
               <Link key={item.href} href={item.href} passHref>
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
                   className={cn(
-                    "w-full justify-start p-4 mb-4",
+                    "w-full justify-start p-4 mb-4 relative",
                     isCollapsed && "justify-center"
                   )}
                 >
-                  <Icon className={cn("h-5 w-5", isActive ? "fill-current" : "fill-none", isCollapsed ? "mr-0" : "mr-3")} />
-                  {!isCollapsed && item.title}
+                  <Icon
+                    className={cn("h-5 w-5", isActive ? "fill-current" : "fill-none",
+                      isCollapsed ? "mr-0" : "mr-3")}
+                  />
+                  {!isCollapsed && <span className="flex-1 text-left">{item.title}</span>}
+
+                  {/* Service Icon */}
+                  {meta.serviceIcon && !isCollapsed && (
+                    <div className="relative h-6 w-6 rounded-full bg-muted/50 p-1">
+                      <Image
+                        src={meta.serviceIcon.src || "/placeholder.svg"}
+                        alt={meta.serviceIcon.alt}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
+
+                  {/* Badge */}
+                  {meta.badge && (
+                    <Badge
+                      variant={meta.badge.variant}
+                      className={cn("ml-auto", isCollapsed && "absolute -right-1 -top-1", !isCollapsed && "ml-2")}
+                    >
+                      {meta.badge.count}
+                    </Badge>
+                  )}
                 </Button>
               </Link>
             );
