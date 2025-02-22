@@ -116,7 +116,7 @@ const LandingPage: React.FC = () => {
                 </p>
 
                 {/* Call-to-Action Button */}
-                <div data-aos="zoom-in" data-aos-delay="400">
+                <div>
                     <Link href="/register" className="text-lg">
                         <Button
                             size="lg"
