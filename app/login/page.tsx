@@ -14,7 +14,7 @@ import { AppDispatch, RootState } from '@/lib/store';
 import { login, googleLogin, resetLoading } from '@/lib/slices/authSlice';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
-import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 
 export default function LoginPage() {
@@ -57,11 +57,14 @@ export default function LoginPage() {
 
   return (
     <div className="flex h-auto min-h-screen p-8 items-center justify-center bg-none">
-      <Card className="w-[350px]">
+      <Card className="w-[350px] relative">
         <CardHeader className="text-center">
           <Logo />
           <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
+          <Button variant='ghost' size={'icon'} onClick={handleGoBack} className="absolute top-2 rounded-full right-3">
+              <X size={16}/>
+            </Button>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
@@ -137,11 +140,8 @@ export default function LoginPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <div className="flex justify-between w-full items-center">
-            <Button variant='outline' size={'sm'} onClick={handleGoBack} className="gap-1">
-              <ArrowLeft size={16} />  Cancel
-            </Button>
-            <Button variant='link' size={'sm'} onClick={handleForgotPassword} className="gap-1">
+          <div className="flex justify-end w-full items-center">
+            <Button variant='link' size={'sm'} onClick={handleForgotPassword} className="">
               Forgot password?
             </Button>
           </div>
