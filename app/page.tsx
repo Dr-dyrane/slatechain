@@ -117,14 +117,16 @@ const LandingPage: React.FC = () => {
 
                 {/* Call-to-Action Button */}
                 <div data-aos="zoom-in" data-aos-delay="400">
-                    <Button
-                        size="lg"
-                        className="rounded-2xl gap-4 group relative bg-gradient-to-r from-primary hover:from-purple-500 hover:to-primary to-purple-500 text-white px-8 py-7 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
-                    >
-                        <div className="absolute inset-0 w-2 bg-accent transition-all duration-200 rounded-xl ease-out group-hover:w-full opacity-10"></div>
-                        <Link href="/register" className="text-lg">Get Started</Link>
-                        <CircleArrowRight />
-                    </Button>
+                    <Link href="/register" className="text-lg">
+                        <Button
+                            size="lg"
+                            className="rounded-2xl z-[100] gap-4 group relative bg-gradient-to-r from-primary hover:from-purple-500 hover:to-primary to-purple-500 text-white px-8 py-7 shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform"
+                        >
+                            <div className="absolute inset-0 w-2 bg-accent transition-all duration-200 rounded-xl ease-out group-hover:w-full opacity-10"></div>
+                            Get Started
+                            <CircleArrowRight />
+                        </Button>
+                    </Link>
                 </div>
                 <div className="absolute inset-0 pointer-events-none rounded-3xl 
   bg-gradient-to-t from-white/50 via-transparent to-white/30 
