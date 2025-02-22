@@ -40,7 +40,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         const handleRouting = () => {
             setIsChecking(true);
 
-            const publicPages = ["/", "/login", "/register", '/reset-password'];
+            const publicPages = ["/", "/login", "/register", '/reset-password', '/pricing', '/policy', '/terms', '/contact', '/about', '/faq', '/features', '/blog', '/blog/[slug]'];
             const isPublicPage = publicPages.includes(pathname);
 
             if ((isAuthenticated || status === "authenticated") && isPublicPage) {
