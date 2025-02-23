@@ -38,7 +38,7 @@ export const googleCallback = async (): Promise<AuthResponse> => {
 };
 
 export const logoutUser = async (): Promise<void> => {
-	const refreshToken = tokenManager.getAccessToken();
+	const refreshToken = tokenManager.getRefreshToken();
 	if (refreshToken) {
 		await apiClient.post("/auth/logout", { refreshToken });
 	}
