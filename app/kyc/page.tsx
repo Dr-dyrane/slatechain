@@ -133,6 +133,8 @@ export default function KYCPage() {
     return (
       <div className="flex h-full items-center justify-center bg-none">
         <ErrorState
+          title="KYC Error"
+          description="We encountered an issue while loading your KYC data."
           message="There was an error loading your KYC, please try again later"
           onRetry={() => router.refresh()}
           onCancel={() => router.push("/dashboard")}

@@ -71,6 +71,8 @@ export default function ShopifyDashboard() {
     if (error) {
         return <div className="flex h-full items-center justify-center bg-none">
             <ErrorState
+                title="Shopify Error"
+                description="We encountered an issue while loading your Shopify data."
                 message={error}
                 onRetry={() => router.refresh()}
                 onCancel={() => router.push("/dashboard")}

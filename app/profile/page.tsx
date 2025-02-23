@@ -29,6 +29,8 @@ export default function ProfilePage() {
         return (
             <div className="flex h-full items-center justify-center bg-none">
                 <ErrorState
+                    title="Profile Error"
+                    description="We encountered an issue while loading your profile."
                     message="There was an error loading your profile, please try again later"
                     onRetry={() => window.location.reload()}
                     onCancel={() => window.location.href = "/dashboard"}

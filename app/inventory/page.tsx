@@ -103,6 +103,8 @@ export default function InventoryPage() {
         return (
             <div className="flex h-full items-center justify-center bg-none">
                 <ErrorState
+                    title="Inventory Error"
+                    description="We encountered an issue while loading your inventory data."
                     message={inventory.error}
                     onRetry={() => {
                         dispatch(setLoading(true));

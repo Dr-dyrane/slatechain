@@ -87,6 +87,8 @@ export default function UsersPage() {
     return (
       <div className="flex h-full items-center justify-center bg-none">
         <ErrorState
+          title="User Error"
+          description="We encountered an issue while loading user data."
           message="There was an error fetching user data"
           onRetry={() => {
             dispatch(fetchUsers())

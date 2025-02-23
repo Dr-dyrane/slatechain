@@ -112,6 +112,8 @@ export default function OnboardingPage() {
     return (
       <div className="flex h-full items-center justify-center bg-none">
         <ErrorState
+          title="Onboarding Unavailable"
+          description="We encountered an issue while loading your onboarding process."
           message={
             !user
               ? "User information not found. Please log in and try again."
