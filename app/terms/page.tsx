@@ -142,7 +142,7 @@ export default function TermsPage() {
             </div>
             <Navbar />
 
-            <main className="flex-grow container min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
+            <main className="flex-grow p-4 min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
                     <h1 className="text-4xl font-bold tracking-tight text-left w-full mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
                         Terms of Service
                     </h1>
@@ -150,7 +150,7 @@ export default function TermsPage() {
                     <div className="grid gap-8 w-full">
                         {sections.map((section) => (
                             <Card key={section.title} className="group hover:scale-[1.02] transition-all duration-300">
-                                <CardContent className="p-6">
+                                <CardContent className="p-6 max-w-[80vw] overflow-x-auto">
                                     <div className="flex items-center gap-4 justify-between mb-4">
                                         <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300">
                                             <section.icon className="w-6 h-6 text-primary" />
@@ -159,7 +159,7 @@ export default function TermsPage() {
                                     </div>
                                     <p className="text-muted-foreground w-full text-justify mb-4">{section.content}</p>
                                     {section.highlights && (
-                                        <ul className="grid sm:grid-cols-2 gap-2">
+                                        <ul className="grid sm:grid-cols-2 gap-2 max-w-[80vw] overflow-x-auto  scrollbar-hide">
                                             {section.highlights.map((item) => (
                                                 <li key={item} className="flex items-center gap-2">
                                                     <ArrowRight className="w-4 h-4 text-primary" />
