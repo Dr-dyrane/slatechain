@@ -1,6 +1,6 @@
 // src/lib/api/auth.ts
 import { tokenManager } from "../helpers/tokenManager";
-import { apiClient } from "./apiClient";
+
 import {
 	User,
 	AuthResponse,
@@ -8,6 +8,7 @@ import {
 	RegisterRequest,
 	PasswordChangeFormData,
 } from "@/lib/types";
+import { apiClient } from "./apiClient/[...live]";
 
 export const loginUser = async (
 	credentials: LoginRequest
