@@ -2,79 +2,70 @@
 
 import mongoose from "mongoose";
 
-// Type declaration for global mongoose instance
-declare global {
-	var mongoose: {
-		conn: typeof mongoose | null;
-		promise: Promise<typeof mongoose> | null;
-	};
+interface GlobalMongoose {
+	conn: typeof mongoose | null;
+	promise: Promise<typeof mongoose> | null;
 }
 
-// Initialize global mongoose object if it doesn't exist
-if (!global.mongoose) {
-	global.mongoose = {
-		conn: null,
-		promise: null,
-	};
+// Declare global mongoose type
+declare global {
+	var mongooseInstance: GlobalMongoose | undefined;
 }
 
 const MONGODB_URI = process.env.NEXT_PUBLIC_MONGODB_URI;
 
 if (!MONGODB_URI) {
 	throw new Error(
-		"Please define the NEXT_PUBLIC_MONGODB_URI environment variable inside .env.local"
+		"Please define the MONGODB_URI environment variable inside .env.local"
 	);
 }
 
 /**
- * Global connection handler for MongoDB
- * Implements connection caching to prevent multiple connections
+ * Global is used here to maintain a cached connection across hot reloads
+ * in development. This prevents connections growing exponentially
+ * during API Route usage.
  */
+let cached = global.mongooseInstance;
+
+if (!cached) {
+	cached = global.mongooseInstance = { conn: null, promise: null };
+}
+
 export async function connectToDatabase() {
+	if (cached?.conn) {
+		console.log("🟢 Using existing connection");
+		return cached.conn;
+	}
+
+	if (!cached?.promise) {
+		const opts = {
+			bufferCommands: false,
+			maxPoolSize: 10,
+		};
+
+		cached!.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+			return mongoose;
+		});
+	}
+
 	try {
-		if (global.mongoose.conn) {
-			console.log("🟢 Using existing MongoDB connection");
-			return global.mongoose.conn;
-		}
-
-		if (!global.mongoose.promise) {
-			const opts = {
-				bufferCommands: false,
-				maxPoolSize: 10,
-				serverSelectionTimeoutMS: 5000,
-				socketTimeoutMS: 45000,
-			};
-
-			global.mongoose.promise = mongoose.connect(MONGODB_URI, opts);
-		}
-
-		global.mongoose.conn = await global.mongoose.promise;
-		console.log("🟢 New MongoDB connection established");
-		return global.mongoose.conn;
-	} catch (error) {
-		console.error("🔴 MongoDB Connection Error:", error);
-		global.mongoose.promise = null;
-		throw error;
+		cached!.conn = await cached?.promise;
+		console.log("🟢 New connection established");
+		return cached!.conn;
+	} catch (e) {
+		cached!.promise = null;
+		throw e;
 	}
 }
 
-/**
- * Disconnect from MongoDB
- * Useful for testing and cleanup
- */
 export async function disconnectFromDatabase() {
-	try {
-		if (global.mongoose.conn) {
-			await global.mongoose.conn.disconnect();
-			global.mongoose.conn = null;
-			global.mongoose.promise = null;
-			console.log("🟡 Disconnected from MongoDB");
-		}
-	} catch (error) {
-		console.error("🔴 MongoDB Disconnection Error:", error);
-		throw error;
+	if (cached?.conn) {
+		await mongoose.disconnect();
+		cached.conn = null;
+		cached.promise = null;
+		console.log("🟡 Disconnected from database");
 	}
 }
 
-// Export mongoose instance for model definitions
+// Export mongoose for model definitions
 export { mongoose };
