@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { NotificationDrawer } from "../ui/NotificationDrawer";
 import useMediaQuery from "@/hooks/use-media-query";
+import { baseNavItems, getNavItems } from "@/lib/config/navigation";
 
 
 interface LayoutProps {
@@ -31,33 +32,37 @@ export const sidebarItems = [
 
 export function Layout({ children }: LayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
-  const ecommerceService = user?.integrations?.ecommerce?.service
-  const hasIntegrations = user?.integrations?.ecommerce?.enabled && ecommerceService;
+  // const ecommerceService = user?.integrations?.ecommerce?.service
+  // const hasIntegrations = user?.integrations?.ecommerce?.enabled && ecommerceService;
 
+  // Get navigation items based on user role and integrations
+  const navItems = React.useMemo(() => {
+    if (!user) return []
+    return getNavItems(user.role, user.integrations)
+  }, [user])
 
-  const finalSidebarItems = [
-    ...sidebarItems,
-    ...(hasIntegrations ? [{ href: "/apps", title: "Apps" }] : []),
-  ];
+  // const finalSidebarItems = [
+  //   ...sidebarItems,
+  //   ...(hasIntegrations ? [{ href: "/apps", title: "Apps" }] : []),
+  // ];
 
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = React.useState(false);
   const [isMobileNotificationDrawerOpen, setIsMobileNotificationDrawerOpen] = React.useState(false);
-  const isTab = useIsTab();
-  const isDesk = useIsDesk();
+
   const notifications = useSelector((state: RootState) => state.notifications.notifications) as Notification[];
 
 
-  // Determine if the screen size is XL (1280px and up) and 2XL (1536px and up) based on tailwind breakpoints
+  const isTab = useIsTab();
+  const isDesk = useIsDesk();
   const isXLScreen = useMediaQuery("(min-width: 1280px)");
   const is2XLScreen = useMediaQuery("(min-width: 1536px)");
   const [showRightBar, setShowRightBar] = React.useState(isXLScreen);
 
 
   // Check if the current route matches one of the sidebar item hrefs
-  const layoutRequired = finalSidebarItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
+  const layoutRequired = navItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
 
   // Auto-collapse sidebar for tablets but keep visible
   React.useEffect(() => {
@@ -86,7 +91,7 @@ export function Layout({ children }: LayoutProps) {
           <aside className={`hidden md:block transition-all duration-300 ease-in-out ${isSidebarCollapsed ? "w-20" : "w-64"
             }`}>
             <Sidebar
-              items={finalSidebarItems}
+              items={navItems}
               isCollapsed={isSidebarCollapsed}
               toggleSidebar={toggleSidebar}
             />
@@ -104,7 +109,7 @@ export function Layout({ children }: LayoutProps) {
         {layoutRequired && showRightBar && <RightBar notifications={notifications} />}
       </div>
       {/* Bottom Bar Navigation for Small Screens */}
-      {layoutRequired && <BottomNav items={sidebarItems} />}
+      {layoutRequired && <BottomNav items={baseNavItems} />}
 
       {/* Mobile Notification Drawer */}
       <NotificationDrawer

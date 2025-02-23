@@ -36,17 +36,17 @@ interface SidebarProps {
 export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
   const state = useSelector((state: RootState) => state)
-  const user = state.auth.user
+  // const user = state.auth.user
 
-  const filteredItems = items.filter(item => {
-    return !item.role || user?.role === item.role;
-  })
+  // const filteredItems = items.filter(item => {
+  //   return !item.role || user?.role === item.role;
+  // })
 
   return (
     <div className="h-full bg-background flex flex-col justify-between">
       <div className="p-4">
         <nav className="space-y-1">
-          {filteredItems.map((item) => {
+          {items.map((item) => {
             const Icon = icons[item.href] || Home;
             const isActive = pathname === item.href;
             const meta = getSidebarItemMeta(state, item.href)

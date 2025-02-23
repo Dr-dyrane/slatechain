@@ -128,7 +128,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
         <div className="relative px-2 py-6 ">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-background/0" />
           <div className="relative px-2 mt-6 space-y-4">
-            <div className="flex items-center gap-4 rounded-2xl border hover:bg-accent/35 bg-accent/25 border-border px-3 py-4" onClick={() => handleNavigation("/profile")} >
+            <div className="flex items-center cursor-pointer gap-4 rounded-2xl border hover:bg-accent/35 bg-accent/25 border-border px-3 py-4" onClick={() => handleNavigation("/profile")} >
               <Avatar className="h-14 w-14 ring-4 ring-background/50">
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className="text-lg">{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
