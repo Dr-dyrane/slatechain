@@ -56,57 +56,65 @@ const tiers = [
 export default function PricingPage() {
     return (
         <div className="relative min-h-screen flex flex-col p-4">
-            <div className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10">
+            <div className="absolute mt-20 rounded-3xl inset-0 flex items-start min-h-screen justify-center text-wrap text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[20vw] opacity-10">
                 PRICING
             </div>
             <Navbar />
 
-            <main className="flex-grow min-h-[80vh] p-4 my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10 overflow-hidden">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl font-bold tracking-tight text-justify sm:text-center sm:text-6xl mb-4 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white animate-gradient-x">
+            <main className="flex-grow min-h-[80vh] p-4 mt-4 mb-8 rounded-3xl mx-auto flex flex-col 
+            justify-center items-center text-center py-8 relative z-10 w-full max-w-7xl">
+                <div className="text-center mb-16 w-full">
+                    <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold tracking-tight mb-4 
+                    bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600
+                     to-gray-900 dark:from-white dark:via-gray-400 dark:to-white p-2">
                         Simple, transparent pricing
                     </h1>
-                    <p className="text-xl text-justify sm:text-center text-muted-foreground max-w-2xl mx-auto">
+                    <p className="text-lg sm:text-xl text-center text-muted-foreground max-w-2xl mx-auto px-4">
                         Choose the perfect plan for your business. All plans include a 14-day free trial.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 w-full px-1 sm:px-4">
                     {tiers.map((tier) => (
                         <Card
                             key={tier.name}
-                            className={`relative flex flex-col group hover:scale-105 transition-all duration-300 ${tier.featured ? "border-primary shadow-lg shadow-primary/20 dark:shadow-primary/10" : ""
+                            className={`relative flex flex-col group hover:scale-[1.02] transition-all
+                                  duration-300
+                                 ${tier.featured ? "border-primary shadow-lg shadow-primary/20 dark:shadow-primary/10" : ""
                                 }`}
                         >
                             {tier.featured && (
-                                <div className="absolute -top-5 left-0 right-0 mx-auto w-fit px-4 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium">
+                                <div className="absolute -top-5 left-0 right-0 mx-auto w-fit px-4 py-1
+                                 rounded-full bg-primary text-primary-foreground text-sm font-medium">
                                     Most Popular
                                 </div>
                             )}
                             <CardHeader>
                                 <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                                <CardDescription>{tier.description}</CardDescription>
+                                <CardDescription className="min-h-[3rem]">{tier.description}</CardDescription>
                             </CardHeader>
                             <CardContent className="flex-grow">
                                 <div className="mb-8">
                                     <span className="text-4xl font-bold">{tier.price}</span>
                                     <span className="text-muted-foreground ml-2">{tier.duration}</span>
                                 </div>
-                                <ul className="space-y-3 w-full max-h-40 overflow-y-auto scrollbar-hide">
+                                <ul className="space-y-3">
                                     {tier.features.map((feature) => (
-                                        <li key={feature} className="flex items-center gap-2">
+                                        <li key={feature} className="flex items-center gap-2 shrink-0 text-primary mt-0.5">
                                             <Check className="h-5 w-5 text-primary" />
-                                            <span>{feature}</span>
+                                            <span className="text-sm">{feature}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </CardContent>
                             <CardFooter>
                                 <Link href="/register" className="w-full">
-                                    <Button className="w-full gap-4 group relative bg-gradient-to-r from-primary hover:from-purple-500 hover:to-primary to-purple-500 transition-all duration-300 ease-in-out rounded-lg">
+                                    <Button className="w-full gap-4 group relative bg-gradient-to-r from-primary
+                            hover:from-purple-500 hover:to-primary to-purple-500 transition-all duration-300
+                                ease-in-out rounded-lg">
                                         <div className="absolute inset-0 w-2 bg-accent transition-all duration-200 rounded-xl ease-out group-hover:w-full opacity-10"></div>
-                                        {tier.price === "Custom" ? "Contact Sales" : "Get Started"}
-                                        <CircleArrowRight />
+                                        <span className="relative z-10">{tier.price === "Custom" ? "Contact Sales" : "Get Started"}</span>
+                                        <CircleArrowRight className="shrink-0" />
                                     </Button>
                                 </Link>
                             </CardFooter>
@@ -114,7 +122,7 @@ export default function PricingPage() {
                     ))}
                 </div>
 
-                <div className="mt-24 text-center">
+                <div className="mt-24 text-center px-4">
                     <h2 className="text-2xl font-bold mb-4">Need something different?</h2>
                     <p className="text-muted-foreground mb-8">
                         Contact our sales team for a custom plan tailored to your specific needs.
@@ -123,11 +131,13 @@ export default function PricingPage() {
                         <Button
                             variant="outline"
                             size="lg"
-                            className="gap-4 group relative hover:bg-primary hover:text-primary-foreground transition-all duration-300 ease-in-out rounded-full py-6"
+                            className="gap-4 group relative hover:bg-primary hover:text-primary-foreground
+                            transition-all duration-300 ease-in-out rounded-full py-6"
                         >
-                            <div className="absolute inset-0 w-2 bg-accent transition-all duration-500 rounded-xl ease-out group-hover:w-full opacity-10"></div>
+                            <div className="absolute inset-0 w-2 bg-accent transition-all duration-500 rounded-xl
+                            ease-out group-hover:w-full opacity-10"></div>
                             Contact Sales
-                            <CircleArrowRight />
+                            <CircleArrowRight className="shrink-0" />
                         </Button>
                     </Link>
                 </div>

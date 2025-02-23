@@ -136,12 +136,13 @@ const sections = [
 export default function TermsPage() {
     return (
         <div className="relative min-h-screen flex flex-col p-4">
-            <div className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10">
+            <div className="absolute mt-20 rounded-3xl inset-0 flex items-start min-h-screen justify-center text-wrap text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[20vw] opacity-10">
                 TERMS
             </div>
             <Navbar />
 
-            <main className="flex-grow p-4 min-h-[80vh] mt-4 mb-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
+            <main className="flex-grow p-4 min-h-[80vh] mt-4 mb-8 rounded-3xl mx-auto flex flex-col 
+            justify-center items-center text-center py-8 relative z-10">
                 <h1 className="text-4xl font-bold tracking-tight text-left w-full mb-16 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-gray-600 to-gray-900 dark:from-white dark:via-gray-400 dark:to-white">
                     Terms of Service
                 </h1>
@@ -154,7 +155,7 @@ export default function TermsPage() {
                                     <div className="p-3 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors duration-300 w-fit">
                                         <section.icon className="w-6 h-6 text-primary" />
                                     </div>
-                                    <h2 className="text-2xl font-semibold">{section.title}</h2>
+                                    <h2 className="text-2xl font-semibold text-right">{section.title}</h2>
                                 </div>
                                 <p className="text-muted-foreground text-justify mb-4">{section.content}</p>
                                 {section.highlights && (
