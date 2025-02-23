@@ -40,14 +40,14 @@ const LandingPage: React.FC = () => {
   bg-gradient-to-br from-indigo-500/[0.05] via-transparent to-purple-500/[0.05] 
   dark:from-indigo-900/[0.1] dark:via-transparent dark:to-purple-900/[0.1]" />
                 <div className="absolute inset-0 overflow-hidden rounded-3xl opacity-75">
-                    {/* <ElegantLogo
+                    <ElegantLogo
                         delay={0.3}
-                        width={600}
-                        height={140}
+                        width={400}
+                        height={100}
                         rotate={12}
                         gradient="from-indigo-500/[0.15]"
                         className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
-                    /> */}
+                    />
 
                     <ElegantLogo
                         delay={0.5}
