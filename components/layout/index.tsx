@@ -14,7 +14,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { NotificationDrawer } from "../ui/NotificationDrawer";
 import useMediaQuery from "@/hooks/use-media-query";
-import { baseNavItems, getNavItems } from "@/lib/config/navigation";
+import { baseNavItems, getBaseNavItems, getNavItems } from "@/lib/config/navigation";
 
 
 interface LayoutProps {
@@ -40,6 +40,11 @@ export function Layout({ children }: LayoutProps) {
   const navItems = React.useMemo(() => {
     if (!user) return []
     return getNavItems(user.role, user.integrations)
+  }, [user])
+
+  const baseNavItems = React.useMemo(() => {
+    if (!user) return []
+    return getBaseNavItems(user.role)
   }, [user])
 
   // const finalSidebarItems = [

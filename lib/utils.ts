@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { RootState } from "@/lib/store";
+import { Redis } from "@upstash/redis"
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -20,6 +21,11 @@ export interface SidebarItemMeta {
 	badge?: SidebarBadge;
 	serviceIcon?: ServiceIcon;
 }
+
+export interface RateLimitConfig {
+	uniqueTokenPerInterval?: number
+	interval?: number
+  }
 
 export const getSidebarItemMeta = (
 	state: RootState,
@@ -114,3 +120,84 @@ export const getSidebarItemMeta = (
 			return {};
 	}
 };
+
+export interface RateLimiter {
+  check: (limit: number, identifier: string) => Promise<void>
+  pending: (identifier: string) => Promise<number>
+  reset: (identifier: string) => Promise<void>
+}
+
+export async function getRateLimitHeaders(remaining: number, limit: number, reset: number) {
+  return {
+    "X-RateLimit-Limit": limit.toString(),
+    "X-RateLimit-Remaining": Math.max(0, remaining).toString(),
+    "X-RateLimit-Reset": reset.toString(),
+  }
+}
+
+export function createRateLimiter(prefix: string, config: RateLimitConfig = {}): RateLimiter {
+  const {
+    uniqueTokenPerInterval = 500, // Default number of tokens per interval
+    interval = 60000, // Default interval of 60 seconds
+  } = config
+
+  const redis = Redis.fromEnv()
+
+  return {
+    check: async (limit: number, identifier: string) => {
+      const key = `${prefix}:${identifier}`
+      const count = await redis.incr(key)
+
+      // Set expiry on first request
+      if (count === 1) {
+        await redis.expire(key, Math.floor(interval / 1000))
+      }
+
+      if (count > limit) {
+        const ttl = await redis.ttl(key)
+        throw new Error(
+          JSON.stringify({
+            error: "Too Many Requests",
+            limit,
+            remaining: 0,
+            reset: Date.now() + ttl * 1000,
+          }),
+        )
+      }
+    },
+
+    pending: async (identifier: string) => {
+      const key = `${prefix}:${identifier}`
+      return redis.get(key) as Promise<number>
+    },
+
+    reset: async (identifier: string) => {
+      const key = `${prefix}:${identifier}`
+      await redis.del(key)
+    },
+  }
+}
+
+// Middleware to handle rate limiting
+export async function withRateLimit(req: Request, prefix: string, limit: number, interval = 60000) {
+  const ip = req.headers.get("x-forwarded-for") ?? "anonymous"
+  const limiter = createRateLimiter(prefix, { interval })
+
+  try {
+    await limiter.check(limit, ip)
+    const pending = await limiter.pending(ip)
+    const remaining = Math.max(0, limit - (pending ?? 0))
+    const reset = Date.now() + interval
+
+    return {
+      headers: await getRateLimitHeaders(remaining, limit, reset),
+      limited: false,
+    }
+  } catch (error) {
+	const data = JSON.parse((error as Error).message);
+    return {
+      headers: await getRateLimitHeaders(0, limit, data.reset),
+      limited: true,
+    }
+  }
+}
