@@ -2,13 +2,14 @@
 
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../index";
-
+import User from "@/app/api/models/User";
+import RefreshToken from "@/app/api/models/RefreshToken";
 import {
 	verifyRefreshToken,
 	generateAccessToken,
 	generateRefreshToken,
 } from "@/lib/auth/jwt";
-import User from "../../models/User";
+import crypto from "crypto";
 
 export async function POST(req: Request) {
 	try {
@@ -16,35 +17,64 @@ export async function POST(req: Request) {
 
 		const { refreshToken } = await req.json();
 
-		// Verify refresh token
-		const payload = verifyRefreshToken(refreshToken);
-		if (!payload || !("userId" in payload)) {
+		if (!refreshToken) {
+			return NextResponse.json(
+				{ error: "Refresh token is required" },
+				{ status: 400 }
+			);
+		}
+
+		// Verify the refresh token
+		const decoded = verifyRefreshToken(refreshToken);
+		if (!decoded) {
 			return NextResponse.json(
 				{ error: "Invalid refresh token" },
 				{ status: 401 }
 			);
 		}
 
-		// Find user and verify refresh token
-		const user = await User.findOne({
-			_id: payload.userId,
-			refreshToken,
+		// Find the refresh token in the database
+		const existingToken = await RefreshToken.findOne({
+			userId: decoded.userId,
+			tokenId: decoded.tokenId,
+			token: refreshToken,
 		});
 
-		if (!user) {
+		if (!existingToken) {
 			return NextResponse.json(
-				{ error: "Invalid refresh token" },
+				{ error: "Refresh token not found" },
 				{ status: 401 }
 			);
 		}
 
-		// Generate new tokens
-		const newAccessToken = generateAccessToken(user.toAuthJSON());
-		const newRefreshToken = generateRefreshToken(user.toAuthJSON());
+		// Check if the token has expired
+		if (existingToken.expiresAt < new Date()) {
+			await RefreshToken.deleteOne({ _id: existingToken._id });
+			return NextResponse.json(
+				{ error: "Refresh token has expired" },
+				{ status: 401 }
+			);
+		}
 
-		// Update refresh token
-		user.refreshToken = newRefreshToken;
-		await user.save();
+		// Find the user
+		const user = await User.findById(decoded.userId);
+		if (!user) {
+			return NextResponse.json({ error: "User not found" }, { status: 401 });
+		}
+
+		// Generate new token ID and tokens
+		const newTokenId = crypto.randomUUID();
+		const newAccessToken = generateAccessToken(user.toAuthJSON());
+		const newRefreshToken = generateRefreshToken(user.toAuthJSON(), newTokenId);
+
+		// Delete old refresh token and create new one
+		await RefreshToken.deleteOne({ _id: existingToken._id });
+		await RefreshToken.create({
+			userId: user._id,
+			tokenId: newTokenId,
+			token: newRefreshToken,
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+		});
 
 		return NextResponse.json({
 			accessToken: newAccessToken,
@@ -53,7 +83,7 @@ export async function POST(req: Request) {
 	} catch (error) {
 		console.error("Token Refresh Error:", error);
 		return NextResponse.json(
-			{ error: "Token refresh failed" },
+			{ error: "Failed to refresh token" },
 			{ status: 500 }
 		);
 	}

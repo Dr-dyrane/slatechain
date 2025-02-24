@@ -6,6 +6,7 @@ import { connectToDatabase } from "../../index";
 import type { RegisterRequest } from "@/lib/types";
 import { generateAccessToken, generateRefreshToken } from "@/lib/auth/jwt";
 import User from "../../models/User";
+import RefreshToken from "../../models/RefreshToken"; // Import the new model
 
 export async function POST(req: Request) {
 	try {
@@ -31,13 +32,18 @@ export async function POST(req: Request) {
 			role: body.role,
 		});
 
+		// Generate unique token ID for refresh token
+		const tokenId = crypto.randomUUID();
+
 		// Generate tokens
 		const accessToken = generateAccessToken(user.toAuthJSON());
-		const refreshToken = generateRefreshToken(user.toAuthJSON());
+		const refreshToken = generateRefreshToken(user.toAuthJSON(), tokenId);
 
-		// Save refresh token
-		user.refreshToken = refreshToken;
-		await user.save();
+		// Store refresh token in database
+		await RefreshToken.create({
+			userId: user._id,
+			token: refreshToken,
+		});
 
 		return NextResponse.json({
 			user: user.toAuthJSON(),

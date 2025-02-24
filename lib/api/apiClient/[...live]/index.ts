@@ -31,6 +31,9 @@ class ApiClient {
 		this.setupInterceptors();
 	}
 
+	private isRefreshing = false;
+	private refreshSubscribers: ((token: string) => void)[] = [];
+
 	private setupInterceptors() {
 		this.axiosInstance.interceptors.request.use(
 			(config) => {
@@ -47,26 +50,65 @@ class ApiClient {
 			(response) => response,
 			async (error) => {
 				const originalRequest = error.config;
-				if (error.response?.status === 401 && !originalRequest._retry) {
-					originalRequest._retry = true;
-					try {
-						const refreshToken = tokenManager.getRefreshToken();
-						const { data } = await this.axiosInstance.post("/auth/refresh", {
-							refreshToken,
-						});
-						tokenManager.setTokens(data.accessToken, data.refreshToken);
 
-						originalRequest.headers[
-							"Authorization"
-						] = `Bearer ${data.accessToken}`;
-						return this.axiosInstance(originalRequest);
-					} catch (refreshError) {
-						tokenManager.clearTokens();
-						throw new LogoutError("Session expired, please login again");
-					}
+				// If the error is not 401 (Unauthorized), reject it immediately
+				if (error.response?.status !== 401) {
+					return Promise.reject(error);
 				}
 
-				return Promise.reject(error);
+				// Prevent multiple refresh calls at the same time
+				if (this.isRefreshing) {
+					return new Promise((resolve) => {
+						this.refreshSubscribers.push((token) => {
+							originalRequest.headers["Authorization"] = `Bearer ${token}`;
+							resolve(this.axiosInstance(originalRequest));
+						});
+					});
+				}
+
+				// If retry already attempted, clear tokens and log out user
+				if (originalRequest._retry) {
+					tokenManager.clearTokens();
+					throw new LogoutError("Session expired, please log in again.");
+				}
+
+				originalRequest._retry = true;
+				this.isRefreshing = true;
+
+				try {
+					const refreshToken = tokenManager.getRefreshToken();
+
+					if (!refreshToken) {
+						throw new LogoutError(
+							"No refresh token available. Please log in again."
+						);
+					}
+
+					// Attempt to refresh the token
+					const { data } = await this.axiosInstance.post("/auth/refresh", {
+						refreshToken,
+					});
+
+					tokenManager.setTokens(data.accessToken, data.refreshToken);
+					this.isRefreshing = false;
+
+					// Resolve all queued requests with the new token
+					this.refreshSubscribers.forEach((callback) =>
+						callback(data.accessToken)
+					);
+					this.refreshSubscribers = [];
+
+					// Retry the original request with the new token
+					originalRequest.headers[
+						"Authorization"
+					] = `Bearer ${data.accessToken}`;
+					return this.axiosInstance(originalRequest);
+				} catch (refreshError) {
+					this.isRefreshing = false;
+					this.refreshSubscribers = [];
+					tokenManager.clearTokens();
+					throw new LogoutError("Session expired, please log in again.");
+				}
 			}
 		);
 	}
