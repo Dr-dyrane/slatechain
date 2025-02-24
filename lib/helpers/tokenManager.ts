@@ -9,7 +9,6 @@ export const tokenManager = {
 	getAccessToken: (): string | null => {
 		try {
 			const token = getCookie("accessToken") as string | null;
-			console.log("Access Token Retrieved:", token);
 			return token;
 		} catch (error) {
 			console.error("Error getting access token:", error);
@@ -20,7 +19,6 @@ export const tokenManager = {
 	getRefreshToken: (): string | null => {
 		try {
 			const token = getCookie("refreshToken") as string | null;
-			console.log("Refresh Token Retrieved:", token);
 			return token;
 		} catch (error) {
 			console.error("Error getting refresh token:", error);
@@ -42,9 +40,6 @@ export const tokenManager = {
 				maxAge: 60 * 60 * 24 * 30, // 30 days expiration
 				path: "/",
 			});
-			// Debugging: Verify if cookies are set correctly
-			console.log("Access Token Set:", getCookie("accessToken"));
-			console.log("Refresh Token Set:", getCookie("refreshToken"));
 		} catch (error) {
 			console.error("Error setting tokens:", error);
 		}
