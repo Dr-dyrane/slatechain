@@ -1,4 +1,4 @@
-// lib/api/apiClient/index.ts
+// lib/api/apiClient/[...live]/index.ts
 
 import { tokenManager } from "@/lib/helpers/tokenManager";
 import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
