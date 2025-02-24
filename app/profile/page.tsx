@@ -17,7 +17,7 @@ import ProfileSkeleton from "./loading";
 import { ErrorState } from "@/components/ui/error";
 
 export default function ProfilePage() {
-    const user = useSelector((state: RootState) => state.auth.user) || {} as User;
+    const user = useSelector((state: RootState) => state.auth?.user) as User;
     const { loading: authLoading, error: authError } = useSelector((state: RootState) => state.auth);
     const [activeTab, setActiveTab] = useState("dashboard");
 
@@ -31,7 +31,7 @@ export default function ProfilePage() {
                 <ErrorState
                     title="Profile Error"
                     description="We encountered an issue while loading your profile."
-                    message="There was an error loading your profile, please try again later"
+                    message={authError.message}
                     onRetry={() => window.location.reload()}
                     onCancel={() => window.location.href = "/dashboard"}
                 />

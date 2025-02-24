@@ -8,7 +8,6 @@ import { ThemeProvider } from "./ThemeProvider";
 import ErrorBoundary from "./ErrorBoundary";
 import LayoutLoader from "@/components/layout/loading";
 import { AuthWrapper } from "./AuthWrapper";
-import { SessionProvider } from "next-auth/react";
 
 export const Providers = ({ children }: { children: React.ReactNode }) => {
   const [storeConfig, setStoreConfig] = useState<{
@@ -32,7 +31,6 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
   return (
     <Provider store={store}>
       <PersistGate loading={<LayoutLoader />} persistor={persistor}>
-        <SessionProvider>
           <ThemeProvider
             attribute="class"
             defaultTheme="system"
@@ -43,7 +41,6 @@ export const Providers = ({ children }: { children: React.ReactNode }) => {
               <AuthWrapper>{children}</AuthWrapper>
             </ErrorBoundary>
           </ThemeProvider>
-        </SessionProvider>
       </PersistGate>
     </Provider>
   );

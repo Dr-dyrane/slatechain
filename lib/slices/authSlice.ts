@@ -22,7 +22,6 @@ import {
 	resetPassword,
 	updateUserProfile,
 } from "@/lib/api/auth";
-import { signIn, signOut } from "next-auth/react";
 import { tokenManager } from "../helpers/tokenManager";
 import { toast } from "sonner";
 

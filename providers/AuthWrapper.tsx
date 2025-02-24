@@ -4,10 +4,8 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { RootState, AppDispatch } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
-import { setUser } from "@/lib/slices/authSlice";
 import { initializeApp } from "@/lib/helpers/appInitializer"; // Import the helper
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
@@ -15,7 +13,6 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const dispatch = useDispatch<AppDispatch>();
 
-    const { data: session, status } = useSession();
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
     // const authState = useSelector((state: RootState) => state.auth);
     // const onboardingState = useSelector((state: RootState) => state.onboarding);
@@ -24,11 +21,11 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     const [isChecking, setIsChecking] = useState(true);
 
-    useEffect(() => {
-        if (status === "authenticated" && session.user) {
-            dispatch(setUser(session.user as any));
-        }
-    }, [status, session, dispatch]);
+    // useEffect(() => {
+    //     if (status === "authenticated" && session.user) {
+    //         dispatch(setUser(session.user as any));
+    //     }
+    // }, [status, session, dispatch]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -43,9 +40,9 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             const publicPages = ["/", "/login", "/register", '/reset-password', '/pricing', '/policy', '/terms', '/contact', '/about', '/faq', '/features', '/blog', '/blog/[slug]'];
             const isPublicPage = publicPages.includes(pathname);
 
-            if ((isAuthenticated || status === "authenticated") && isPublicPage) {
+            if ((isAuthenticated) && isPublicPage) {
                 router.push("/dashboard");
-            } else if (!isAuthenticated && status !== "authenticated" && !isPublicPage) {
+            } else if (!isAuthenticated && !isPublicPage) {
                 router.push("/login");
             }
 
@@ -53,9 +50,9 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         };
 
         handleRouting();
-    }, [isAuthenticated, status, pathname, router]);
+    }, [isAuthenticated, pathname, router]);
 
-    if (isChecking || status === "loading") {
+    if (isChecking) {
         return <LayoutLoader />;
     }
 

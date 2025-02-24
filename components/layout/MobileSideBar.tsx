@@ -111,8 +111,10 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative md:hidden">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={user?.avatarUrl} />
-            <AvatarFallback>{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
+            {user?.avatarUrl ? <AvatarImage src={user?.avatarUrl} />
+              :
+              <AvatarFallback>{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
+            }
           </Avatar>
         </Button>
       </SheetTrigger>
