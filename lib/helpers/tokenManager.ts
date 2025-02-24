@@ -1,4 +1,5 @@
-import { setCookie, getCookie, deleteCookie } from "cookies-next"; // Use cookies-next to handle cookies
+import { setCookie, getCookie, deleteCookie } from "cookies-next";
+
 interface DecodedToken {
 	exp?: number;
 	[key: string]: any;
@@ -7,8 +8,9 @@ interface DecodedToken {
 export const tokenManager = {
 	getAccessToken: (): string | null => {
 		try {
-			// Get the access token from the cookie (use HTTP-only cookie for security)
-			return getCookie("accessToken") as string | null;
+			const token = getCookie("accessToken") as string | null;
+			console.log("Access Token Retrieved:", token);
+			return token;
 		} catch (error) {
 			console.error("Error getting access token:", error);
 			return null;
@@ -17,8 +19,9 @@ export const tokenManager = {
 
 	getRefreshToken: (): string | null => {
 		try {
-			// Get the refresh token from the cookie
-			return getCookie("refreshToken") as string | null;
+			const token = getCookie("refreshToken") as string | null;
+			console.log("Refresh Token Retrieved:", token);
+			return token;
 		} catch (error) {
 			console.error("Error getting refresh token:", error);
 			return null;
@@ -27,21 +30,21 @@ export const tokenManager = {
 
 	setTokens: (accessToken: string, refreshToken: string): void => {
 		try {
-			// Store the tokens in HTTP-only cookies, ensuring secure transmission over HTTPS
 			setCookie("accessToken", accessToken, {
-				httpOnly: true, // Can't be accessed via JavaScript
-				secure: process.env.NODE_ENV === "production", // Only set the secure flag in production
-				sameSite: "strict", // Prevents the cookies from being sent in cross-site requests
-				maxAge: 60 * 60 * 24, // Set expiration time (e.g., 1 day)
-				path: "/", // Make the cookie accessible to the entire domain
-			});
-			setCookie("refreshToken", refreshToken, {
-				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "strict",
-				maxAge: 60 * 60 * 24 * 30, // Longer expiration for refresh token (e.g., 30 days)
+				maxAge: 60 * 60 * 24, // 1 day expiration
 				path: "/",
 			});
+			setCookie("refreshToken", refreshToken, {
+				secure: process.env.NODE_ENV === "production",
+				sameSite: "strict",
+				maxAge: 60 * 60 * 24 * 30, // 30 days expiration
+				path: "/",
+			});
+			// Debugging: Verify if cookies are set correctly
+			console.log("Access Token Set:", getCookie("accessToken"));
+			console.log("Refresh Token Set:", getCookie("refreshToken"));
 		} catch (error) {
 			console.error("Error setting tokens:", error);
 		}
@@ -49,9 +52,9 @@ export const tokenManager = {
 
 	clearTokens: (): void => {
 		try {
-			// Delete the cookies securely
-			deleteCookie("accessToken");
-			deleteCookie("refreshToken");
+			deleteCookie("accessToken", { path: "/" });
+			deleteCookie("refreshToken", { path: "/" });
+			console.log("Tokens cleared successfully");
 		} catch (error) {
 			console.error("Error clearing tokens:", error);
 		}
@@ -62,7 +65,7 @@ export const tokenManager = {
 		try {
 			const base64Payload = token.split(".")[1]; // Get the payload part of the JWT
 			const decodedPayload = atob(base64Payload); // Decode from base64
-			return JSON.parse(decodedPayload) as DecodedToken; // Parse to JSON
+			return JSON.parse(decodedPayload) as DecodedToken;
 		} catch (error) {
 			console.error("Error decoding token:", error);
 			return null;
@@ -74,7 +77,7 @@ export const tokenManager = {
 		try {
 			const decoded = tokenManager.decodeToken(token);
 			if (!decoded || !decoded.exp) return true;
-			return Date.now() >= decoded.exp * 1000; // Check expiration
+			return Date.now() >= decoded.exp * 1000; // Convert exp to milliseconds
 		} catch (error) {
 			console.error("Error checking token expiration:", error);
 			return true;

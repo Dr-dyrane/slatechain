@@ -181,10 +181,11 @@ export const register = createAsyncThunk<
 
 export const logout = createAsyncThunk<void, void, { rejectValue: AuthError }>(
 	"auth/logout",
-	async (_, { rejectWithValue }) => {
+	async (_, { rejectWithValue, dispatch }) => {
 		try {
 			await logoutUser();
-		//	await signOut({ callbackUrl: "/login" });
+			tokenManager.clearTokens(); // Clear tokens from storage
+			dispatch(authSlice.actions.resetAuthState()); // Reset state
 		} catch (error: any) {
 			const authError: AuthError = {
 				code: "LOGOUT_ERROR",
@@ -204,6 +205,16 @@ const authSlice = createSlice({
 	reducers: {
 		clearError: (state) => {
 			state.error = null;
+		},
+		resetAuthState: (state) => {
+			state.user = null;
+			state.accessToken = null;
+			state.refreshToken = null;
+			state.isAuthenticated = false;
+			state.loading = false;
+			state.kycStatus = KYCStatus.NOT_STARTED;
+			state.onboardingStatus = OnboardingStatus.NOT_STARTED;
+			tokenManager.clearTokens();
 		},
 		setUser: (state, action: PayloadAction<any>) => {
 			state.user = action.payload;
@@ -369,8 +380,14 @@ const authSlice = createSlice({
 				};
 			})
 			.addCase(logout.fulfilled, (state) => {
-				return initialState;
+				state.user = null;
+				state.accessToken = null;
+				state.refreshToken = null;
+				state.isAuthenticated = false;
+				state.loading = false;
+				tokenManager.clearTokens();
 			})
+
 			.addCase(logout.rejected, (state, action) => {
 				state.error = action.payload || {
 					code: "LOGOUT_ERROR",
