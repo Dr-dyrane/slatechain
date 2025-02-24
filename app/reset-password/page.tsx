@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
     const router = useRouter();
     const dispatch = useDispatch<AppDispatch>();
     const searchParams = useSearchParams();
-    const token = searchParams.get("token");
+    const code = searchParams.get("code");
     const email = searchParams.get("email");
     const { loading, error } = useSelector((state: RootState) => state.auth)
     const [resetSuccessful, setResetSuccessful] = useState(false);
@@ -69,10 +69,10 @@ export default function ResetPasswordPage() {
     const confirmNewPasswordValue = watch("confirmNewPassword");
 
     useEffect(() => {
-        if (!token && !email) {
+        if (!code && !email) {
             router.push("/login");
         }
-    }, [token, router, email]);
+    }, [code, router, email]);
 
     useEffect(() => {
         if (newPasswordValue) {
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
     if (loading) {
         return <LayoutLoader />
     }
-    if (!token && !email) {
+    if (!code && !email) {
         return (
             <div className="flex h-full items-center justify-center bg-none">
                 <Card className="w-full max-w-md">
@@ -156,7 +156,7 @@ export default function ResetPasswordPage() {
                 <CardHeader className="text-center">
                     <Logo />
                     <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
-                    <CardDescription>Enter a code and your new password to reset your account.</CardDescription>
+                    <CardDescription>Enter your new password to reset your account.</CardDescription>
                     <Button variant='ghost'
                         size={'icon'}
                         onClick={() => router.push('/login')}
@@ -176,16 +176,18 @@ export default function ResetPasswordPage() {
                                     </Tooltip.Trigger>
                                     <Tooltip.Portal>
                                         <Tooltip.Content className="z-50 rounded-md bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md" side="top" align="center" >
-                                            Enter the code you received in your email
+                                            The code included in your reset link
                                         </Tooltip.Content>
                                     </Tooltip.Portal>
                                 </Tooltip.Root>
                             </Tooltip.Provider>
                             <Input
                                 id="code"
-                                placeholder='Enter Code'
+                                placeholder='Code'
                                 {...register("code")}
                                 className="input-focus input-hover"
+                                value={code as string}
+                                readOnly
                             />
                             {errors.code && (
                                 <p className="text-sm text-red-500">{errors.code.message}</p>

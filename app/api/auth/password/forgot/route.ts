@@ -44,11 +44,11 @@ export async function POST(req: Request) {
     await redis.set(`pwd_reset:${resetCode}`, user.id, { ex: 3600 })
 
     // Generate reset link
-    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?code=${resetCode}`
+    const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?code=${resetCode}?email=${email}`
 
     // Send email
     await resend.emails.send({
-      from: "Your App <noreply@yourdomain.com>",
+      from: "Slate Chain <noreply@slatechain.vercel.app>",
       to: email,
       subject: "Reset Your Password",
       react: PasswordResetEmail({
