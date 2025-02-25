@@ -1,8 +1,12 @@
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import type { User } from "@/lib/types";
 
 const JWT_SECRET = process.env.NEXT_JWT_SECRET!;
 const JWT_REFRESH_SECRET = process.env.NEXT_JWT_REFRESH_SECRET!;
+
+export interface DecodedToken extends JwtPayload {
+	userId: string;
+}
 
 export const generateAccessToken = (user: User) => {
 	return jwt.sign(
@@ -31,9 +35,17 @@ export const generateRefreshToken = (user: User, tokenId: string) => {
 	);
 };
 
-export const verifyAccessToken = (token: string) => {
+export const verifyAccessToken = (token: string): DecodedToken | null => {
 	try {
-		return jwt.verify(token, JWT_SECRET);
+		const decoded = jwt.verify(token, JWT_SECRET);
+		if (
+			typeof decoded === "object" &&
+			decoded !== null &&
+			"userId" in decoded
+		) {
+			return decoded as DecodedToken;
+		}
+		return null;
 	} catch {
 		return null;
 	}
