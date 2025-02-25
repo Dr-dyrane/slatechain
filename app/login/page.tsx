@@ -11,12 +11,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AppDispatch, RootState } from '@/lib/store';
-import { login, googleLogin, resetLoading } from '@/lib/slices/authSlice';
+import { login, googleLogin, resetLoading, appleLogin } from '@/lib/slices/authSlice';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { toast } from 'sonner';
+import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
 
 interface FormErrors {
   email?: string
@@ -92,6 +93,11 @@ export default function LoginPage() {
   const handleGoogleSignIn = () => {
     dispatch(googleLogin());
   };
+
+  const handleAppleSignIn = () => {
+    dispatch(appleLogin());
+  };
+
   const handleGoBack = () => {
     router.push('/')
   }
@@ -230,6 +236,9 @@ export default function LoginPage() {
             Sign in with Google
           </GoogleSignInButton>
 
+          <AppleSignInButton onClick={handleAppleSignIn} className="w-full gap-2">
+            Sign in with Apple
+          </AppleSignInButton>
 
           <div className="text-sm text-center">
             Don't have a chain?{" "}

@@ -143,9 +143,19 @@ export const login = createAsyncThunk<
 	}
 });
 
-export const googleLogin = createAsyncThunk<void, void>("auth/googleLogin", async () => {
-	window.location.href = "/api/auth/google"
-  })
+export const googleLogin = createAsyncThunk<void, void>(
+	"auth/googleLogin",
+	async () => {
+		window.location.href = "/api/auth/google";
+	}
+);
+
+export const appleLogin = createAsyncThunk<void, void>(
+	"auth/appleLogin",
+	async () => {
+		window.location.href = "/api/auth/apple";
+	}
+);
 
 export const register = createAsyncThunk<
 	AuthResponse,
@@ -326,6 +336,10 @@ const authSlice = createSlice({
 				};
 			})
 			.addCase(googleLogin.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(appleLogin.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
