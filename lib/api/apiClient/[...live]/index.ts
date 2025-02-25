@@ -1,7 +1,12 @@
 // lib/api/apiClient/[...live]/index.ts
 
 import { tokenManager } from "@/lib/helpers/tokenManager";
-import axios, { AxiosInstance, AxiosRequestConfig } from "axios";
+import axios, {
+	type AxiosError,
+	AxiosInstance,
+	AxiosRequestConfig,
+} from "axios";
+import { toast } from "sonner";
 
 const BASE_URL = "/api"; // Calls will be directed to /app/api
 
@@ -12,6 +17,28 @@ class LogoutError extends Error {
 		this.name = "LogoutError";
 	}
 }
+
+// Custom error class for API errors
+export class ApiError extends Error {
+	constructor(
+		message: string,
+		public status?: number,
+		public code?: string
+	) {
+		super(message);
+		this.name = "ApiError";
+	}
+}
+
+// Error messages mapping
+const ERROR_MESSAGES: Record<string, string> = {
+	INVALID_CREDENTIALS: "Invalid email or password",
+	USER_NOT_FOUND: "User not found",
+	EMAIL_EXISTS: "Email already exists",
+	INVALID_TOKEN: "Your session has expired, please log in again",
+	SERVER_ERROR: "Something went wrong, please try again later",
+	RATE_LIMIT: "Too many attempts, please try again later",
+};
 
 class ApiClient {
 	private axiosInstance: AxiosInstance;
@@ -29,6 +56,16 @@ class ApiClient {
 		});
 
 		this.setupInterceptors();
+	}
+
+	private getErrorMessage(error: AxiosError): string {
+		const response = error.response?.data as any;
+		const errorCode = response?.code || "SERVER_ERROR";
+		return (
+			ERROR_MESSAGES[errorCode] ||
+			response?.message ||
+			"An unexpected error occurred"
+		);
 	}
 
 	private isRefreshing = false;
@@ -51,64 +88,81 @@ class ApiClient {
 			async (error) => {
 				const originalRequest = error.config;
 
-				// If the error is not 401 (Unauthorized), reject it immediately
-				if (error.response?.status !== 401) {
-					return Promise.reject(error);
-				}
-
-				// Prevent multiple refresh calls at the same time
-				if (this.isRefreshing) {
-					return new Promise((resolve) => {
-						this.refreshSubscribers.push((token) => {
-							originalRequest.headers["Authorization"] = `Bearer ${token}`;
-							resolve(this.axiosInstance(originalRequest));
-						});
-					});
-				}
-
-				// If retry already attempted, clear tokens and log out user
-				if (originalRequest._retry) {
-					tokenManager.clearTokens();
-					throw new LogoutError("Session expired, please log in again.");
-				}
-
-				originalRequest._retry = true;
-				this.isRefreshing = true;
-
-				try {
-					const refreshToken = tokenManager.getRefreshToken();
-
-					if (!refreshToken) {
-						throw new LogoutError(
-							"No refresh token available. Please log in again."
+				// Check if error is 401 (Unauthorized) before attempting refresh
+				if (error.response?.status === 401) {
+					// If retry already attempted, clear tokens and log out user
+					if (originalRequest._retry) {
+						tokenManager.clearTokens();
+						return Promise.reject(
+							new LogoutError("Session expired, please log in again.")
 						);
 					}
 
-					// Attempt to refresh the token
-					const { data } = await this.axiosInstance.post("/auth/refresh", {
-						refreshToken,
-					});
+					originalRequest._retry = true;
 
-					tokenManager.setTokens(data.accessToken, data.refreshToken);
-					this.isRefreshing = false;
+					// Prevent multiple refresh calls at the same time
+					if (this.isRefreshing) {
+						return new Promise((resolve) => {
+							this.refreshSubscribers.push((token) => {
+								originalRequest.headers["Authorization"] = `Bearer ${token}`;
+								resolve(this.axiosInstance(originalRequest));
+							});
+						});
+					}
 
-					// Resolve all queued requests with the new token
-					this.refreshSubscribers.forEach((callback) =>
-						callback(data.accessToken)
-					);
-					this.refreshSubscribers = [];
+					this.isRefreshing = true;
 
-					// Retry the original request with the new token
-					originalRequest.headers[
-						"Authorization"
-					] = `Bearer ${data.accessToken}`;
-					return this.axiosInstance(originalRequest);
-				} catch (refreshError) {
-					this.isRefreshing = false;
-					this.refreshSubscribers = [];
-					tokenManager.clearTokens();
-					throw new LogoutError("Session expired, please log in again.");
+					try {
+						const refreshToken = tokenManager.getRefreshToken();
+
+						if (!refreshToken) {
+							throw new LogoutError(
+								"No refresh token available. Please log in again."
+							);
+						}
+
+						// Attempt to refresh the token
+						const { data } = await this.axiosInstance.post("/auth/refresh", {
+							refreshToken,
+						});
+
+						tokenManager.setTokens(data.accessToken, data.refreshToken);
+						this.isRefreshing = false;
+
+						// Resolve all queued requests with the new token
+						this.refreshSubscribers.forEach((callback) =>
+							callback(data.accessToken)
+						);
+						this.refreshSubscribers = [];
+
+						// Retry the original request with the new token
+						originalRequest.headers["Authorization"] =
+							`Bearer ${data.accessToken}`;
+
+						return this.axiosInstance(originalRequest);
+					} catch (refreshError) {
+						this.isRefreshing = false;
+						this.refreshSubscribers = [];
+						tokenManager.clearTokens();
+						return Promise.reject(
+							new LogoutError("Session expired, please log in again.")
+						);
+					}
 				}
+
+				// Handle Rate Limiting (429)
+				if (error.response?.status === 429) {
+					toast.error("Too many attempts. Please try again later.");
+					return Promise.reject(
+						new ApiError("Rate limit exceeded", 429, "RATE_LIMIT")
+					);
+				}
+
+				// Apply getErrorMessage before returning any other errors
+				const errorMessage = this.getErrorMessage(error);
+				return Promise.reject(
+					new ApiError(errorMessage, error.response?.status)
+				);
 			}
 		);
 	}
@@ -123,13 +177,20 @@ class ApiClient {
 		data?: any,
 		config?: AxiosRequestConfig
 	): Promise<T> {
-		const response = await this.axiosInstance.request<T>({
-			method,
-			url,
-			data,
-			...config,
-		});
-		return response.data;
+		try {
+			const response = await this.axiosInstance.request<T>({
+				method,
+				url,
+				data,
+				...config,
+			});
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				throw new ApiError(this.getErrorMessage(error), error.response?.status);
+			}
+			throw error;
+		}
 	}
 
 	async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

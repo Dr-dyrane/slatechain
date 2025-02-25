@@ -23,6 +23,7 @@ import shopifyReducer from "./slices/shopifySlice";
 import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
+import { useDispatch } from "react-redux";
 
 
 const createPersistConfig = (userId: string | null) => ({
@@ -69,3 +70,4 @@ export const createStore = (userId: string | null) => {
 
 export type RootState = ReturnType<ReturnType<typeof createRootReducer>>;
 export type AppDispatch = ReturnType<typeof createStore>["store"]["dispatch"];
+export const useAppDispatch: () => AppDispatch = useDispatch;

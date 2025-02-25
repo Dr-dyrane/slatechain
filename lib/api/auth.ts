@@ -33,9 +33,7 @@ export const registerUser = async (
 };
 
 export const googleCallback = async (): Promise<AuthResponse> => {
-	const response = await apiClient.post<AuthResponse>("/auth/google"); // changed endpoint
-	tokenManager.setTokens(response.accessToken, response.refreshToken); //Set tokens here
-	return response;
+	throw new Error("This function should not be called directly");
 };
 
 export const logoutUser = async (): Promise<void> => {

@@ -15,7 +15,10 @@ export async function POST(req: Request) {
 
 	if (limited) {
 		return NextResponse.json(
-			{ error: "Too many login attempts. Please try again later." },
+			{
+				code: "RATE_LIMIT",
+				message: "Too many login attempts. Please try again later.",
+			},
 			{
 				status: 429,
 				headers,
@@ -28,11 +31,25 @@ export async function POST(req: Request) {
 
 		const { email, password }: LoginRequest = await req.json();
 
+		// Input validation
+		if (!email || !password) {
+			return NextResponse.json(
+				{
+					code: "INVALID_INPUT",
+					message: "Email and password are required",
+				},
+				{ status: 400, headers }
+			);
+		}
+
 		// Find user
 		const user = await User.findOne({ email });
 		if (!user) {
 			return NextResponse.json(
-				{ error: "Invalid credentials" },
+				{
+					code: "INVALID_CREDENTIALS",
+					message: "Invalid email or password",
+				},
 				{
 					status: 401,
 					headers,
@@ -44,7 +61,10 @@ export async function POST(req: Request) {
 		const isValid = await user.comparePassword(password);
 		if (!isValid) {
 			return NextResponse.json(
-				{ error: "Invalid credentials" },
+				{
+					code: "INVALID_CREDENTIALS",
+					message: "Invalid email or password",
+				},
 				{
 					status: 401,
 					headers,
@@ -78,7 +98,10 @@ export async function POST(req: Request) {
 	} catch (error) {
 		console.error("Login Error:", error);
 		return NextResponse.json(
-			{ error: "Login failed" },
+			{
+				code: "SERVER_ERROR",
+				message: "An unexpected error occurred. Please try again later.",
+			},
 			{
 				status: 500,
 				headers,

@@ -144,22 +144,9 @@ export const login = createAsyncThunk<
 	}
 });
 
-export const googleLogin = createAsyncThunk<
-	AuthResponse,
-	void,
-	{ rejectValue: AuthError }
->("auth/google", async (_, { rejectWithValue }) => {
-	try {
-		const response = await googleCallback();
-		return response;
-	} catch (error: any) {
-		const authError: AuthError = {
-			code: "GOOGLE_LOGIN_ERROR",
-			message: error.message || "An error occurred during Google login",
-		};
-		return rejectWithValue(authError);
-	}
-});
+export const googleLogin = createAsyncThunk<void, void>("auth/googleLogin", async () => {
+	window.location.href = "/api/auth/google"
+  })
 
 export const register = createAsyncThunk<
 	AuthResponse,
@@ -342,22 +329,6 @@ const authSlice = createSlice({
 			.addCase(googleLogin.pending, (state) => {
 				state.loading = true;
 				state.error = null;
-			})
-			.addCase(googleLogin.fulfilled, (state, action) => {
-				state.user = action.payload.user;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
-				state.isAuthenticated = true;
-				state.loading = false;
-				state.kycStatus = action.payload.user.kycStatus;
-				state.onboardingStatus = action.payload.user.onboardingStatus;
-			})
-			.addCase(googleLogin.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload || {
-					code: "GOOGLE_LOGIN_ERROR",
-					message: "An error occurred during Google login",
-				};
 			})
 			.addCase(register.pending, (state) => {
 				state.loading = true;
