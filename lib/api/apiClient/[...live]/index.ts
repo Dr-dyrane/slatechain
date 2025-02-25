@@ -38,7 +38,11 @@ const ERROR_MESSAGES: Record<string, string> = {
 	INVALID_TOKEN: "Your session has expired, please log in again",
 	SERVER_ERROR: "Something went wrong, please try again later",
 	RATE_LIMIT: "Too many attempts, please try again later",
-};
+	INVALID_INPUT: "Please fill in all required fields",
+	INVALID_EMAIL: "Please enter a valid email address",
+	WEAK_PASSWORD: "Password is too weak",
+	PASSWORDS_DONT_MATCH: "Passwords do not match",
+  }
 
 class ApiClient {
 	private axiosInstance: AxiosInstance;

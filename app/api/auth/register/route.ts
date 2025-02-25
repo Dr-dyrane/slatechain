@@ -20,7 +20,10 @@ export async function POST(req: Request) {
 
 	if (limited) {
 		return NextResponse.json(
-			{ error: "Too many registration attempts. Please try again later." },
+			{
+				code: "RATE_LIMIT",
+				message: "Too many registration attempts. Please try again later.",
+			},
 			{ status: 429, headers }
 		);
 	}
@@ -30,11 +33,48 @@ export async function POST(req: Request) {
 
 		const body: RegisterRequest = await req.json();
 
+		// Input validation
+		if (!body.email || !body.password || !body.firstName || !body.lastName) {
+			return NextResponse.json(
+				{
+					code: "INVALID_INPUT",
+					message: "All fields are required",
+				},
+				{ status: 400, headers }
+			);
+		}
+
+		// Email format validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(body.email)) {
+			return NextResponse.json(
+				{
+					code: "INVALID_EMAIL",
+					message: "Please enter a valid email address",
+				},
+				{ status: 400, headers }
+			);
+		}
+
+		// Password strength validation
+		if (body.password.length < 8) {
+			return NextResponse.json(
+				{
+					code: "WEAK_PASSWORD",
+					message: "Password must be at least 8 characters long",
+				},
+				{ status: 400, headers }
+			);
+		}
+
 		// Check if user exists
 		const existingUser = await User.findOne({ email: body.email });
 		if (existingUser) {
 			return NextResponse.json(
-				{ error: "Email already registered" },
+				{
+					code: "EMAIL_EXISTS",
+					message: "This email is already registered",
+				},
 				{ status: 409, headers }
 			);
 		}
@@ -74,7 +114,10 @@ export async function POST(req: Request) {
 	} catch (error: any) {
 		console.error("Registration Error:", error);
 		return NextResponse.json(
-			{ error: "Registration failed" },
+			{
+				code: "SERVER_ERROR",
+				message: "An unexpected error occurred. Please try again later.",
+			},
 			{ status: 500, headers }
 		);
 	}

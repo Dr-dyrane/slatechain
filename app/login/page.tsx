@@ -239,11 +239,11 @@ export default function LoginPage() {
           </div>
 
 
-          <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full gap-2">
+          <GoogleSignInButton onClick={handleGoogleSignIn} disabled={isSubmitting || loading} className="w-full gap-2">
             Sign in with Google
           </GoogleSignInButton>
 
-          <AppleSignInButton onClick={handleAppleSignIn} className="w-full gap-2">
+          <AppleSignInButton onClick={handleAppleSignIn} disabled={isSubmitting || loading} className="w-full gap-2">
             Sign in with Apple
           </AppleSignInButton>
 
