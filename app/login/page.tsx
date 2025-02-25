@@ -18,6 +18,7 @@ import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { toast } from 'sonner';
 import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
+import AuthLoading from './loading';
 
 interface FormErrors {
   email?: string
@@ -100,6 +101,12 @@ export default function LoginPage() {
 
   const handleGoBack = () => {
     router.push('/')
+  }
+
+
+  //Loading and Error
+  if (loading) {
+    return <AuthLoading />
   }
 
   return (
