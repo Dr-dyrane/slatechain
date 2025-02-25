@@ -1,0 +1,53 @@
+// app/api/models/Notification.ts
+
+import { mongoose } from ".."
+
+// Define the notification schema
+const notificationSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: String,
+      required: true,
+      index: true,
+    },
+    type: {
+      type: String,
+      enum: ["GENERAL", "ORDER_UPDATE", "INVENTORY_ALERT", "INTEGRATION_STATUS"],
+      required: true,
+      index: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: true,
+    },
+    data: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
+    read: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    createdBy: {
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  },
+)
+
+// Create indexes for common queries
+notificationSchema.index({ createdAt: -1 })
+notificationSchema.index({ userId: 1, read: 1 })
+notificationSchema.index({ userId: 1, type: 1, createdAt: -1 })
+
+const Notification = mongoose.models.Notification || mongoose.model("Notification", notificationSchema)
+
+export default Notification
+
