@@ -42,6 +42,11 @@ const ERROR_MESSAGES: Record<string, string> = {
 	INVALID_EMAIL: "Please enter a valid email address",
 	WEAK_PASSWORD: "Password is too weak",
 	PASSWORDS_DONT_MATCH: "Passwords do not match",
+	NO_TOKEN: "Authentication required",
+	INVALID_PASSWORD: "Current password is incorrect",
+	INVALID_CODE: "Invalid or expired reset code",
+	INVALID_UPDATE: "No valid fields to update",
+	SUCCESS: "Operation completed successfully",
   }
 
 class ApiClient {
