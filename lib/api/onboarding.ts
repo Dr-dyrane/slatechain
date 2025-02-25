@@ -1,5 +1,7 @@
-import { apiClient } from "./apiClient";
+// lib/api/onboarding.ts
+
 import { OnboardingProgress, OnboardingStep } from "@/lib/types";
+import { apiClient } from "./apiClient/[...live]";
 
 export const fetchOnboardingProgress = async (): Promise<OnboardingProgress> => {
   return apiClient.get<OnboardingProgress>("/onboarding/progress");

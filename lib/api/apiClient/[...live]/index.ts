@@ -48,7 +48,10 @@ const ERROR_MESSAGES: Record<string, string> = {
 	INVALID_UPDATE: "No valid fields to update",
 	SUCCESS: "Operation completed successfully",
 	EMAIL_SEND_ERROR: "Failed to send reset email. Please try again later.",
-  }
+	NOT_FOUND: "Requested resource not found",
+	INVALID_STATUS: "Invalid status provided",
+	ONBOARDING_COMPLETE: "Onboarding already completed",
+};
 
 class ApiClient {
 	private axiosInstance: AxiosInstance;

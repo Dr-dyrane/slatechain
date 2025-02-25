@@ -23,6 +23,13 @@ export enum OnboardingStatus {
 	COMPLETED = "COMPLETED",
 }
 
+export enum OnboardingStepStatus {
+	NOT_STARTED = "NOT_STARTED",
+	IN_PROGRESS = "IN_PROGRESS",
+	COMPLETED = "COMPLETED",
+	SKIPPED = "SKIPPED",
+}
+
 // User Interface
 export interface User {
 	id: string;
@@ -99,15 +106,15 @@ export interface BIIntegration {
 }
 
 // Available Services per Category
-export type EcommerceService = "shopify" | null
+export type EcommerceService = "shopify" | null;
 //  | "woocommerce" | "magento" | "bigcommerce";
 
-export type ErpCrmService = "sap" | null
+export type ErpCrmService = "sap" | null;
 //  | "oracle" | "microsoft_dynamics";
 
-export type IoTService = "iot_monitoring" | null
+export type IoTService = "iot_monitoring" | null;
 
-export type BIService = "power_bi" | null
+export type BIService = "power_bi" | null;
 //  | "tableau";
 
 export interface ShopifyIntegrationSettings {
@@ -194,6 +201,10 @@ export interface OnboardingStep {
 	id: number;
 	title: string;
 	status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
+	data?: Record<string, any>
+	completedAt?: Date
+	skippedAt?: Date
+	skipReason?: string
 }
 
 export interface OnboardingProgress {
@@ -644,17 +655,17 @@ export interface Notification {
 	data?: Record<string, any>;
 	read: boolean;
 	createdAt: string;
-  }
-  
-  export type NotificationType =
+}
+
+export type NotificationType =
 	| "GENERAL"
 	| "ORDER_UPDATE"
 	| "INVENTORY_ALERT"
 	| "INTEGRATION_STATUS";
-  
-  // Notification State
-  export interface NotificationState {
+
+// Notification State
+export interface NotificationState {
 	notifications: Notification[];
 	loading: boolean;
 	error: string | null;
-  }
+}

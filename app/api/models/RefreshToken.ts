@@ -1,3 +1,5 @@
+// app/api/models/RefreshToken.ts
+
 import mongoose from "mongoose";
 
 const RefreshTokenSchema = new mongoose.Schema({
