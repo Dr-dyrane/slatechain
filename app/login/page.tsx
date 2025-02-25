@@ -199,12 +199,12 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="flex justify-end w-full items-center">
-            <Button variant='link' size={'sm'} disabled={isSubmitting} onClick={handleForgotPassword} className="">
+            <Button variant='link' size={'sm'} disabled={isSubmitting || loading} onClick={handleForgotPassword} className="">
               Forgot password?
             </Button>
           </div>
-          <Button type="submit" className="w-full gap-2" disabled={isSubmitting} onClick={handleSubmit}>
-            {isSubmitting ? (
+          <Button type="submit" className="w-full gap-2" disabled={isSubmitting || loading} onClick={handleSubmit}>
+            {isSubmitting || loading ? (
               <div className="flex items-center gap-2">
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
                 Logging in...
