@@ -1,12 +1,13 @@
-// app/api/kyc/documents/route.ts
-
 import { NextResponse } from "next/server"
 import { connectToDatabase } from "../../index"
 import User from "../../models/User"
 import KYCDocument from "../../models/KYCDocument"
 import { withAuth } from "@/lib/auth/withAuth"
-import { uploadToStorage } from "@/lib/storage"
 import { KYCStatus } from "@/lib/types"
+import { UTApi } from "uploadthing/server"
+
+// Initialize UploadThing API with token
+const utapi = new UTApi()
 
 export async function POST(req: Request) {
   // Rate limit: 10 uploads per hour per user
@@ -98,20 +99,40 @@ export async function POST(req: Request) {
       )
     }
 
-    // Upload file to storage
-    const fileBuffer = await file.arrayBuffer()
-    const fileName = `kyc/${userId}/${documentType}_${Date.now()}.${file.name.split(".").pop()}`
-    const url = await uploadToStorage(fileName, Buffer.from(fileBuffer), file.type)
+    // Convert File to Buffer for UploadThing
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Generate a unique filename
+    const fileExtension = file.name.split(".").pop()
+    const fileName = `kyc-${userId}-${documentType}-${Date.now()}.${fileExtension}`
+
+    // Upload file to UploadThing
+    const uploadResult = await utapi.uploadFiles([new File([buffer], fileName, { type: file.type })])
+
+    // Check if upload was successful
+    if (!uploadResult || !uploadResult[0]) {
+      return NextResponse.json(
+        {
+          code: "UPLOAD_FAILED",
+          message: "Failed to upload file",
+        },
+        { status: 500, headers },
+      )
+    }
+
+    const fileData = uploadResult[0] as { data: { key: string; url: string } }
 
     // Create document record
     const document = await KYCDocument.create({
       userId,
       type: documentType,
       status: "PENDING",
-      url,
+      url: fileData.data.url,
       originalFilename: file.name,
       mimeType: file.type,
       fileSize: file.size,
+      fileKey: fileData.data.key,
     })
 
     // Update user KYC status if needed
@@ -132,6 +153,87 @@ export async function POST(req: Request) {
     )
   } catch (error: any) {
     console.error("KYC Document Upload Error:", error)
+    return NextResponse.json(
+      {
+        code: "SERVER_ERROR",
+        message: "An unexpected error occurred. Please try again later.",
+      },
+      { status: 500, headers },
+    )
+  }
+}
+
+// Add a DELETE endpoint to remove documents
+export async function DELETE(req: Request) {
+  const { userId, headers } = await withAuth(req)
+
+  if (!userId) {
+    return NextResponse.json(
+      {
+        code: "UNAUTHORIZED",
+        message: "Authentication required",
+      },
+      { status: 401, headers },
+    )
+  }
+
+  try {
+    await connectToDatabase()
+
+    // Get document ID from URL
+    const url = new URL(req.url)
+    const documentId = url.searchParams.get("id")
+
+    if (!documentId) {
+      return NextResponse.json(
+        {
+          code: "INVALID_INPUT",
+          message: "Document ID is required",
+        },
+        { status: 400, headers },
+      )
+    }
+
+    // Find the document
+    const document = await KYCDocument.findById(documentId)
+    if (!document) {
+      return NextResponse.json(
+        {
+          code: "NOT_FOUND",
+          message: "Document not found",
+        },
+        { status: 404, headers },
+      )
+    }
+
+    // Verify ownership
+    if (document.userId !== userId) {
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You don't have permission to delete this document",
+        },
+        { status: 403, headers },
+      )
+    }
+
+    // Delete from UploadThing if fileKey exists
+    if (document.fileKey) {
+      await utapi.deleteFiles([document.fileKey])
+    }
+
+    // Delete from database
+    await KYCDocument.findByIdAndDelete(documentId)
+
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Document deleted successfully",
+      },
+      { headers },
+    )
+  } catch (error: any) {
+    console.error("KYC Document Delete Error:", error)
     return NextResponse.json(
       {
         code: "SERVER_ERROR",

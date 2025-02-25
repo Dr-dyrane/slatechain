@@ -10,6 +10,7 @@ export interface IKYCDocument {
   originalFilename: string
   mimeType: string
   fileSize: number
+  fileKey?: string
   rejectionReason?: string
   createdAt: Date
   updatedAt: Date
@@ -28,6 +29,7 @@ const kycDocumentSchema = new mongoose.Schema<IKYCDocument>(
     originalFilename: { type: String, required: true },
     mimeType: { type: String, required: true },
     fileSize: { type: Number, required: true },
+    fileKey: String,
     rejectionReason: String,
   },
   {
