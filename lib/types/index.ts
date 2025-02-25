@@ -48,6 +48,28 @@ export interface UserIntegrations {
 	erp_crm?: ErpCrmIntegration;
 	iot?: IoTIntegration;
 	bi_tools?: BIIntegration;
+	auth?: AuthIntegrations;
+}
+
+// Authentication Providers
+export interface AuthIntegrations {
+	apple?: AppleIntegration;
+	google?: GoogleIntegration;
+}
+
+// Apple Integration
+export interface AppleIntegration {
+	id: string; // Apple user ID (sub)
+	email: string;
+	name?: string; // Optional, Apple sometimes provides a name
+}
+
+// Google Integration
+export interface GoogleIntegration {
+	id: string; // Google user ID
+	email: string;
+	name?: string;
+	avatarUrl?: string; // Google provides profile pictures
 }
 
 // Integration Categories - One Service Per Category

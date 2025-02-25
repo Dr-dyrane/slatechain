@@ -1,3 +1,5 @@
+// app/auth/callback/page.ts
+
 "use client"
 
 import { useEffect } from "react"

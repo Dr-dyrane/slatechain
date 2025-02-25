@@ -1,8 +1,11 @@
-// app/api/auth/APPLE/route.ts
+// app/api/auth/apple/route.ts
 
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/utils";
 import crypto from "crypto";
+import { Redis } from "@upstash/redis";
+
+const redis = Redis.fromEnv();  // Initialize Redis client
 
 export async function GET(req: Request) {
 	// Rate limit: 10 attempts per minute
@@ -21,8 +24,7 @@ export async function GET(req: Request) {
 	// Generate nonce for PKCE
 	const nonce = crypto.randomBytes(16).toString("base64");
 
-	// Store state and nonce in session or Redis for validation
-	// This should be implemented based on your session management strategy
+	await redis.set(`apple-oauth-state:${state}`, nonce, { ex: 300 }); // Expire in 5 minutes
 
 	// Construct Apple OAuth URL
 	const authUrl = new URL("https://appleid.apple.com/auth/authorize");

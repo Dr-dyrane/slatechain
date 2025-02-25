@@ -53,9 +53,13 @@ export async function GET(req: Request) {
 				// Generate a random password for OAuth users
 				password: crypto.randomBytes(32).toString("hex"),
 				integrations: {
-					google: {
-						id: payload.sub,
-						email: payload.email,
+					auth: {
+						google: {
+							id: payload.sub,
+							email: payload.email,
+							name: payload.name || "",
+							avatarUrl: payload.picture || null,
+						},
 					},
 				},
 			});
@@ -63,9 +67,14 @@ export async function GET(req: Request) {
 			// Update existing user's Google integration
 			user.integrations = {
 				...user.integrations,
-				google: {
-					id: payload.sub,
-					email: payload.email,
+				auth: {
+					...(user.integrations?.auth || {}),
+					google: {
+						id: payload.sub,
+						email: payload.email,
+						name: payload.name || "",
+						avatarUrl: payload.picture || null,
+					},
 				},
 			};
 			await user.save();
