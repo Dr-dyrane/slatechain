@@ -47,6 +47,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 	INVALID_CODE: "Invalid or expired reset code",
 	INVALID_UPDATE: "No valid fields to update",
 	SUCCESS: "Operation completed successfully",
+	EMAIL_SEND_ERROR: "Failed to send reset email. Please try again later.",
   }
 
 class ApiClient {

@@ -31,7 +31,10 @@ export async function POST(req: Request) {
 
 	if (limited) {
 		return NextResponse.json(
-			{ error: "Too many password reset attempts. Please try again later." },
+			{
+				code: "RATE_LIMIT",
+				message: "Too many password reset attempts. Please try again later.",
+			},
 			{
 				status: 429,
 				headers,
@@ -45,12 +48,37 @@ export async function POST(req: Request) {
 
 		// Find user
 		const user = await User.findOne({ email });
-		if (!user) {
+		if (!email) {
 			// For security, don't reveal if email exists
 			return NextResponse.json(
-				{ message: "If an account exists, a reset email will be sent" },
+				{
+					code: "INVALID_INPUT",
+					message: "Email is required",
+				},
 				{ headers }
 			);
+		}
+
+		// Email format validation
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(email)) {
+			return NextResponse.json(
+				{
+					code: "INVALID_EMAIL",
+					message: "Please enter a valid email address",
+				},
+				{ status: 400, headers }
+			);
+		}
+
+		// For security, always return the same response whether the email exists or not
+		const genericResponse = {
+			code: "SUCCESS",
+			message: "If an account exists, a reset email will be sent",
+		};
+		// If no user found, return generic response without sending email
+		if (!user) {
+			return NextResponse.json(genericResponse, { headers });
 		}
 
 		// Generate unique reset code
@@ -62,29 +90,37 @@ export async function POST(req: Request) {
 		// Generate reset link
 		const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?code=${resetCode}?email=${email}`;
 
-		// Send email using Nodemailer
-		await transporter.sendMail({
-			from: `"Slate Chain" <${process.env.NEXT_PUBLIC_GMAIL_USER}>`,
-			to: email,
-			subject: "Reset Your Password",
-			html: PasswordResetEmail({
-				resetLink,
-				userName: user.firstName || "there",
-			}),
-		});
+		try {
+			// Send email
+			await transporter.sendMail({
+				from: `"Slate Chain" <${process.env.NEXT_PUBLIC_GMAIL_USER}>`,
+				to: email,
+				subject: "Reset Your Password",
+				html: PasswordResetEmail({
+					resetLink,
+					userName: user.firstName || "there",
+				}),
+			});
 
-		return NextResponse.json(
-			{ message: "If an account exists, a reset email will be sent" },
-			{ headers }
-		);
+			return NextResponse.json(genericResponse, { headers });
+		} catch (emailError) {
+			console.error("Email Send Error:", emailError);
+			return NextResponse.json(
+				{
+					code: "EMAIL_SEND_ERROR",
+					message: "Failed to send reset email. Please try again later.",
+				},
+				{ status: 500, headers }
+			);
+		}
 	} catch (error) {
 		console.error("Password Reset Request Error:", error);
 		return NextResponse.json(
-			{ error: "Failed to process password reset request" },
 			{
-				status: 500,
-				headers,
-			}
+				code: "SERVER_ERROR",
+				message: "An unexpected error occurred. Please try again later.",
+			},
+			{ status: 500, headers }
 		);
 	}
 }

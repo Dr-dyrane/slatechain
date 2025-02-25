@@ -13,7 +13,10 @@ export async function GET(req: Request) {
 
 	if (limited) {
 		return NextResponse.json(
-			{ error: "Too many requests. Please try again later." },
+			{
+				code: "RATE_LIMIT",
+				message: "Too many requests. Please try again later.",
+			},
 			{ status: 429, headers }
 		);
 	}
@@ -26,7 +29,10 @@ export async function GET(req: Request) {
 
 		if (!authorization || !authorization.startsWith("Bearer ")) {
 			return NextResponse.json(
-				{ error: "No token provided" },
+				{
+					code: "NO_TOKEN",
+					message: "Authentication required",
+				},
 				{ status: 401, headers }
 			);
 		}
@@ -37,7 +43,10 @@ export async function GET(req: Request) {
 
 		if (!decoded) {
 			return NextResponse.json(
-				{ error: "Invalid or expired token" },
+				{
+					code: "INVALID_TOKEN",
+					message: "Your session has expired, please log in again",
+				},
 				{ status: 401, headers }
 			);
 		}
@@ -46,7 +55,10 @@ export async function GET(req: Request) {
 		const user = await User.findById(decoded.userId);
 		if (!user) {
 			return NextResponse.json(
-				{ error: "User not found" },
+				{
+					code: "USER_NOT_FOUND",
+					message: "User not found",
+				},
 				{ status: 404, headers }
 			);
 		}
@@ -54,15 +66,19 @@ export async function GET(req: Request) {
 		// Return user data
 		return NextResponse.json(
 			{
+				code: "SUCCESS",
 				user: user.toAuthJSON(),
-				accessToken: token, // Return the same access token if it's still valid
+				accessToken: token,
 			},
 			{ headers }
 		);
 	} catch (error) {
 		console.error("Get User Data Error:", error);
 		return NextResponse.json(
-			{ error: "Failed to get user data" },
+			{
+				code: "SERVER_ERROR",
+				message: "An unexpected error occurred. Please try again later.",
+			},
 			{ status: 500, headers }
 		);
 	}
