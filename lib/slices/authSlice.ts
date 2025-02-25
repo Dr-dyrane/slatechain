@@ -16,7 +16,6 @@ import {
 	registerUser,
 	logoutUser,
 	getUserData,
-	googleCallback,
 	changeUserPassword,
 	sendPasswordResetEmail,
 	resetPassword,

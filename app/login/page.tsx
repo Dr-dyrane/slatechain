@@ -16,11 +16,19 @@ import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide-react';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { toast } from 'sonner';
+
+interface FormErrors {
+  email?: string
+  password?: string
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [showForgotPassowrd, setShowForgotPassowrd] = useState(false);
@@ -36,11 +44,44 @@ export default function LoginPage() {
     setShowForgotPassowrd(true);
   };
 
+  const validateForm = (): boolean => {
+    const errors: FormErrors = {}
+
+    if (!email) {
+      errors.email = "Email is required"
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!password) {
+      errors.password = "Password is required"
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters"
+    }
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await dispatch(login({ email, password }));
-    if (login.fulfilled.match(result)) {
-      router.push('/dashboard');
+
+    if (!validateForm()) {
+      return
+    }
+
+    setIsSubmitting(true)
+
+    try {
+      const result = await dispatch(login({ email, password }))
+      if (login.fulfilled.match(result)) {
+        toast.success("Successfully logged in")
+        router.push("/dashboard")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+    } finally {
+      setIsSubmitting(false)
     }
   };
 
@@ -60,7 +101,7 @@ export default function LoginPage() {
       <Card className="w-[350px] relative">
         <CardHeader className="text-center">
           <Logo />
-          <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
+          <CardTitle className="text-2xl mt-2">Welcome Back</CardTitle>
           <CardDescription>Enter your credentials to access your account</CardDescription>
           <Button variant='ghost'
             size={'icon'}
@@ -70,8 +111,8 @@ export default function LoginPage() {
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="grid w-full items-center gap-4">
+          <form onSubmit={handleSubmit} className='space-y-2 md:space-y-4'>
+            <div className="grid w-full items-center gap-4 space-y-2 md:space-y-4">
               <div className="flex flex-col space-y-1.5">
                 <Tooltip.Provider>
                   <Tooltip.Root>
@@ -91,11 +132,19 @@ export default function LoginPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setFormErrors((prev) => ({ ...prev, email: undefined }))
+                  }}
+                  className={formErrors.email ? "border-destructive" : ""}
+                  placeholder="Enter your email"
+                  disabled={isSubmitting}
                   required
                 />
+                {formErrors.email && <p className="text-sm text-destructive">{formErrors.email}</p>}
               </div>
-              <div className="flex flex-col space-y-1.5">
+
+              <div className="flex flex-col space-y-1.5 md:space-y-2">
                 <Tooltip.Provider>
                   <Tooltip.Root>
                     <Tooltip.Trigger asChild>
@@ -115,9 +164,13 @@ export default function LoginPage() {
                     id="password"
                     type={passwordVisible ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="pr-10"
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      setFormErrors((prev) => ({ ...prev, password: undefined }))
+                    }} required
+                    className={`pr-10 ${formErrors.password ? "border-destructive" : ""}`}
+                    placeholder="Enter your password"
+                    disabled={isSubmitting}
                   />
                   <Button
                     type="button"
@@ -125,6 +178,7 @@ export default function LoginPage() {
                     size="icon"
                     className="absolute right-2 top-1/2 -translate-y-1/2"
                     onClick={togglePasswordVisibility}
+                    disabled={isSubmitting}
                   >
                     {passwordVisible ? (
                       <EyeOff className="h-5 w-5 text-muted-foreground" />
@@ -133,6 +187,7 @@ export default function LoginPage() {
                     )}
                   </Button>
                 </div>
+                {formErrors.password && <p className="text-sm text-destructive">{formErrors.password}</p>}
               </div>
             </div>
           </form>
@@ -144,16 +199,38 @@ export default function LoginPage() {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="flex justify-end w-full items-center">
-            <Button variant='link' size={'sm'} onClick={handleForgotPassword} className="">
+            <Button variant='link' size={'sm'} disabled={isSubmitting} onClick={handleForgotPassword} className="">
               Forgot password?
             </Button>
           </div>
-          <Button onClick={handleSubmit} disabled={loading} className="w-full gap-2">
-            {loading ? 'Logging in...' : 'Login'} <LogIn size={16} />
+          <Button type="submit" className="w-full gap-2" disabled={isSubmitting} onClick={handleSubmit}>
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                Logging in...
+              </div>
+            ) : (
+              <>
+                Login <LogIn className="h-4 w-4" />
+              </>
+            )}
           </Button>
+
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or</span>
+            </div>
+          </div>
+
+
           <GoogleSignInButton onClick={handleGoogleSignIn} className="w-full gap-2">
             Sign in with Google
           </GoogleSignInButton>
+
+
           <div className="text-sm text-center">
             Don't have a chain?{" "}
             <Link href="/register" className="text-primary hover:underline">

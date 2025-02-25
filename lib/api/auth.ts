@@ -32,10 +32,6 @@ export const registerUser = async (
 	return response;
 };
 
-export const googleCallback = async (): Promise<AuthResponse> => {
-	throw new Error("This function should not be called directly");
-};
-
 export const logoutUser = async (): Promise<void> => {
 	const refreshToken = tokenManager.getRefreshToken();
 	if (refreshToken) {
