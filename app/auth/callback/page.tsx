@@ -23,7 +23,7 @@ export default function AuthCallback() {
      dispatch(fetchUser())
      .unwrap() // Ensure proper error handling
      .then(() => {
-       router.replace("/dashboard")
+       router.push("/dashboard")
      })
      .catch(() => {
        router.replace("/login?error=fetch_failed")
