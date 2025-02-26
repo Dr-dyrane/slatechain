@@ -1,10 +1,16 @@
 // src/lib/slices/notificationSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { Notification, NotificationState } from "@/lib/types"; //Import
+
+import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
+import type { Notification, NotificationState } from "@/lib/types";
 import { notificationApiClient } from "@/lib/api/notificationApiClient";
 
 const initialState: NotificationState = {
 	notifications: [],
+	unreadCount: 0,
 	loading: false,
 	error: null,
 };
@@ -28,9 +34,8 @@ export const markNotificationAsRead = createAsyncThunk(
 	"notifications/markNotificationAsRead",
 	async (notificationId: string, thunkAPI) => {
 		try {
-			const notification = await notificationApiClient.markAsRead(
-				notificationId
-			);
+			const notification =
+				await notificationApiClient.markAsRead(notificationId);
 			return notification;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
@@ -58,13 +63,40 @@ export const createNotification = createAsyncThunk(
 	"notifications/createNotification",
 	async (notification: Omit<Notification, "id" | "createdAt">, thunkAPI) => {
 		try {
-			const newNotification = await notificationApiClient.createNotification(
-				notification
-			);
+			const newNotification =
+				await notificationApiClient.createNotification(notification);
 			return newNotification;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to create notification"
+			);
+		}
+	}
+);
+
+export const markAllNotificationsAsRead = createAsyncThunk(
+	"notifications/markAllAsRead",
+	async (_, thunkAPI) => {
+		try {
+			const result = await notificationApiClient.markAllAsRead();
+			return result;
+		} catch (error: any) {
+			return thunkAPI.rejectWithValue(
+				error.message || "Failed to mark all notifications as read"
+			);
+		}
+	}
+);
+
+export const fetchUnreadCount = createAsyncThunk(
+	"notifications/fetchUnreadCount",
+	async (_, thunkAPI) => {
+		try {
+			const result = await notificationApiClient.getUnreadCount();
+			return result.count;
+		} catch (error: any) {
+			return thunkAPI.rejectWithValue(
+				error.message || "Failed to fetch unread count"
 			);
 		}
 	}
@@ -75,7 +107,6 @@ const notificationSlice = createSlice({
 	name: "notifications",
 	initialState,
 	reducers: {
-		//Example to clear notifcation on log out
 		clearNotifications: (state) => {
 			state.notifications = [];
 		},
@@ -101,7 +132,6 @@ const notificationSlice = createSlice({
 			.addCase(
 				markNotificationAsRead.fulfilled,
 				(state, action: PayloadAction<Notification>) => {
-					// Update the notification in the state
 					state.loading = false;
 					const updatedNotification = action.payload;
 					state.notifications = state.notifications.map((notification) =>
@@ -119,7 +149,6 @@ const notificationSlice = createSlice({
 			.addCase(
 				deleteNotification.fulfilled,
 				(state, action: PayloadAction<string>) => {
-					// Delete the notification in the state
 					state.loading = false;
 					const deletedNotificationId = action.payload;
 					state.notifications = state.notifications.filter(
@@ -135,7 +164,6 @@ const notificationSlice = createSlice({
 			.addCase(
 				createNotification.fulfilled,
 				(state, action: PayloadAction<Notification>) => {
-					// Add the notification in the state
 					state.loading = false;
 					const newNotification = action.payload;
 					state.notifications = [...state.notifications, newNotification];
@@ -144,6 +172,28 @@ const notificationSlice = createSlice({
 			)
 			.addCase(createNotification.rejected, (state, action) => {
 				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(markAllNotificationsAsRead.fulfilled, (state) => {
+				state.loading = false;
+				state.notifications = state.notifications.map((notification) => ({
+					...notification,
+					read: true,
+				}));
+				state.error = null;
+			})
+			.addCase(markAllNotificationsAsRead.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(
+				fetchUnreadCount.fulfilled,
+				(state, action: PayloadAction<number>) => {
+					state.unreadCount = action.payload;
+					state.error = null;
+				}
+			)
+			.addCase(fetchUnreadCount.rejected, (state, action) => {
 				state.error = action.payload as string;
 			});
 	},

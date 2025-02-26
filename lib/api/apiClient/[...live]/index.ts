@@ -51,6 +51,11 @@ const ERROR_MESSAGES: Record<string, string> = {
 	NOT_FOUND: "Requested resource not found",
 	INVALID_STATUS: "Invalid status provided",
 	ONBOARDING_COMPLETE: "Onboarding already completed",
+	INVALID_TYPE: "Invalid notification type",
+	NO_RECIPIENTS: "No users match the notification criteria",
+	NOTIFICATION_NOT_FOUND: "Notification not found",
+	FORBIDDEN_NOTIFICATION:
+		"You don't have permission to access this notification",
 };
 
 class ApiClient {

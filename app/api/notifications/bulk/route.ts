@@ -41,11 +41,11 @@ export async function POST(req: Request) {
     const validTypes = ["GENERAL", "ORDER_UPDATE", "INVENTORY_ALERT", "INTEGRATION_STATUS"]
 
     for (const notification of body.notifications) {
-      if (!notification.recipientId || !notification.type || !notification.title || !notification.message) {
+      if (!notification.userId || !notification.type || !notification.title || !notification.message) {
         return NextResponse.json(
           {
             code: "INVALID_INPUT",
-            message: "Each notification must have recipientId, type, title, and message",
+            message: "Each notification must have userId, type, title, and message",
           },
           { status: 400, headers },
         )
@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
     // Prepare notifications for bulk insert
     const notificationsToInsert = body.notifications.map((notification: any) => ({
-      userId: notification.recipientId,
+      userId: notification.userId,
       type: notification.type,
       title: notification.title,
       message: notification.message,

@@ -666,6 +666,7 @@ export type NotificationType =
 // Notification State
 export interface NotificationState {
 	notifications: Notification[];
+	unreadCount: number;
 	loading: boolean;
 	error: string | null;
 }
