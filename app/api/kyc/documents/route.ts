@@ -1,3 +1,5 @@
+// app/api/kyc/documents/route.ts
+
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../index";
 import User from "../../models/User";
@@ -5,6 +7,7 @@ import KYCDocument from "../../models/KYCDocument";
 import { withAuth } from "@/lib/auth/withAuth";
 import { KYCStatus } from "@/lib/types";
 import { UTApi } from "uploadthing/server";
+import { NotificationService } from "@/lib/api/notificationService";
 
 // Initialize UploadThing API with token
 const utapi = new UTApi();
@@ -153,6 +156,19 @@ export async function POST(req: Request) {
 			await user.save();
 		}
 
+		// Create notification for document upload
+		await NotificationService.createNotification(
+			userId,
+			"GENERAL",
+			"KYC Document Uploaded",
+			`Your ${getDocumentTypeName(documentType)} has been uploaded successfully and is pending review.`,
+			{ documentType, documentId: document._id.toString() },
+			// Safely extract the token
+			headers instanceof Headers
+				? headers.get("Authorization")?.split(" ")[1]
+				: undefined
+		);
+
 		return NextResponse.json(
 			{
 				id: document._id,
@@ -229,6 +245,9 @@ export async function DELETE(req: Request) {
 			);
 		}
 
+		// Get document type name before deletion
+		const documentTypeName = getDocumentTypeName(document.type);
+
 		// Delete from UploadThing if fileKey exists
 		if (document.fileKey) {
 			await utapi.deleteFiles([document.fileKey]);
@@ -236,6 +255,19 @@ export async function DELETE(req: Request) {
 
 		// Delete from database
 		await KYCDocument.findByIdAndDelete(documentId);
+
+		// Create notification for document deletion
+		await NotificationService.createNotification(
+			userId,
+			"GENERAL",
+			"KYC Document Deleted",
+			`Your ${documentTypeName} has been deleted.`,
+			{ documentType: document.type },
+			// Safely extract the token
+			headers instanceof Headers
+				? headers.get("Authorization")?.split(" ")[1]
+				: undefined
+		);
 
 		return NextResponse.json(
 			{
@@ -254,4 +286,18 @@ export async function DELETE(req: Request) {
 			{ status: 500, headers }
 		);
 	}
+}
+
+/**
+ * Helper function to get a human-readable document type name
+ */
+function getDocumentTypeName(documentType: string): string {
+	const documentTypeMap: Record<string, string> = {
+		ID_DOCUMENT: "Identity Document",
+		TAX_DOCUMENT: "Tax Document",
+		ADDRESS_PROOF: "Proof of Address",
+		BUSINESS_LICENSE: "Business License",
+	};
+
+	return documentTypeMap[documentType] || documentType;
 }

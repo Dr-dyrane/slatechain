@@ -1,10 +1,11 @@
+// app/kyc/page.tsx
+
 "use client"
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-import { useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
@@ -12,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import type { RootState, AppDispatch } from "@/lib/store"
 import { fetchKYCStatusThunk, startKYCProcessThunk, submitKYCDataThunk } from "@/lib/slices/kycSlice"
-import { KYCStatus, UserRole, OnboardingStatus, KYCDocument, KYCState } from "@/lib/types"
+import { KYCStatus, UserRole, OnboardingStatus } from "@/lib/types"
 import { AdminKYCForm } from "@/components/kyc/AdminKYCForm"
 import { SupplierKYCForm } from "@/components/kyc/SupplierKYCForm"
 import { ManagerKYCForm } from "@/components/kyc/ManagerKYCForm"

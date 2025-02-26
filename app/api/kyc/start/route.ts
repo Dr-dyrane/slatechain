@@ -5,6 +5,7 @@ import { connectToDatabase } from "../../index";
 import User from "../../models/User";
 import { KYCStatus } from "@/lib/types";
 import { withAuth } from "@/lib/auth/withAuth";
+import { NotificationService } from "@/lib/api/notificationService";
 
 export async function POST(req: Request) {
 	// Rate limit: 5 attempts per hour per user
@@ -54,6 +55,19 @@ export async function POST(req: Request) {
 		if (user.kycStatus === KYCStatus.NOT_STARTED) {
 			user.kycStatus = KYCStatus.IN_PROGRESS;
 			await user.save();
+
+			// Create notification for KYC started
+			await NotificationService.createNotification(
+				userId,
+				"GENERAL",
+				"KYC Process Started",
+				"You have started the KYC verification process. Please complete all required steps.",
+				{ kycStatus: KYCStatus.IN_PROGRESS },
+				// Safely extract the token
+				headers instanceof Headers
+					? headers.get("Authorization")?.split(" ")[1]
+					: undefined
+			);
 		}
 
 		return NextResponse.json(user.kycStatus, { headers });

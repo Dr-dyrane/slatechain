@@ -7,6 +7,7 @@ import KYCSubmission from "../../models/KYCSubmission";
 import KYCDocument from "../../models/KYCDocument"; // Import KYCDocument
 import { KYCStatus } from "@/lib/types";
 import { withAuth } from "@/lib/auth/withAuth";
+import { NotificationService } from "@/lib/api/notificationService";
 import crypto from "crypto";
 
 export async function POST(req: Request) {
@@ -102,6 +103,19 @@ export async function POST(req: Request) {
 		// Update user KYC status
 		user.kycStatus = KYCStatus.PENDING_REVIEW;
 		await user.save();
+
+		// Create notification for KYC submission
+		await NotificationService.createNotification(
+			userId,
+			"GENERAL",
+			"KYC Submission Received",
+			"Your KYC information has been submitted and is pending review. You will be notified once the review is complete.",
+			{ referenceId, kycStatus: KYCStatus.PENDING_REVIEW },
+			// Safely extract the token
+			headers instanceof Headers
+				? headers.get("Authorization")?.split(" ")[1]
+				: undefined
+		);
 
 		return NextResponse.json(
 			{
