@@ -16,7 +16,7 @@ interface NotificationDrawerProps {
 
 export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, onOpenChange, notifications }) => {
     const dispatch = useDispatch<AppDispatch>()
-    const hasUnread = notifications.some((notification) => !notification.read)
+    const hasUnread = Array.isArray(notifications) && notifications.some((notification) => !notification.read);
 
     const handleMarkAllAsRead = () => {
         dispatch(markAllNotificationsAsRead())

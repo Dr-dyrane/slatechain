@@ -1,14 +1,11 @@
-"use client"
+"use client";
 
-import { AlertTriangle } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { ReactNode, Component } from 'react';
-
-import { connect } from 'react-redux'; // To connect Redux state and dispatch to the class component
-
-import { useRouter } from 'next/router'; // We still use router, but we can use it in a functional context
-import { LogoutError } from '@/lib/api/apiClient';
-import { logout } from '@/lib/slices/authSlice';
+import { AlertTriangle } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { ReactNode, Component } from "react";
+import { connect } from "react-redux"; 
+import { LogoutError } from "@/lib/api/apiClient";
+import { logout } from "@/lib/slices/authSlice";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -34,17 +31,16 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   async componentDidCatch(error: any, info: any) {
-    console.error('Error caught by ErrorBoundary:', error, info);
+    console.error("Error caught by ErrorBoundary:", error, info);
 
     if (error instanceof LogoutError) {
-      const { logout } = this.props;
-      const router = useRouter();
-
-      // Perform the async logout operation
-      await logout();
-
-      // After logout, redirect to login page
-      router.push('/login');
+      try {
+        await this.props.logout(); // Dispatch logout action
+      } catch (logoutError) {
+        console.error("Logout failed:", logoutError);
+      } finally {
+        window.location.href = "/login"; // Redirect manually
+      }
     }
   }
 
@@ -65,9 +61,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
               Oops! Something went wrong.
             </h1>
             <p className="mt-6 text-base leading-7 text-muted-foreground">
-              {typeof error === 'object' && error !== null && 'message' in error
+              {typeof error === "object" && error !== null && "message" in error
                 ? error.message
-                : 'An unexpected error occurred.'}
+                : "An unexpected error occurred."}
             </p>
             <div className="mt-10 flex items-center justify-center gap-4">
               <Button onClick={this.resetError} variant="default">

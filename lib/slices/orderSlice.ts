@@ -2,7 +2,7 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Order } from "@/lib/types";
-import { apiClient } from "../api/apiClient/[...live]";
+import { apiClient } from "../api/apiClient";
 
 interface OrderState {
 	items: Order[];
@@ -115,7 +115,7 @@ const orderSlice = createSlice({
 			})
 			.addCase(fetchOrders.fulfilled, (state, action) => {
 				state.loading = false;
-				state.items = action.payload;
+				state.items = action.payload ?? [];
 			})
 			.addCase(fetchOrders.rejected, (state, action) => {
 				state.loading = false;

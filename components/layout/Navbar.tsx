@@ -50,7 +50,9 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
     }
   }, [dispatch, isAuthenticated])
 
-  const unreadCount = notifications.filter((notification) => !notification.read).length
+  const unreadCount = notifications?.length
+    ? notifications.filter((notification) => !notification.read).length
+    : 0;
 
   const handleLogout = async () => {
     await dispatch(logout())

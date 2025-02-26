@@ -13,7 +13,7 @@ interface Props {
 
 export const RightBar: React.FC<Props> = ({ notifications }) => {
   const dispatch = useDispatch<AppDispatch>()
-  const hasUnread = notifications.some((notification) => !notification.read)
+  const hasUnread = Array.isArray(notifications) && notifications.some((notification) => !notification.read);
 
   const handleMarkAllAsRead = () => {
     dispatch(markAllNotificationsAsRead())

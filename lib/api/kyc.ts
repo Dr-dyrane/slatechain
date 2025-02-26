@@ -1,7 +1,7 @@
 // lib/api/kyc.ts
 
 import { KYCStatus, KYCDocument, KYCSubmissionRequest } from "@/lib/types";
-import { apiClient } from "./apiClient/[...live]";
+import { apiClient } from "./apiClient";
 
 export const fetchKYCStatus = async (): Promise<{ status: KYCStatus; documents: KYCDocument[] }> => {
   return apiClient.get<{ status: KYCStatus; documents: KYCDocument[] }>("/kyc/status");

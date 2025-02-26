@@ -18,6 +18,10 @@ class LogoutError extends Error {
 	}
 }
 
+interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+	_retry?: boolean;
+}
+
 // Custom error class for API errors
 export class ApiError extends Error {
 	constructor(
@@ -77,7 +81,9 @@ class ApiClient {
 	}
 
 	private getErrorMessage(error: AxiosError): string {
-		const response = error.response?.data as any;
+		const response = error.response?.data as
+			| { code?: string; message?: string }
+			| undefined;
 		const errorCode = response?.code || "SERVER_ERROR";
 		return (
 			ERROR_MESSAGES[errorCode] ||
@@ -104,7 +110,7 @@ class ApiClient {
 		this.axiosInstance.interceptors.response.use(
 			(response) => response,
 			async (error) => {
-				const originalRequest = error.config;
+				const originalRequest = error.config as CustomAxiosRequestConfig;
 
 				// Check if error is 401 (Unauthorized) before attempting refresh
 				if (error.response?.status === 401) {
@@ -122,7 +128,8 @@ class ApiClient {
 					if (this.isRefreshing) {
 						return new Promise((resolve) => {
 							this.refreshSubscribers.push((token) => {
-								originalRequest.headers["Authorization"] = `Bearer ${token}`;
+								(originalRequest.headers ??= {})["Authorization"] =
+									`Bearer ${token}`;
 								resolve(this.axiosInstance(originalRequest));
 							});
 						});
@@ -154,12 +161,13 @@ class ApiClient {
 						this.refreshSubscribers = [];
 
 						// Retry the original request with the new token
-						originalRequest.headers["Authorization"] =
+						(originalRequest.headers ??= {})["Authorization"] =
 							`Bearer ${data.accessToken}`;
 
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
 						this.isRefreshing = false;
+						this.refreshSubscribers.forEach((callback) => callback(""));
 						this.refreshSubscribers = [];
 						tokenManager.clearTokens();
 						return Promise.reject(
