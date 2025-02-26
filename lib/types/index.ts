@@ -194,6 +194,7 @@ export interface OnboardingState {
 	roleSpecificData: Record<string, any>;
 	completed: boolean;
 	cancelled: boolean;
+	loading: boolean;
 	userId: string | null;
 }
 

@@ -15,6 +15,7 @@ import {
   completeStep,
   setRoleSpecificData,
   cancelOnboarding,
+  setLoading,
 } from '@/lib/slices/onboardingSlice'
 import { Welcome } from '@/components/onboarding/Welcome'
 import { ProfileSetup } from '@/components/onboarding/ProfileSetup'
@@ -54,7 +55,7 @@ export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { user } = useSelector((state: RootState) => state.auth)
-  const { currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding)
+  const { loading, currentStep, completedSteps, roleSpecificData, completed, cancelled } = useSelector((state: RootState) => state.onboarding)
 
   const [onboardingSteps, setOnboardingSteps] = useState<Array<{ title: string; component: React.ComponentType<any> | null }>>(user ? getOnboardingSteps(user.role) : [])
   const [stepData, setStepData] = useState<Record<string, any>>({})
@@ -77,17 +78,24 @@ export default function OnboardingPage() {
       return
     }
 
+    dispatch(setLoading(true))  // Reset loading state
     dispatch(setRoleSpecificData(stepData))
+    dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data: stepData }))
 
-    if (currentStep < onboardingSteps.length - 1) {
-      await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data: stepData }))
-      dispatch(completeStep(currentStep))
-      dispatch(setCurrentStep(currentStep + 1))
-    } else {
-      await dispatch(finishOnboarding())
-      router.push('/dashboard')
+    try {
+      if (currentStep < onboardingSteps.length - 1) {
+        await dispatch(updateStep({ stepId: currentStep, status: "COMPLETED", data: stepData }))
+        dispatch(completeStep(currentStep))
+        dispatch(setCurrentStep(currentStep + 1))
+      } else {
+        await dispatch(finishOnboarding())
+        router.push('/dashboard')
+      }
+    } finally {
+      dispatch(setLoading(false))  // Reset loading state
     }
   }
+
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -138,6 +146,11 @@ export default function OnboardingPage() {
             <CardTitle>{onboardingSteps[currentStep]?.title}</CardTitle>
             <CardDescription>Step {currentStep + 1} of {onboardingSteps.length}</CardDescription>
           </div>
+          {loading && (
+            <div className="flex justify-center items-center">
+              <div className="animate-spin h-6 w-6 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+            </div>
+          )}
           <Button
             variant="destructive"
             onClick={handleCancel}
@@ -166,13 +179,14 @@ export default function OnboardingPage() {
           <Button
             variant="outline"
             onClick={handleBack}
-            disabled={currentStep === 0}
+            disabled={currentStep === 0 || loading}
           >
             Back
           </Button>
-          <Button onClick={handleNext}>
-            {currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
+          <Button onClick={handleNext} disabled={loading}>
+            {loading ? 'Processing...' : currentStep === onboardingSteps.length - 1 ? 'Finish' : 'Next'}
           </Button>
+
         </CardFooter>
       </Card>
     </div>

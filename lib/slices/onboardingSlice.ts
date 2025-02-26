@@ -20,6 +20,7 @@ const initialState: OnboardingState = {
 	completed: false,
 	cancelled: false,
 	userId: null,
+	loading: false,
 };
 
 export const fetchProgress = createAsyncThunk<OnboardingProgress>(
@@ -84,6 +85,10 @@ const onboardingSlice = createSlice({
 	name: "onboarding",
 	initialState,
 	reducers: {
+		setLoading: (state, action) => {
+			state.loading = action.payload;
+		},
+
 		setCurrentStep: (state, action: PayloadAction<number>) => {
 			state.currentStep = action.payload;
 		},
@@ -111,15 +116,29 @@ const onboardingSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
+			.addCase(fetchProgress.pending, (state) => {
+				state.loading = true;
+			})
 			.addCase(fetchProgress.fulfilled, (state, action) => {
+				state.loading = false;
 				state.currentStep = action.payload.currentStep;
 				state.completedSteps = action.payload.completedSteps;
 				state.completed = action.payload.completed;
 			})
+			.addCase(fetchProgress.rejected, (state) => {
+				state.loading = false;
+			})
+			.addCase(startOnboardingProcess.pending, (state) => {
+				state.loading = true;
+			})
 			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
+				state.loading = false;
 				state.currentStep = action.payload.currentStep;
 				state.completedSteps = action.payload.completedSteps;
 				state.completed = action.payload.completed;
+			})
+			.addCase(startOnboardingProcess.rejected, (state) => {
+				state.loading = false;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
 				const stepIndex = state.completedSteps.findIndex(
@@ -140,13 +159,21 @@ const onboardingSlice = createSlice({
 					state.completedSteps.push(action.payload.id);
 				}
 			})
+			.addCase(finishOnboarding.pending, (state) => {
+				state.loading = true;
+			})
 			.addCase(finishOnboarding.fulfilled, (state) => {
+				state.loading = false;
 				state.completed = true;
+			})
+			.addCase(finishOnboarding.rejected, (state) => {
+				state.loading = false;
 			});
 	},
 });
 
 export const {
+	setLoading,
 	setCurrentStep,
 	completeStep,
 	setRoleSpecificData,
