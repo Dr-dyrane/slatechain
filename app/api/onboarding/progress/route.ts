@@ -84,13 +84,17 @@ export async function GET(req: Request) {
 			await onboarding.save();
 		}
 
-		 // Filter completed steps to ensure they don't exceed maximum
-		 const completedSteps = onboarding.steps
-		 .filter((step: any) => step.status === "COMPLETED" && step.stepId < MAX_STEPS)
-		 .map((step: any) => step.stepId)
-   
-	   // Filter steps array to remove any steps beyond the maximum
-	   const validSteps = onboarding.steps.filter((step: any) => step.stepId < MAX_STEPS)
+		// Filter completed steps to ensure they don't exceed maximum
+		const completedSteps = onboarding.steps
+			.filter(
+				(step: any) => step.status === "COMPLETED" && step.stepId < MAX_STEPS
+			)
+			.map((step: any) => step.stepId);
+
+		// Filter steps array to remove any steps beyond the maximum
+		const validSteps = onboarding.steps.filter(
+			(step: any) => step.stepId < MAX_STEPS
+		);
 
 		return NextResponse.json(
 			{
