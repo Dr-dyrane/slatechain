@@ -39,7 +39,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
                         )}
                     </div>
                 </SheetHeader>
-                <div className="divide-y divide-border space-y-4 px-4 pb-4 my-2 max-h-[90vh] overflow-y-scroll scrollbar-hide">
+                <div className="divide-y divide-border space-y-4 px-4 pb-[3.5rem] mt-2 max-h-[90vh] overflow-y-scroll scrollbar-hide">
                     {notifications.length > 0 ? (
                         notifications.map((notification) => <NotificationCard key={notification.id} notification={notification} />)
                     ) : (

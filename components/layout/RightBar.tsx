@@ -30,7 +30,7 @@ export const RightBar: React.FC<Props> = ({ notifications }) => {
           </Button>
         )}
       </div>
-      <div className="divide-y divide-border space-y-4 px-4 pb-4 mt-2 max-h-[calc(100vh-8rem)] overflow-y-auto">
+      <div className="divide-y divide-border space-y-4 px-4 pb-[6.5rem] mt-2 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
         {notifications.length > 0 ? (
           notifications.map((notification) => <NotificationCard key={notification.id} notification={notification} />)
         ) : (
