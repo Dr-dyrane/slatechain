@@ -20,6 +20,22 @@ import type {
 type IntegrationCategory = keyof UserIntegrations;
 type IntegrationData = EcommerceIntegration | ErpCrmIntegration | IoTIntegration | BIIntegration;
 
+// Define the structure of a service entry
+interface ServiceEntry {
+    id: string;
+    name: string;
+    logo: string;
+}
+
+// Type for the services object - now more flexible and type-safe
+interface Services {
+    ecommerce: ServiceEntry[];
+    erp_crm: ServiceEntry[];
+    iot: ServiceEntry[];
+    bi_tools: ServiceEntry[];
+    auth: ServiceEntry[]; // Add auth here if needed
+}
+
 interface ServiceSelectorProps {
     category: IntegrationCategory;
     onBack: () => void;
@@ -28,18 +44,37 @@ interface ServiceSelectorProps {
     onToggle: (enabled: boolean) => void;
 }
 
-const services = {
+// Define services with the correct type
+const services: Services = {
     ecommerce: [{ id: "shopify", name: "Shopify", logo: "/icons/shopify.svg" }],
     erp_crm: [{ id: "sap", name: "SAP", logo: "/icons/sap.svg" }],
     iot: [{ id: "iot_monitoring", name: "IoT Monitoring", logo: "/icons/iot.svg" }],
     bi_tools: [{ id: "power_bi", name: "Power BI", logo: "/icons/powerbi.svg" }],
-} as const;
+    auth: [], // Initialize auth, even if empty
+};
+
+// Type guard to narrow down IntegrationData based on category
+function getIntegrationData(category: IntegrationCategory, data: IntegrationData | undefined): IntegrationData | undefined {
+    switch (category) {
+        case "ecommerce":
+            return data as EcommerceIntegration | undefined;
+        case "erp_crm":
+            return data as ErpCrmIntegration | undefined;
+        case "iot":
+            return data as IoTIntegration | undefined;
+        case "bi_tools":
+            return data as BIIntegration | undefined;
+        default:
+            return undefined;
+    }
+}
 
 export function ServiceSelector({ category, onBack, integration, onSave, onToggle }: ServiceSelectorProps) {
     const [showApiKey, setShowApiKey] = useState(false);
-    const availableServices = services[category] || [];
-    const selectedService = integration?.service;
-    const isConnected = integration?.enabled || false;
+    const availableServices = services[category] || []; // Now type-safe
+    const typedIntegration = getIntegrationData(category, integration); // Use type guard here
+    const selectedService = typedIntegration?.service; // typedIntegration is now correctly typed
+    const isConnected = typedIntegration?.enabled || false;
     const [localEnabled, setLocalEnabled] = useState(isConnected);
 
     useEffect(() => {
@@ -125,7 +160,8 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                                         placeholder="Enter API Key"
                                         value={integration?.apiKey || ""}
                                         onChange={(e) =>
-                                            onSave(selectedService, e.target.value, "storeUrl" in integration ? integration.storeUrl as string | undefined : undefined)
+                                            onSave(selectedService, e.target.value, "storeUrl" in typedIntegration ?
+                                                typedIntegration.storeUrl as string | undefined : undefined)
                                         }
                                         className="pr-10"
                                     />
@@ -140,16 +176,17 @@ export function ServiceSelector({ category, onBack, integration, onSave, onToggl
                             </div>
 
                             {/* Store URL for Ecommerce */}
-                            {category === "ecommerce" && "storeUrl" in integration && (
-                                <div className="space-y-2">
-                                    <Label>Store URL</Label>
-                                    <Input
-                                        placeholder="Enter Store URL"
-                                        value={integration.storeUrl || ""}
-                                        onChange={(e) => onSave(selectedService, integration.apiKey || "", e.target.value)}
-                                    />
-                                </div>
-                            )}
+                            {category === "ecommerce" && integration && "storeUrl" in integration
+                                && (
+                                    <div className="space-y-2">
+                                        <Label>Store URL</Label>
+                                        <Input
+                                            placeholder="Enter Store URL"
+                                            value={integration.storeUrl || ""}
+                                            onChange={(e) => onSave(selectedService, integration.apiKey || "", e.target.value)}
+                                        />
+                                    </div>
+                                )}
                         </motion.div>
                     )}
                 </CardContent>
