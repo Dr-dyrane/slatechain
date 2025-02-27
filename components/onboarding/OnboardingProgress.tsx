@@ -1,6 +1,6 @@
 "use client"
 
-import { STEP_DETAILS, MAX_STEPS } from "@/lib/constants/onboarding-steps"
+import { STEP_DETAILS } from "@/lib/constants/onboarding-steps"
 import { CheckIcon } from "lucide-react"
 
 interface OnboardingProgressProps {
@@ -10,24 +10,23 @@ interface OnboardingProgressProps {
 }
 
 export default function OnboardingProgress({ currentStep, totalSteps, completedSteps }: OnboardingProgressProps) {
-    // Ensure we're using the correct total steps value
-    const maxSteps = MAX_STEPS
+
 
     return (
         <div className="w-full">
             <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">
-                    Step {currentStep + 1} of {maxSteps}
+                    Step {currentStep + 1} of {totalSteps}
                 </span>
                 <span className="text-sm font-medium text-gray-700">
-                    {Math.round(((completedSteps.length + (currentStep === maxSteps - 1 ? 1 : 0)) / maxSteps) * 100)}% Complete
+                    {Math.round(((completedSteps.length + (currentStep === totalSteps - 1 ? 1 : 0)) / totalSteps) * 100)}% Complete
                 </span>
             </div>
 
             <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-300 ease-in-out"
-                    style={{ width: `${((currentStep + 1) / maxSteps) * 100}%` }}
+                    style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                 ></div>
             </div>
 

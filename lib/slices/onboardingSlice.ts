@@ -101,7 +101,8 @@ const onboardingSlice = createSlice({
 		completeStep: (state, action: PayloadAction<number>) => {
 			if (
 				action.payload < MAX_STEPS &&
-				!state.completedSteps.includes(action.payload)
+				!state.completedSteps.includes(action.payload) &&
+				state.completedSteps.length < MAX_STEPS
 			) {
 				state.completedSteps.push(action.payload);
 			}
@@ -135,7 +136,10 @@ const onboardingSlice = createSlice({
 			.addCase(fetchProgress.fulfilled, (state, action) => {
 				state.loading = false;
 				state.currentStep = action.payload.currentStep;
-				state.completedSteps = action.payload.completedSteps;
+				state.completedSteps = action.payload.completedSteps.slice(
+					0,
+					MAX_STEPS
+				);
 				state.completed = action.payload.completed;
 			})
 			.addCase(fetchProgress.rejected, (state, action) => {
@@ -149,7 +153,10 @@ const onboardingSlice = createSlice({
 			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
 				state.loading = false;
 				state.currentStep = action.payload.currentStep;
-				state.completedSteps = action.payload.completedSteps;
+				state.completedSteps = action.payload.completedSteps.slice(
+					0,
+					MAX_STEPS
+				);
 				state.completed = action.payload.completed;
 			})
 			.addCase(startOnboardingProcess.rejected, (state, action) => {
@@ -163,22 +170,32 @@ const onboardingSlice = createSlice({
 				state.error = action.payload as string;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
-				const stepIndex = state.completedSteps.findIndex(
-					(step) => step === action.payload.id
-				);
-				if (stepIndex === -1 && action.payload.status === "COMPLETED") {
-					state.completedSteps.push(action.payload.id);
-				}
-				if (action.payload.status === "IN_PROGRESS") {
+				if (action.payload.status === "COMPLETED") {
+					if (
+						!state.completedSteps.includes(action.payload.id) &&
+						state.completedSteps.length < MAX_STEPS
+					) {
+						state.completedSteps.push(action.payload.id);
+					}
+
+					// Correctly set the next step if not the last one
+					if (action.payload.id < MAX_STEPS - 1 && state.completedSteps.length < MAX_STEPS ) {
+						state.currentStep = action.payload.id + 1;
+					}
+				} else if (action.payload.status === "IN_PROGRESS") {
 					state.currentStep = action.payload.id;
 				}
 			})
 			.addCase(skipStep.fulfilled, (state, action) => {
-				const stepIndex = state.completedSteps.findIndex(
-					(step) => step === action.payload.id
-				);
-				if (stepIndex === -1) {
+				if (
+					!state.completedSteps.includes(action.payload.id) &&
+					state.completedSteps.length < MAX_STEPS
+				) {
 					state.completedSteps.push(action.payload.id);
+					// Correctly set the next step after skipping
+					if (action.payload.id < MAX_STEPS - 1) {
+						state.currentStep = action.payload.id + 1;
+					}
 				}
 			})
 			.addCase(finishOnboarding.pending, (state) => {
