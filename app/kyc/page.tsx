@@ -156,7 +156,7 @@ export default function KYCPage() {
 
   if (kycStatus === KYCStatus.APPROVED) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
+      <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center">KYC Status</CardTitle>
@@ -176,7 +176,7 @@ export default function KYCPage() {
 
   if (kycStatus === KYCStatus.REJECTED) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
+      <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center">KYC Status</CardTitle>
@@ -196,7 +196,7 @@ export default function KYCPage() {
 
   if (kycStatus === KYCStatus.PENDING_REVIEW) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
+      <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center">KYC Status</CardTitle>
@@ -216,7 +216,7 @@ export default function KYCPage() {
 
   if (kycStatus === KYCStatus.NOT_STARTED) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
+      <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
         <Card className="w-full max-w-lg">
           <CardHeader>
             <CardTitle className="text-center">KYC Verification</CardTitle>
@@ -245,7 +245,7 @@ export default function KYCPage() {
   }
 
   return (
-    <div className="flex h-full items-center justify-center bg-none">
+    <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
       <Card className="w-full max-w-4xl">
         <CardHeader className="flex flex-row justify-between">
           <div>
