@@ -216,9 +216,9 @@ export default function OnboardingPage() {
           <div className="flex justify-between items-center">
             <div>
               <CardTitle>{currentStepDetails.title}</CardTitle>
-              <CardDescription>
+              {/* <CardDescription>
                 Step {currentStep + 1} of {MAX_STEPS}
-              </CardDescription>
+              </CardDescription> */}
             </div>
             {loading && (
               <div className="flex justify-center items-center">
