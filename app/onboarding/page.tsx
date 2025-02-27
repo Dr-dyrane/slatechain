@@ -4,17 +4,16 @@ import { useState, useEffect, useCallback } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import type { RootState, AppDispatch } from "@/lib/store"
 import {
   fetchProgress,
   updateStep,
   finishOnboarding,
   setCurrentStep,
-  completeStep,
   cancelOnboarding,
-  setLoading,
   skipStep,
+  navigateBack, // Add this import
 } from "@/lib/slices/onboardingSlice"
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
@@ -55,10 +54,12 @@ export default function OnboardingPage() {
   useEffect(() => {
     const initializeOnboarding = async () => {
       if (user && !isInitialized) {
-        dispatch(setLoading(true))
-        await dispatch(fetchProgress())
-        setIsInitialized(true)
-        dispatch(setLoading(false))
+        try {
+          await dispatch(fetchProgress()).unwrap()
+          setIsInitialized(true)
+        } catch (error) {
+          console.error("Error initializing onboarding:", error)
+        }
       }
     }
 
@@ -66,10 +67,11 @@ export default function OnboardingPage() {
   }, [user, dispatch, isInitialized])
 
   // Handle step data changes
-  const handleStepComplete = useCallback(async (data: FormData) => { // Make handleStepComplete async
-    setStepData(data);
-    return Promise.resolve(); // Resolve a promise
-  }, []);
+  const handleStepComplete = useCallback(async (data: FormData) => {
+    // Make handleStepComplete async
+    setStepData(data)
+    return Promise.resolve() // Resolve a promise
+  }, [])
 
   // Handle next button click
   const handleNext = async () => {
@@ -77,8 +79,6 @@ export default function OnboardingPage() {
       console.error("User is missing. Unable to save progress or complete onboarding.")
       return
     }
-
-    dispatch(setLoading(true))
 
     try {
       // Update current step as completed
@@ -88,47 +88,30 @@ export default function OnboardingPage() {
           status: OnboardingStepStatus.COMPLETED,
           data: stepData,
         }),
-      )
-
-      dispatch(completeStep(currentStep))
+      ).unwrap()
 
       // If this is the last step, finish onboarding
       if (currentStep === MAX_STEPS - 1) {
-        await dispatch(finishOnboarding())
+        await dispatch(finishOnboarding()).unwrap()
         router.push("/dashboard")
       } else {
         // Otherwise, move to next step
-        dispatch(setCurrentStep(Math.min(currentStep + 1, MAX_STEPS - 1)))
+        dispatch(setCurrentStep(currentStep + 1))
         setStepData({}) // Reset step data for the next step
       }
     } catch (error) {
       console.error("Error saving step:", error)
-    } finally {
-      dispatch(setLoading(false))
     }
   }
 
   // Handle back button click
   const handleBack = async () => {
     if (currentStep > 0) {
-      dispatch(setLoading(true))
-
       try {
-        // Update the current step status to IN_PROGRESS when going back
-        await dispatch(
-          updateStep({
-            stepId: Math.max(currentStep - 1, 0),
-            status: OnboardingStepStatus.IN_PROGRESS,
-          }),
-        )
-
-        // Move to previous step
-        dispatch(setCurrentStep(Math.max(currentStep - 1, 0)))
-        setStepData({})
+        const result = await dispatch(navigateBack()).unwrap()
+        setStepData(result.stepData || {})
       } catch (error) {
         console.error("Error going back:", error)
-      } finally {
-        dispatch(setLoading(false))
       }
     }
   }
@@ -137,24 +120,19 @@ export default function OnboardingPage() {
   const handleSkip = async (reason = "User skipped this step") => {
     if (!user) return
 
-    dispatch(setLoading(true))
-
     try {
-      // Skip the current step
       await dispatch(
         skipStep({
           stepId: currentStep,
           reason,
         }),
-      )
+      ).unwrap()
 
       // Move to next step
       dispatch(setCurrentStep(currentStep + 1))
       setStepData({}) // Reset step data for the next step
     } catch (error) {
       console.error("Error skipping step:", error)
-    } finally {
-      dispatch(setLoading(false))
     }
   }
 
