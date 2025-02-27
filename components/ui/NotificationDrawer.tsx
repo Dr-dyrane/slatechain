@@ -25,11 +25,11 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
             <SheetContent
-                className="sm:max-w-sm overflow-hidden border-none shadow-lg rounded-l-2xl p-0 backdrop-blur-md bg-background/85"
+                className="sm:max-w-sm xl:hidden overflow-hidden border-none shadow-lg rounded-l-2xl p-0 backdrop-blur-md bg-background/85"
                 side="right"
             >
                 <SheetHeader className="px-4 pt-4 pb-2">
-                    <div className="flex justify-start items-center gap-8">
+                    <div className="flex justify-start items-center gap-4 flex-wrap">
                         <SheetTitle className="text-lg text-left font-semibold">Notifications</SheetTitle>
                         {hasUnread && (
                             <Button variant="outline" size="sm" className="h-8" onClick={handleMarkAllAsRead}>
@@ -39,7 +39,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
                         )}
                     </div>
                 </SheetHeader>
-                <div className="divide-y divide-border space-y-4 px-4 pb-4 mt-2 max-h-[90vh] overflow-y-scroll scrollbar-hide">
+                <div className="divide-y divide-border space-y-4 px-4 pb-4 my-2 max-h-[90vh] overflow-y-scroll scrollbar-hide">
                     {notifications.length > 0 ? (
                         notifications.map((notification) => <NotificationCard key={notification.id} notification={notification} />)
                     ) : (
