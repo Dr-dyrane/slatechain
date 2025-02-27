@@ -1,5 +1,9 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
+import type {
 	OnboardingState,
 	OnboardingStep,
 	OnboardingProgress,
@@ -15,7 +19,7 @@ import { MAX_STEPS } from "../constants/onboarding-steps";
 
 const initialState: OnboardingState = {
 	currentStep: 0,
-	totalSteps: 5,
+	totalSteps: MAX_STEPS, // Use MAX_STEPS from constants
 	completedSteps: [],
 	roleSpecificData: {},
 	completed: false,
@@ -87,7 +91,7 @@ const onboardingSlice = createSlice({
 	name: "onboarding",
 	initialState,
 	reducers: {
-		setLoading: (state, action) => {
+		setLoading: (state, action: PayloadAction<boolean>) => {
 			state.loading = action.payload;
 		},
 

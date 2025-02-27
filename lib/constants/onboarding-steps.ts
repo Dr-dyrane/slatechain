@@ -13,9 +13,6 @@ export const ONBOARDING_STEPS = {
 	COMPLETION: 5,
 };
 
-// Define the total number of steps
-export const TOTAL_STEPS = 6;
-
 // Define step titles and descriptions
 export const STEP_DETAILS = {
 	[ONBOARDING_STEPS.WELCOME]: {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -19,22 +19,23 @@ import {
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
 import { ServiceQuestions } from "@/components/onboarding/ServiceQuestions"
+import { IntegrationsStep } from "@/components/onboarding/IntegrationsSteps"
 import { Preferences } from "@/components/onboarding/Preferences"
 import { Completion } from "@/components/onboarding/Completion"
 import { OnboardingStepStatus } from "@/lib/types"
 import { ErrorState } from "@/components/ui/error"
-import { MAX_STEPS, ONBOARDING_STEPS, STEP_DETAILS, TOTAL_STEPS } from "@/lib/constants/onboarding-steps"
+import { MAX_STEPS, ONBOARDING_STEPS, STEP_DETAILS } from "@/lib/constants/onboarding-steps"
 import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import OnboardingProgress from "@/components/onboarding/OnboardingProgress"
-
+import type { FormData } from "@/lib/types/onboarding"
 
 // Define step components mapping
 const StepComponents = {
   [ONBOARDING_STEPS.WELCOME]: Welcome,
   [ONBOARDING_STEPS.PROFILE_SETUP]: ProfileSetup,
   [ONBOARDING_STEPS.ROLE_SPECIFIC]: ServiceQuestions,
-  [ONBOARDING_STEPS.INTEGRATIONS]: Preferences, // Reusing Preferences for now, should be replaced with IntegrationsStep
+  [ONBOARDING_STEPS.INTEGRATIONS]: IntegrationsStep, // Use the correct component
   [ONBOARDING_STEPS.PREFERENCES]: Preferences,
   [ONBOARDING_STEPS.COMPLETION]: Completion,
 }
@@ -43,9 +44,8 @@ export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { user } = useSelector((state: RootState) => state.auth)
-  const { loading, currentStep, completedSteps, roleSpecificData, completed, cancelled, error } = useSelector(
-    (state: RootState) => state.onboarding,
-  )
+  const { loading, currentStep, completedSteps, roleSpecificData, completed, cancelled, error, totalSteps } =
+    useSelector((state: RootState) => state.onboarding)
 
   const [stepData, setStepData] = useState<Record<string, any>>({})
   const [isInitialized, setIsInitialized] = useState(false)
@@ -53,11 +53,12 @@ export default function OnboardingPage() {
 
   // Initialize onboarding on component mount
   useEffect(() => {
-    setLoading(false)
     const initializeOnboarding = async () => {
       if (user && !isInitialized) {
+        dispatch(setLoading(true))
         await dispatch(fetchProgress())
         setIsInitialized(true)
+        dispatch(setLoading(false))
       }
     }
 
@@ -65,9 +66,10 @@ export default function OnboardingPage() {
   }, [user, dispatch, isInitialized])
 
   // Handle step data changes
-  const handleStepComplete = (data: Record<string, any>) => {
-    setStepData({ ...stepData, ...data })
-  }
+  const handleStepComplete = useCallback(async (data: FormData) => { // Make handleStepComplete async
+    setStepData(data);
+    return Promise.resolve(); // Resolve a promise
+  }, []);
 
   // Handle next button click
   const handleNext = async () => {
@@ -107,15 +109,32 @@ export default function OnboardingPage() {
   }
 
   // Handle back button click
-  const handleBack = () => {
+  const handleBack = async () => {
     if (currentStep > 0) {
-      dispatch(setCurrentStep(Math.max(currentStep - 1, 0)))
-      setStepData({})
+      dispatch(setLoading(true))
+
+      try {
+        // Update the current step status to IN_PROGRESS when going back
+        await dispatch(
+          updateStep({
+            stepId: Math.max(currentStep - 1, 0),
+            status: OnboardingStepStatus.IN_PROGRESS,
+          }),
+        )
+
+        // Move to previous step
+        dispatch(setCurrentStep(Math.max(currentStep - 1, 0)))
+        setStepData({})
+      } catch (error) {
+        console.error("Error going back:", error)
+      } finally {
+        dispatch(setLoading(false))
+      }
     }
   }
 
   // Handle skip button click
-  const handleSkip = async () => {
+  const handleSkip = async (reason = "User skipped this step") => {
     if (!user) return
 
     dispatch(setLoading(true))
@@ -125,7 +144,7 @@ export default function OnboardingPage() {
       await dispatch(
         skipStep({
           stepId: currentStep,
-          reason: "User skipped this step",
+          reason,
         }),
       )
 
@@ -178,11 +197,9 @@ export default function OnboardingPage() {
   // Get current step component
   const CurrentStepComponent = StepComponents[currentStep]
 
-  // Check if current step is skippable
-  const isCurrentStepSkippable = STEP_DETAILS[currentStep]?.isSkippable || false
-
   // Get current step details
   const currentStepDetails = STEP_DETAILS[currentStep] || { title: "Unknown Step", description: "" }
+  const isCurrentStepSkippable = currentStepDetails.isSkippable || false
 
   return (
     <div className="flex flex-col min-h-screen items-center justify-center bg-none p-4 md:p-8">
@@ -200,7 +217,7 @@ export default function OnboardingPage() {
             <div>
               <CardTitle>{currentStepDetails.title}</CardTitle>
               <CardDescription>
-                Step {currentStep + 1} of {TOTAL_STEPS}
+                Step {currentStep + 1} of {MAX_STEPS}
               </CardDescription>
             </div>
             {loading && (
@@ -210,7 +227,7 @@ export default function OnboardingPage() {
             )}
           </div>
 
-          <OnboardingProgress currentStep={currentStep} totalSteps={TOTAL_STEPS} completedSteps={completedSteps} />
+          <OnboardingProgress currentStep={currentStep} totalSteps={MAX_STEPS} completedSteps={completedSteps} />
         </CardHeader>
 
         <CardContent>
@@ -218,8 +235,9 @@ export default function OnboardingPage() {
             <CurrentStepComponent
               role={user.role}
               name={user.name}
-              onComplete={handleStepComplete as any}
+              onComplete={handleStepComplete}
               data={roleSpecificData}
+              onSubmit={handleNext}
               onSkip={isCurrentStepSkippable ? handleSkip : undefined}
             />
           )}
@@ -234,13 +252,13 @@ export default function OnboardingPage() {
 
           <div className="flex space-x-2">
             {isCurrentStepSkippable && (
-              <Button variant="ghost" onClick={handleSkip} disabled={loading}>
+              <Button variant="ghost" onClick={() => handleSkip()} disabled={loading}>
                 Skip
               </Button>
             )}
 
             <Button onClick={handleNext} disabled={loading}>
-              {loading ? "Processing..." : currentStep === TOTAL_STEPS - 1 ? "Finish" : "Next"}
+              {loading ? "Processing..." : currentStep === MAX_STEPS - 1 ? "Finish" : "Next"}
             </Button>
           </div>
         </CardFooter>
@@ -253,3 +271,4 @@ export default function OnboardingPage() {
     </div>
   )
 }
+
