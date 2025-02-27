@@ -28,7 +28,7 @@ interface ServiceEntry {
 }
 
 // Type for the services object - now more flexible and type-safe
-interface Services {
+export interface Services {
     ecommerce: ServiceEntry[];
     erp_crm: ServiceEntry[];
     iot: ServiceEntry[];
