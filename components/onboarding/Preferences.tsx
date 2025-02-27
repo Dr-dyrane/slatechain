@@ -140,13 +140,13 @@ export function Preferences({ role, onComplete, data, onSkip }: PreferencesProps
                 />
               </div>
 
-              {onSkip && (
+              {/* {onSkip && (
                 <div className="pt-4 flex justify-end">
                   <Button type="button" variant="outline" onClick={handleSkip}>
                     Skip for Now
                   </Button>
                 </div>
-              )}
+              )} */}
             </form>
           </Form>
         </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { CheckCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,18 +10,19 @@ import type { CompletionProps } from "@/lib/types/onboarding"
 export function Completion({ role, name, onComplete }: CompletionProps) {
     const [loading, setLoading] = useState(false)
 
-    const handleFinish = async () => {
-        setLoading(true)
-        try {
-            await onComplete({
-                completedAt: new Date().toISOString(),
-            })
-        } catch (error) {
-            console.error("Error completing onboarding:", error)
-        } finally {
-            setLoading(false)
+    useEffect(() => {
+        const completeOnboarding = async () => {
+            try {
+                await onComplete({
+                    completedAt: new Date().toISOString(),
+                })
+            } catch (error) {
+                console.error("Error completing onboarding:", error)
+            }
         }
-    }
+
+        completeOnboarding()
+    }, [onComplete]) // Runs once when component mounts
 
     const getRoleSpecificMessage = () => {
         switch (role) {
@@ -59,12 +60,6 @@ export function Completion({ role, name, onComplete }: CompletionProps) {
                             <li>Set up any remaining integrations</li>
                             <li>Check out our documentation for more information</li>
                         </ul>
-                    </div>
-
-                    <div className="flex justify-center mt-4">
-                        <Button onClick={handleFinish} disabled={loading} className="px-8">
-                            {loading ? "Loading..." : "Go to Dashboard"}
-                        </Button>
                     </div>
                 </div>
             </CardContent>

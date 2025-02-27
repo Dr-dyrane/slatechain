@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,9 +40,9 @@ export function IntegrationsStep({ role, onComplete, onSkip, data }: Integration
     }))
   }
 
-  const handleSave = async () => {
-    await onComplete(integrations as any)
-  }
+  useEffect(() => {
+    onComplete(integrations as any)
+  }, [integrations, onComplete])
 
   const handleSkip = async () => {
     if (onSkip) {
@@ -123,13 +123,6 @@ export function IntegrationsStep({ role, onComplete, onSkip, data }: Integration
 
           {/* Similar TabsContent blocks for other integration types */}
         </Tabs>
-
-        <div className="mt-6 flex justify-between">
-          <Button variant="outline" onClick={handleSkip}>
-            Skip for Now
-          </Button>
-          <Button onClick={handleSave}>Save Integrations</Button>
-        </div>
       </CardContent>
     </Card>
   )
