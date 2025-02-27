@@ -142,7 +142,7 @@ export default function KYCPage() {
 
   if (kycError) {
     return (
-      <div className="flex h-full items-center justify-center bg-none">
+      <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
         <ErrorState
           title="KYC Error"
           description="We encountered an issue while loading your KYC data."

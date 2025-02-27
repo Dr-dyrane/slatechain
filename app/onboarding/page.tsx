@@ -265,7 +265,7 @@ export default function OnboardingPage() {
       </Card>
 
       {/* Optional: Add a cancel button outside the card */}
-      <Button variant="ghost" onClick={handleCancel} className="mt-4 text-gray-500">
+      <Button variant="destructive" onClick={handleCancel} className="mt-4 ">
         Cancel Onboarding
       </Button>
     </div>

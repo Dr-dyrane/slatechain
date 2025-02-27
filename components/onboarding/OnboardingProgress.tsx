@@ -12,14 +12,19 @@ interface OnboardingProgressProps {
 export default function OnboardingProgress({ currentStep, totalSteps, completedSteps }: OnboardingProgressProps) {
 
 
+    const isLastStepCompleted = completedSteps.includes(totalSteps - 1); // Check if the last step is completed
+    const percentageComplete = Math.round(((completedSteps.length) / totalSteps) * 100); // Calculate percentage
+
+
     return (
         <div className="w-full">
             <div className="flex items-center justify-between mb-2">
+                {/* ... (Step X of Y) */}
                 <span className="text-sm font-medium text-gray-700">
                     Step {currentStep + 1} of {totalSteps}
                 </span>
                 <span className="text-sm font-medium text-gray-700">
-                    {Math.round(((completedSteps.length + (currentStep === totalSteps - 1 ? 1 : 0)) / totalSteps) * 100)}% Complete
+                    {percentageComplete}% Complete
                 </span>
             </div>
 
@@ -35,18 +40,24 @@ export default function OnboardingProgress({ currentStep, totalSteps, completedS
                     const stepId = Number.parseInt(stepIdStr)
                     const isCompleted = completedSteps.includes(stepId)
                     const isCurrent = currentStep === stepId
+                    const isLastStep = index === totalSteps - 1;
+
 
                     return (
                         <div key={stepId} className="flex flex-col items-center">
                             <div
-                                className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 ${isCompleted
-                                        ? "bg-green-500 text-white"
+                                className={`w-8 h-8 rounded-full flex items-center justify-center mb-1 
+                                    ${isCompleted || (isLastStep && isCurrent && isLastStepCompleted) // Combine completed and last step logic
+                                        ? "bg-green-500 text-white" // Green if completed (including last step)
                                         : isCurrent
-                                            ? "bg-blue-500 text-white"
-                                            : "bg-gray-200 text-gray-500"
-                                    }`}
+                                            ? "bg-blue-500 text-white" // Blue if current
+                                            : "bg-gray-200 text-gray-500" // Gray otherwise
+                                    }`
+                                }
                             >
-                                {isCompleted ? <CheckIcon className="w-4 h-4" /> : <span>{index + 1}</span>}
+                                {/* Conditionally render content */}
+                                {isCompleted || (isLastStep && isCurrent && isLastStepCompleted)
+                                    ? <CheckIcon className="w-4 h-4" /> : <span>{index + 1}</span>}
                             </div>
                             <span className="text-xs text-center text-gray-500 hidden sm:block">{step.title}</span>
                         </div>
