@@ -13,7 +13,8 @@ import {
   setCurrentStep,
   cancelOnboarding,
   skipStep,
-  navigateBack, // Add this import
+  navigateBack,
+  completeStep, // Add this import
 } from "@/lib/slices/onboardingSlice"
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
@@ -21,7 +22,7 @@ import { ServiceQuestions } from "@/components/onboarding/ServiceQuestions"
 import { IntegrationsStep } from "@/components/onboarding/IntegrationsSteps"
 import { Preferences } from "@/components/onboarding/Preferences"
 import { Completion } from "@/components/onboarding/Completion"
-import { OnboardingStepStatus } from "@/lib/types"
+import { OnboardingStatus, OnboardingStepStatus } from "@/lib/types"
 import { ErrorState } from "@/components/ui/error"
 import { MAX_STEPS, ONBOARDING_STEPS, STEP_DETAILS } from "@/lib/constants/onboarding-steps"
 import { AlertCircle } from "lucide-react"
@@ -43,12 +44,13 @@ export default function OnboardingPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
   const { user } = useSelector((state: RootState) => state.auth)
-  const { loading, currentStep, completedSteps, roleSpecificData, completed, cancelled, error, totalSteps } =
+  const { loading, completedSteps, roleSpecificData, cancelled, error, totalSteps } =
     useSelector((state: RootState) => state.onboarding)
-
+  const currentStep = useSelector((state: RootState) => state.onboarding.currentStep)
+  const completed = useSelector((state: RootState) => state.onboarding.completedSteps[currentStep])
   const [stepData, setStepData] = useState<Record<string, any>>({})
   const [isInitialized, setIsInitialized] = useState(false)
-  const isComplete = user?.onboardingStatus === "COMPLETED" || completed
+  const isComplete = completed || user?.onboardingStatus === OnboardingStatus.COMPLETED
 
   // Initialize onboarding on component mount
   useEffect(() => {
@@ -90,13 +92,15 @@ export default function OnboardingPage() {
         }),
       ).unwrap()
 
+      dispatch(completeStep(currentStep))
+
       // If this is the last step, finish onboarding
       if (currentStep === MAX_STEPS - 1) {
         await dispatch(finishOnboarding()).unwrap()
         router.push("/dashboard")
       } else {
         // Otherwise, move to next step
-        dispatch(setCurrentStep(currentStep + 1))
+        dispatch(setCurrentStep(Math.min(currentStep + 1, MAX_STEPS - 1)))
         setStepData({}) // Reset step data for the next step
       }
     } catch (error) {

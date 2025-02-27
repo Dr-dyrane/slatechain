@@ -14,6 +14,7 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
+import { OnboardingStatus } from "@/lib/types"
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -107,7 +108,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
 
-      {user && <UserStatusAlert
+      {user && user.onboardingStatus !== OnboardingStatus.COMPLETED && <UserStatusAlert
         kycStatus={user.kycStatus}
         onboardingStatus={user.onboardingStatus}
         onResumeOnboarding={handleResumeOnboarding}

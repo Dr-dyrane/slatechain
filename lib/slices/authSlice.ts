@@ -243,6 +243,15 @@ const authSlice = createSlice({
 				action.payload.refreshToken
 			);
 		},
+		updateOnboardingStatus: (
+			state,
+			action: PayloadAction<OnboardingStatus>
+		) => {
+			if (state.user) {
+				state.user.onboardingStatus = action.payload;
+			}
+			state.onboardingStatus = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -388,5 +397,6 @@ export const {
 	setOnboardingStatus,
 	resetLoading,
 	setTokens,
+	updateOnboardingStatus,
 } = authSlice.actions;
 export default authSlice.reducer;

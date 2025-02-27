@@ -3,7 +3,7 @@ import {
 	createAsyncThunk,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
-import { type OnboardingState, OnboardingStepStatus } from "@/lib/types";
+import { type OnboardingState, OnboardingStatus, OnboardingStepStatus } from "@/lib/types";
 import {
 	fetchOnboardingProgress,
 	startOnboarding,
@@ -12,6 +12,7 @@ import {
 	completeOnboarding,
 } from "@/lib/api/onboarding";
 import { MAX_STEPS } from "../constants/onboarding-steps";
+import { updateOnboardingStatus } from "./authSlice";
 
 
 const initialState: OnboardingState = {
@@ -178,7 +179,7 @@ export const skipStep = createAsyncThunk(
  */
 export const finishOnboarding = createAsyncThunk(
 	"onboarding/complete",
-	async (_, { getState, rejectWithValue }) => {
+	async (_, { getState, dispatch, rejectWithValue }) => {
 		try {
 			// Validate completion
 			const state = getState() as { onboarding: OnboardingState };
@@ -191,6 +192,8 @@ export const finishOnboarding = createAsyncThunk(
 			}
 
 			const response = await completeOnboarding();
+			 // Update auth state with completed status
+			 dispatch(updateOnboardingStatus(OnboardingStatus.COMPLETED))
 			return response;
 		} catch (error) {
 			return rejectWithValue(
