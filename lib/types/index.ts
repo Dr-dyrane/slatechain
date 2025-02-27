@@ -196,16 +196,17 @@ export interface OnboardingState {
 	cancelled: boolean;
 	loading: boolean;
 	userId: string | null;
+	error: string | null;
 }
 
 export interface OnboardingStep {
 	id: number;
 	title: string;
 	status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED" | "SKIPPED";
-	data?: Record<string, any>
-	completedAt?: Date
-	skippedAt?: Date
-	skipReason?: string
+	data?: Record<string, any>;
+	completedAt?: Date;
+	skippedAt?: Date;
+	skipReason?: string;
 }
 
 export interface OnboardingProgress {

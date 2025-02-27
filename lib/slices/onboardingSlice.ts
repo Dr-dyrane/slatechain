@@ -11,6 +11,7 @@ import {
 	skipOnboardingStep,
 	completeOnboarding,
 } from "@/lib/api/onboarding";
+import { MAX_STEPS } from "../constants/onboarding-steps";
 
 const initialState: OnboardingState = {
 	currentStep: 0,
@@ -21,6 +22,7 @@ const initialState: OnboardingState = {
 	cancelled: false,
 	userId: null,
 	loading: false,
+	error: null,
 };
 
 export const fetchProgress = createAsyncThunk<OnboardingProgress>(
@@ -90,10 +92,13 @@ const onboardingSlice = createSlice({
 		},
 
 		setCurrentStep: (state, action: PayloadAction<number>) => {
-			state.currentStep = action.payload;
+			state.currentStep = Math.min(action.payload, MAX_STEPS - 1);
 		},
 		completeStep: (state, action: PayloadAction<number>) => {
-			if (!state.completedSteps.includes(action.payload)) {
+			if (
+				action.payload < MAX_STEPS &&
+				!state.completedSteps.includes(action.payload)
+			) {
 				state.completedSteps.push(action.payload);
 			}
 		},
@@ -113,11 +118,15 @@ const onboardingSlice = createSlice({
 		setUserId: (state, action: PayloadAction<string>) => {
 			state.userId = action.payload;
 		},
+		setError: (state, action: PayloadAction<string | null>) => {
+			state.error = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchProgress.pending, (state) => {
 				state.loading = true;
+				state.error = null;
 			})
 			.addCase(fetchProgress.fulfilled, (state, action) => {
 				state.loading = false;
@@ -125,11 +134,13 @@ const onboardingSlice = createSlice({
 				state.completedSteps = action.payload.completedSteps;
 				state.completed = action.payload.completed;
 			})
-			.addCase(fetchProgress.rejected, (state) => {
+			.addCase(fetchProgress.rejected, (state, action) => {
 				state.loading = false;
+				state.error = action.payload as string;
 			})
 			.addCase(startOnboardingProcess.pending, (state) => {
 				state.loading = true;
+				state.error = null;
 			})
 			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
 				state.loading = false;
@@ -137,8 +148,15 @@ const onboardingSlice = createSlice({
 				state.completedSteps = action.payload.completedSteps;
 				state.completed = action.payload.completed;
 			})
-			.addCase(startOnboardingProcess.rejected, (state) => {
+			.addCase(startOnboardingProcess.rejected, (state, action) => {
 				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(updateStep.pending, (state) => {
+				state.error = null;
+			})
+			.addCase(updateStep.rejected, (state, action) => {
+				state.error = action.payload as string;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
 				const stepIndex = state.completedSteps.findIndex(
@@ -161,13 +179,15 @@ const onboardingSlice = createSlice({
 			})
 			.addCase(finishOnboarding.pending, (state) => {
 				state.loading = true;
+				state.error = null;
 			})
 			.addCase(finishOnboarding.fulfilled, (state) => {
 				state.loading = false;
 				state.completed = true;
 			})
-			.addCase(finishOnboarding.rejected, (state) => {
+			.addCase(finishOnboarding.rejected, (state, action) => {
 				state.loading = false;
+				state.error = action.payload as string;
 			});
 	},
 });
@@ -181,6 +201,7 @@ export const {
 	resumeOnboarding,
 	resetOnboarding,
 	setUserId,
+	setError,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;
