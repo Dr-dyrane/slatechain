@@ -4,10 +4,25 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../index";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 import { withRateLimit } from "@/lib/utils";
-import Onboarding from "../../models/Onboarding";
+import Onboarding, { OnboardingStepSchemaType } from "../../models/Onboarding";
 import User from "../../models/User";
-import { OnboardingStatus } from "@/lib/types";
-import { MAX_STEPS } from "@/lib/constants/onboarding-steps";
+import { OnboardingStatus, OnboardingStepStatus, UserRole } from "@/lib/types";
+import { MAX_STEPS, STEP_DETAILS } from "@/lib/constants/onboarding-steps";
+
+interface OnboardingStep {
+	stepId: number;
+	title: string;
+	status: OnboardingStepStatus;
+}
+
+// Helper function to get default steps based on user role
+function getDefaultSteps(role: UserRole): OnboardingStep[] {
+	return Object.entries(STEP_DETAILS).map(([id, details]) => ({
+		stepId: Number.parseInt(id),
+		title: details.title,
+		status: OnboardingStepStatus.NOT_STARTED,
+	}));
+}
 
 export async function GET(req: Request) {
 	const { headers, limited } = await withRateLimit(
@@ -32,10 +47,7 @@ export async function GET(req: Request) {
 		const authorization = req.headers.get("Authorization");
 		if (!authorization || !authorization.startsWith("Bearer ")) {
 			return NextResponse.json(
-				{
-					code: "NO_TOKEN",
-					message: "Authentication required",
-				},
+				{ code: "NO_TOKEN", message: "Authentication required" },
 				{ status: 401, headers }
 			);
 		}
@@ -45,56 +57,61 @@ export async function GET(req: Request) {
 
 		if (!decoded) {
 			return NextResponse.json(
-				{
-					code: "INVALID_TOKEN",
-					message: "Invalid or expired token",
-				},
+				{ code: "INVALID_TOKEN", message: "Invalid or expired token" },
 				{ status: 401, headers }
 			);
 		}
 
-		// First check if user exists
 		const user = await User.findById(decoded.userId);
 		if (!user) {
 			return NextResponse.json(
-				{
-					code: "USER_NOT_FOUND",
-					message: "User not found",
-				},
+				{ code: "USER_NOT_FOUND", message: "User not found" },
 				{ status: 404, headers }
 			);
 		}
 
-		// Find or create onboarding progress
 		let onboarding = await Onboarding.findOne({ userId: decoded.userId });
 
-		// If no onboarding record exists, create one
 		if (!onboarding) {
+			const defaultSteps = getDefaultSteps(user.role);
 			onboarding = await Onboarding.create({
 				userId: decoded.userId,
 				status: OnboardingStatus.NOT_STARTED,
 				currentStep: 0,
-				steps: [],
+				steps: defaultSteps,
+				roleSpecificData: {}, // Initialize roleSpecificData
 			});
 		}
 
-		// Ensure current step doesn't exceed maximum
-		if (onboarding.currentStep >= MAX_STEPS) {
-			onboarding.currentStep = MAX_STEPS - 1;
-			await onboarding.save();
-		}
+		// Validate and Correct Onboarding Data
 
-		// Filter completed steps to ensure they don't exceed maximum
-		const completedSteps = onboarding.steps
-			.filter(
-				(step: any) => step.status === "COMPLETED" && step.stepId < MAX_STEPS
-			)
-			.map((step: any) => step.stepId);
-
-		// Filter steps array to remove any steps beyond the maximum
-		const validSteps = onboarding.steps.filter(
+		onboarding.currentStep = Math.min(onboarding.currentStep, MAX_STEPS - 1); // Ensure currentStep is within bounds
+		onboarding.steps = onboarding.steps.filter(
 			(step: any) => step.stepId < MAX_STEPS
 		);
+
+		for (const step of onboarding.steps) {
+			if (
+				step.status === OnboardingStepStatus.COMPLETED &&
+				step.stepId >= onboarding.currentStep
+			) {
+				// If a step beyond the current step is marked as completed, reset its status
+				step.status = OnboardingStepStatus.NOT_STARTED;
+			}
+		}
+
+		await onboarding.save();
+
+		onboarding.steps = onboarding.steps.filter(
+			(step: OnboardingStepSchemaType) => step.stepId < MAX_STEPS
+		);
+
+		const completedSteps = onboarding.steps
+			.filter(
+				(step: OnboardingStepSchemaType) =>
+					step.status === OnboardingStepStatus.COMPLETED
+			)
+			.map((step: OnboardingStepSchemaType) => step.stepId);
 
 		return NextResponse.json(
 			{
@@ -102,12 +119,10 @@ export async function GET(req: Request) {
 				data: {
 					status: onboarding.status,
 					currentStep: onboarding.currentStep,
-					completedSteps: onboarding.steps
-						.filter((step: any) => step.status === "COMPLETED")
-						.map((step: any) => step.stepId),
+					completedSteps: completedSteps,
 					steps: onboarding.steps,
 					completed: onboarding.status === OnboardingStatus.COMPLETED,
-					roleSpecificData: onboarding.roleSpecificData || {},
+					roleSpecificData: onboarding.roleSpecificData || {}, // Include roleSpecificData
 				},
 			},
 			{ headers }
@@ -115,10 +130,7 @@ export async function GET(req: Request) {
 	} catch (error) {
 		console.error("Fetch Onboarding Progress Error:", error);
 		return NextResponse.json(
-			{
-				code: "SERVER_ERROR",
-				message: "Failed to fetch onboarding progress",
-			},
+			{ code: "SERVER_ERROR", message: "Failed to fetch onboarding progress" },
 			{ status: 500, headers }
 		);
 	}

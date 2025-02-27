@@ -197,6 +197,41 @@ export interface OnboardingState {
 	loading: boolean;
 	userId: string | null;
 	error: string | null;
+	stepHistory: StepHistoryEntry[]; // Track step navigation history
+	stepsData: Record<
+		number,
+		Record<string, string | number | boolean | string[] | undefined>
+	>; // Store data for each step
+}
+
+// Add StepHistoryEntry interface
+export interface StepHistoryEntry {
+	stepId: number;
+	data: Record<string, string | number | boolean | string[] | undefined>;
+}
+
+// Update API response types to include proper data types
+export interface OnboardingResponse {
+	code: string;
+	data: OnboardingProgress;
+}
+
+export interface StepUpdateResponse {
+	code: string;
+	data: OnboardingStep;
+}
+
+export interface StepSkipResponse {
+	code: string;
+	data: OnboardingStep;
+}
+
+export interface CompletionResponse {
+	code: string;
+	data: {
+		success: boolean;
+		completedAt: string;
+	};
 }
 
 export interface OnboardingStep {
@@ -213,6 +248,7 @@ export interface OnboardingProgress {
 	currentStep: number;
 	completedSteps: number[];
 	completed: boolean;
+	roleSpecificData: Record<string, any>
 }
 
 // Role-specific onboarding data

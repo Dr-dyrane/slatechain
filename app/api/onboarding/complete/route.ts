@@ -5,6 +5,9 @@ import { connectToDatabase } from "../../index";
 import { verifyAccessToken } from "@/lib/auth/jwt";
 import { withRateLimit } from "@/lib/utils";
 import Onboarding from "../../models/Onboarding";
+import { OnboardingStatus } from "@/lib/types";
+import mongoose from "mongoose";
+import User from "../../models/User";
 
 export async function GET(req: Request) {
 	const { headers, limited } = await withRateLimit(
@@ -50,37 +53,88 @@ export async function GET(req: Request) {
 			);
 		}
 
-		const onboarding = await Onboarding.findOne({ userId: decoded.userId });
-		if (!onboarding) {
+		// Use a session to ensure atomic updates
+		const session = await mongoose.startSession();
+		session.startTransaction();
+
+		try {
+			// Check if user exists
+			const user = await User.findById(decoded.userId).session(session);
+			if (!user) {
+				await session.abortTransaction();
+				return NextResponse.json(
+					{
+						code: "USER_NOT_FOUND",
+						message: "User not found",
+					},
+					{ status: 404, headers }
+				);
+			}
+
+			// Find onboarding record
+			const onboarding = await Onboarding.findOne({
+				userId: decoded.userId,
+			}).session(session);
+			if (!onboarding) {
+				await session.abortTransaction();
+				return NextResponse.json(
+					{
+						code: "NOT_FOUND",
+						message: "Onboarding progress not found",
+					},
+					{ status: 404, headers }
+				);
+			}
+
+			// If already completed, return success
+			if (onboarding.status === OnboardingStatus.COMPLETED) {
+				await session.abortTransaction();
+				return NextResponse.json(
+					{
+						code: "SUCCESS",
+						data: {
+							success: true,
+							completedAt: onboarding.completedAt,
+						},
+					},
+					{ headers }
+				);
+			}
+
+			// Update onboarding status
+			onboarding.status = OnboardingStatus.COMPLETED;
+			onboarding.completedAt = new Date();
+
+			// Save onboarding changes - this will trigger the post-save hook to sync with user
+			await onboarding.save({ session });
+
+			// Commit the transaction
+			await session.commitTransaction();
+
 			return NextResponse.json(
 				{
-					code: "NOT_FOUND",
-					message: "Onboarding progress not found",
+					code: "SUCCESS",
+					data: {
+						success: true,
+						completedAt: onboarding.completedAt,
+					},
 				},
-				{ status: 404, headers }
+				{ headers }
 			);
+		} catch (error) {
+			// If anything fails, abort the transaction
+			await session.abortTransaction();
+			throw error;
+		} finally {
+			// End the session
+			session.endSession();
 		}
-
-		return NextResponse.json(
-			{
-				code: "SUCCESS",
-				data: {
-					currentStep: onboarding.currentStep,
-					completedSteps: onboarding.steps
-						.filter((step: any) => step.status === "COMPLETED")
-						.map((step: any) => step.stepId),
-					completed: onboarding.status === "COMPLETED",
-					roleSpecificData: onboarding.roleSpecificData,
-				},
-			},
-			{ headers }
-		);
 	} catch (error) {
-		console.error("Fetch Onboarding Progress Error:", error);
+		console.error("Complete Onboarding Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to fetch onboarding progress",
+				message: "Failed to complete onboarding",
 			},
 			{ status: 500, headers }
 		);
