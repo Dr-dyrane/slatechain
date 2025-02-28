@@ -3,7 +3,11 @@ import {
 	createAsyncThunk,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
-import { type OnboardingState, OnboardingStatus, OnboardingStepStatus } from "@/lib/types";
+import {
+	type OnboardingState,
+	OnboardingStatus,
+	OnboardingStepStatus,
+} from "@/lib/types";
 import {
 	fetchOnboardingProgress,
 	startOnboarding,
@@ -13,7 +17,6 @@ import {
 } from "@/lib/api/onboarding";
 import { MAX_STEPS } from "../constants/onboarding-steps";
 import { updateOnboardingStatus } from "./authSlice";
-
 
 const initialState: OnboardingState = {
 	currentStep: 0,
@@ -192,8 +195,8 @@ export const finishOnboarding = createAsyncThunk(
 			}
 
 			const response = await completeOnboarding();
-			 // Update auth state with completed status
-			 dispatch(updateOnboardingStatus(OnboardingStatus.COMPLETED))
+			// Update auth state with completed status
+			dispatch(updateOnboardingStatus(OnboardingStatus.COMPLETED));
 			return response;
 		} catch (error) {
 			return rejectWithValue(
@@ -228,12 +231,12 @@ const onboardingSlice = createSlice({
 			state.stepsData[action.payload.stepId] = action.payload.data;
 		},
 		completeStep: (state, action: PayloadAction<number>) => {
-			if (
-				action.payload < MAX_STEPS &&
-				!state.completedSteps.includes(action.payload) &&
-				state.completedSteps.length < MAX_STEPS
-			) {
-				state.completedSteps.push(action.payload);
+			const stepId = action.payload;
+			if (!Array.isArray(state.completedSteps)) {
+				state.completedSteps = [];
+			}
+			if (!state.completedSteps.includes(stepId)) {
+				state.completedSteps.push(stepId);
 			}
 		},
 		setRoleSpecificData: (

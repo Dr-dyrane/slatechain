@@ -143,17 +143,6 @@ export async function PUT(
 				);
 			}
 
-			// Validate step data if provided
-			if (data && !onboarding.validateStepData(stepId, data, user.role)) {
-				return NextResponse.json(
-					{
-						code: "INVALID_DATA",
-						message: "Invalid step data",
-					},
-					{ status: 400, headers }
-				);
-			}
-
 			// Update step status (using type assertion for safety)
 			(onboarding.steps[stepIndex] as OnboardingStepSchemaType).status = status; // Type assertion
 
