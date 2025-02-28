@@ -29,7 +29,7 @@ export function Preferences({ role, onComplete, data, onSkip }: PreferencesProps
     resolver: zodResolver(preferencesSchema),
     defaultValues: {
       theme: (data?.theme as "light" | "dark" | "system") || "system",
-      emailNotifications: (data?.emailNotifications as boolean) || true,
+      emailNotifications: (data?.emailNotifications as boolean) || false,
       smsNotifications: (data?.smsNotifications as boolean) || false,
       darkMode: (data?.darkMode as boolean) || false,
     },

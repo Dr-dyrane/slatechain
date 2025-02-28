@@ -9,7 +9,7 @@ import { OnboardingStatus } from "@/lib/types";
 import mongoose from "mongoose";
 import User from "../../models/User";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
 	const { headers, limited } = await withRateLimit(
 		req,
 		"onboarding_progress",
