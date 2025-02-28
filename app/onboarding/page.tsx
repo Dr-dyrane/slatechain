@@ -15,6 +15,7 @@ import {
   skipStep,
   navigateBack,
   completeStep, // Add this import
+  setLoading, // Import setLoading
 } from "@/lib/slices/onboardingSlice"
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
@@ -57,10 +58,13 @@ export default function OnboardingPage() {
     const initializeOnboarding = async () => {
       if (user && !isInitialized) {
         try {
+          dispatch(setLoading(true)); // Start loading
           await dispatch(fetchProgress()).unwrap()
           setIsInitialized(true)
         } catch (error) {
           console.error("Error initializing onboarding:", error)
+        } finally {
+          dispatch(setLoading(false)); // End loading regardless of success/failure
         }
       }
     }
@@ -83,6 +87,7 @@ export default function OnboardingPage() {
     }
 
     try {
+      dispatch(setLoading(true)); // Start loading
       // Update current step as completed
       await dispatch(
         updateStep({
@@ -105,6 +110,8 @@ export default function OnboardingPage() {
       }
     } catch (error) {
       console.error("Error saving step:", error)
+    } finally {
+      dispatch(setLoading(false)); // End loading regardless of success/failure
     }
   }
 
@@ -112,10 +119,13 @@ export default function OnboardingPage() {
   const handleBack = async () => {
     if (currentStep > 0) {
       try {
+        dispatch(setLoading(true));
         const result = await dispatch(navigateBack()).unwrap()
         setStepData(result.stepData || {})
       } catch (error) {
         console.error("Error going back:", error)
+      } finally {
+        dispatch(setLoading(false));
       }
     }
   }
@@ -125,6 +135,7 @@ export default function OnboardingPage() {
     if (!user) return
 
     try {
+      dispatch(setLoading(true));
       await dispatch(
         skipStep({
           stepId: currentStep,
@@ -137,6 +148,8 @@ export default function OnboardingPage() {
       setStepData({}) // Reset step data for the next step
     } catch (error) {
       console.error("Error skipping step:", error)
+    } finally {
+      dispatch(setLoading(false));
     }
   }
 

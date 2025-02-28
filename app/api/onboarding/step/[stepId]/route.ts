@@ -216,7 +216,7 @@ export async function PUT(
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to update onboarding step",
+				message: error instanceof Error ? error.message : "Failed to update onboarding step",
 			},
 			{ status: 500, headers }
 		);

@@ -26,7 +26,12 @@ export interface OnboardingState {
 	userId: string | null;
 	error: string | null;
 	stepHistory: number[]; // Array of step indices to track navigation history
-	stepsData: Record<number, any>; // Store data for each step, indexed by step number
+	stepsData: Record<number, OnboardingStepData>;
+}
+
+export interface OnboardingStepData {
+	[key: string]: any; // Stores dynamic step-specific data
+	startedAt?: Date; // Ensures correct date parsing
 }
 
 // Base props that all onboarding steps share

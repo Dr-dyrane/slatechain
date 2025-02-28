@@ -198,10 +198,12 @@ export interface OnboardingState {
 	userId: string | null;
 	error: string | null;
 	stepHistory: StepHistoryEntry[]; // Track step navigation history
-	stepsData: Record<
-		number,
-		Record<string, string | number | boolean | string[] | undefined>
-	>; // Store data for each step
+	stepsData: Record<number, OnboardingStepData>;
+}
+
+export interface OnboardingStepData {
+	[key: string]: any; // Stores dynamic step-specific data
+	startedAt?: Date; // Ensures correct date parsing
 }
 
 // Add StepHistoryEntry interface
@@ -248,7 +250,7 @@ export interface OnboardingProgress {
 	currentStep: number;
 	completedSteps: number[];
 	completed: boolean;
-	roleSpecificData: Record<string, any>
+	roleSpecificData: Record<string, any>;
 }
 
 // Role-specific onboarding data
