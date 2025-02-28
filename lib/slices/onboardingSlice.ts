@@ -33,46 +33,6 @@ const initialState: OnboardingState = {
 };
 
 /**
- * Navigate back to previous step
- */
-export const navigateBack = createAsyncThunk(
-	"onboarding/navigateBack",
-	async (_, { getState, dispatch, rejectWithValue }) => {
-		try {
-			const state = getState() as { onboarding: OnboardingState };
-			const { currentStep, stepHistory, stepsData } = state.onboarding;
-
-			if (currentStep <= 0) {
-				return rejectWithValue("Already at first step");
-			}
-
-			const previousStep = currentStep - 1;
-			const previousStepData = stepsData[previousStep] || {};
-
-			// Only update step status if not already completed
-			if (!state.onboarding.completedSteps.includes(previousStep)) {
-				await dispatch(
-					updateStep({
-						stepId: previousStep,
-						status: OnboardingStepStatus.IN_PROGRESS,
-						data: previousStepData,
-					})
-				).unwrap();
-			}
-
-			return {
-				nextStep: previousStep,
-				stepData: previousStepData,
-			};
-		} catch (error) {
-			return rejectWithValue(
-				error instanceof Error ? error.message : "Failed to navigate back"
-			);
-		}
-	}
-);
-
-/**
  * Fetch onboarding progress
  */
 export const fetchProgress = createAsyncThunk(
@@ -236,7 +196,7 @@ const onboardingSlice = createSlice({
 				state.completedSteps = [];
 			}
 			if (!state.completedSteps.includes(stepId)) {
-				state.completedSteps.push(stepId);
+				state.completedSteps = [...state.completedSteps, stepId];
 			}
 		},
 		setRoleSpecificData: (
@@ -258,24 +218,15 @@ const onboardingSlice = createSlice({
 		setError: (state, action: PayloadAction<string | null>) => {
 			state.error = action.payload;
 		},
+		goBack: (state) => {
+			// Reducer to handle navigation back
+			if (state.currentStep > 0) {
+				state.currentStep = state.currentStep - 1;
+			}
+		},
 	},
 	extraReducers: (builder) => {
 		builder
-			// Handle navigateBack
-			.addCase(navigateBack.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
-			.addCase(navigateBack.fulfilled, (state, action) => {
-				state.loading = false;
-				state.currentStep = action.payload.nextStep;
-				// Don't clear step data, preserve it
-				state.error = null;
-			})
-			.addCase(navigateBack.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.error.message || "Failed to navigate back";
-			})
 			// Handle fetchProgress
 			.addCase(fetchProgress.pending, (state) => {
 				state.loading = true;
@@ -284,10 +235,8 @@ const onboardingSlice = createSlice({
 			.addCase(fetchProgress.fulfilled, (state, action) => {
 				state.loading = false;
 				state.currentStep = action.payload.currentStep;
-				state.completedSteps = action.payload.completedSteps.slice(
-					0,
-					MAX_STEPS
-				);
+				state.completedSteps =
+					action.payload.completedSteps?.slice(0, MAX_STEPS) || [];
 				state.completed = action.payload.completed;
 				state.roleSpecificData = action.payload.roleSpecificData || {};
 			})
@@ -303,10 +252,8 @@ const onboardingSlice = createSlice({
 			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
 				state.loading = false;
 				state.currentStep = action.payload.currentStep;
-				state.completedSteps = action.payload.completedSteps.slice(
-					0,
-					MAX_STEPS
-				);
+				state.completedSteps =
+					action.payload.completedSteps?.slice(0, MAX_STEPS) || [];
 				state.completed = action.payload.completed;
 				state.roleSpecificData = action.payload.roleSpecificData || {};
 				// Reset step history and data when starting new
@@ -322,12 +269,12 @@ const onboardingSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
+				const stepId = action.payload.id;
+
 				if (action.payload.status === OnboardingStepStatus.COMPLETED) {
-					if (
-						!state.completedSteps.includes(action.payload.id) &&
-						state.completedSteps.length < MAX_STEPS
-					) {
-						state.completedSteps.push(action.payload.id);
+					if (!state.completedSteps.includes(stepId)) {
+						// Use the spread operator to create a new array
+						state.completedSteps = [...state.completedSteps, stepId];
 					}
 
 					// Move to next step if not the last one
@@ -358,7 +305,8 @@ const onboardingSlice = createSlice({
 					!state.completedSteps.includes(action.payload.id) &&
 					state.completedSteps.length < MAX_STEPS
 				) {
-					state.completedSteps.push(action.payload.id);
+					// Create a new array to update completedSteps
+					state.completedSteps = [...state.completedSteps, action.payload.id];
 					// Move to next step after skipping
 					if (action.payload.id < MAX_STEPS - 1) {
 						state.currentStep = action.payload.id + 1;
@@ -395,6 +343,7 @@ export const {
 	resetOnboarding,
 	setUserId,
 	setError,
+	goBack, // Export goBack reducer
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;

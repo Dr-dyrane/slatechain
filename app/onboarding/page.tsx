@@ -13,9 +13,9 @@ import {
   setCurrentStep,
   cancelOnboarding,
   skipStep,
-  navigateBack,
   completeStep, // Add this import
-  setLoading, // Import setLoading
+  setLoading,
+  goBack, // Import setLoading
 } from "@/lib/slices/onboardingSlice"
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
@@ -115,20 +115,12 @@ export default function OnboardingPage() {
     }
   }
 
-  // Handle back button click
-  const handleBack = async () => {
+   // Handle back button click
+   const handleBack = () => {
     if (currentStep > 0) {
-      try {
-        dispatch(setLoading(true));
-        const result = await dispatch(navigateBack()).unwrap()
-        setStepData(result.stepData || {})
-      } catch (error) {
-        console.error("Error going back:", error)
-      } finally {
-        dispatch(setLoading(false));
-      }
+       dispatch(goBack());
     }
-  }
+  };
 
   // Handle skip button click
   const handleSkip = async (reason = "User skipped this step") => {
@@ -222,7 +214,7 @@ export default function OnboardingPage() {
             )}
           </div>
 
-          <OnboardingProgress currentStep={currentStep} totalSteps={MAX_STEPS} completedSteps={completedSteps} />
+          <OnboardingProgress currentStep={currentStep} totalSteps={MAX_STEPS} completedSteps={completedSteps || []} />
         </CardHeader>
 
         <CardContent>
