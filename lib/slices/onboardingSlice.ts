@@ -18,6 +18,18 @@ import {
 import { MAX_STEPS } from "../constants/onboarding-steps";
 import { updateOnboardingStatus } from "./authSlice";
 
+// Helper function to ensure completedSteps is always an array
+const ensureCompletedSteps = (state: OnboardingState) => {
+	if (!Array.isArray(state.completedSteps)) {
+		state.completedSteps = [];
+	}
+};
+
+// Helper function to safely handle nested response data
+const getResponseData = (response: any) => {
+	return response?.data || response;
+};
+
 const initialState: OnboardingState = {
 	currentStep: 0,
 	totalSteps: MAX_STEPS,
@@ -32,15 +44,13 @@ const initialState: OnboardingState = {
 	stepsData: {},
 };
 
-/**
- * Fetch onboarding progress
- */
+// Update the thunks to handle nested response structure
 export const fetchProgress = createAsyncThunk(
 	"onboarding/fetchProgress",
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await fetchOnboardingProgress();
-			return response;
+			return getResponseData(response);
 		} catch (error) {
 			return rejectWithValue(
 				error instanceof Error ? error.message : "Failed to fetch progress"
@@ -49,15 +59,12 @@ export const fetchProgress = createAsyncThunk(
 	}
 );
 
-/**
- * Start onboarding process
- */
 export const startOnboardingProcess = createAsyncThunk(
 	"onboarding/start",
 	async (_, { rejectWithValue }) => {
 		try {
 			const response = await startOnboarding();
-			return response;
+			return getResponseData(response);
 		} catch (error) {
 			return rejectWithValue(
 				error instanceof Error ? error.message : "Failed to start onboarding"
@@ -66,9 +73,6 @@ export const startOnboardingProcess = createAsyncThunk(
 	}
 );
 
-/**
- * Update step status and data
- */
 export const updateStep = createAsyncThunk(
 	"onboarding/updateStep",
 	async (
@@ -79,22 +83,13 @@ export const updateStep = createAsyncThunk(
 		}: {
 			stepId: number;
 			status: OnboardingStepStatus;
-			data?: Record<string, string | number | boolean | string[] | undefined>;
+			data?: Record<string, any>;
 		},
 		{ getState, rejectWithValue }
 	) => {
 		try {
-			// Validate step transition
-			const state = getState() as { onboarding: OnboardingState };
-			const { currentStep, completedSteps } = state.onboarding;
-
-			// Can't update steps beyond current unless they're already completed
-			if (stepId > currentStep && !completedSteps.includes(stepId)) {
-				return rejectWithValue("Cannot update future steps");
-			}
-
 			const response = await updateOnboardingStep(stepId, status, data);
-			return response;
+			return getResponseData(response);
 		} catch (error) {
 			return rejectWithValue(
 				error instanceof Error ? error.message : "Failed to update step"
@@ -103,32 +98,15 @@ export const updateStep = createAsyncThunk(
 	}
 );
 
-/**
- * Skip current step
- */
 export const skipStep = createAsyncThunk(
 	"onboarding/skipStep",
 	async (
 		{ stepId, reason }: { stepId: number; reason: string },
-		{ getState, rejectWithValue }
+		{ rejectWithValue }
 	) => {
 		try {
-			// Validate skip operation
-			const state = getState() as { onboarding: OnboardingState };
-			const { currentStep, completedSteps } = state.onboarding;
-
-			// Can only skip current step
-			if (stepId !== currentStep) {
-				return rejectWithValue("Can only skip current step");
-			}
-
-			// Can't skip if already completed
-			if (completedSteps.includes(stepId)) {
-				return rejectWithValue("Cannot skip completed step");
-			}
-
 			const response = await skipOnboardingStep(stepId, reason);
-			return response;
+			return getResponseData(response);
 		} catch (error) {
 			return rejectWithValue(
 				error instanceof Error ? error.message : "Failed to skip step"
@@ -137,27 +115,14 @@ export const skipStep = createAsyncThunk(
 	}
 );
 
-/**
- * Complete onboarding process
- */
 export const finishOnboarding = createAsyncThunk(
 	"onboarding/complete",
-	async (_, { getState, dispatch, rejectWithValue }) => {
+	async (_, { dispatch, rejectWithValue }) => {
 		try {
-			// Validate completion
-			const state = getState() as { onboarding: OnboardingState };
-			const { completedSteps } = state.onboarding;
-
-			// Ensure all required steps are completed
-			if (completedSteps.length < MAX_STEPS - 1) {
-				// -1 for completion step
-				return rejectWithValue("All required steps must be completed");
-			}
-
 			const response = await completeOnboarding();
-			// Update auth state with completed status
+			const responseData = getResponseData(response);
 			dispatch(updateOnboardingStatus(OnboardingStatus.COMPLETED));
-			return response;
+			return responseData;
 		} catch (error) {
 			return rejectWithValue(
 				error instanceof Error ? error.message : "Failed to complete onboarding"
@@ -174,27 +139,21 @@ const onboardingSlice = createSlice({
 			state.loading = action.payload;
 		},
 		setCurrentStep: (state, action: PayloadAction<number>) => {
-			const stepId = state.currentStep;
-			// Ensure completedSteps is initialized
-			if (!Array.isArray(state.completedSteps)) {
-				state.completedSteps = [];
-			}
+			ensureCompletedSteps(state);
 			state.currentStep = Math.min(action.payload, MAX_STEPS - 1);
 		},
 		setStepData: (
 			state,
 			action: PayloadAction<{
 				stepId: number;
-				data: Record<string, string | number | boolean | string[] | undefined>;
+				data: Record<string, any>;
 			}>
 		) => {
 			state.stepsData[action.payload.stepId] = action.payload.data;
 		},
 		completeStep: (state, action: PayloadAction<number>) => {
+			ensureCompletedSteps(state);
 			const stepId = action.payload;
-			if (!Array.isArray(state.completedSteps)) {
-				state.completedSteps = [];
-			}
 			if (!state.completedSteps.includes(stepId)) {
 				state.completedSteps = [...state.completedSteps, stepId];
 			}
@@ -219,7 +178,6 @@ const onboardingSlice = createSlice({
 			state.error = action.payload;
 		},
 		goBack: (state) => {
-			// Reducer to handle navigation back
 			if (state.currentStep > 0) {
 				state.currentStep = state.currentStep - 1;
 			}
@@ -234,6 +192,7 @@ const onboardingSlice = createSlice({
 			})
 			.addCase(fetchProgress.fulfilled, (state, action) => {
 				state.loading = false;
+				ensureCompletedSteps(state);
 				state.currentStep = action.payload.currentStep;
 				state.completedSteps =
 					action.payload.completedSteps?.slice(0, MAX_STEPS) || [];
@@ -251,12 +210,12 @@ const onboardingSlice = createSlice({
 			})
 			.addCase(startOnboardingProcess.fulfilled, (state, action) => {
 				state.loading = false;
+				ensureCompletedSteps(state);
 				state.currentStep = action.payload.currentStep;
 				state.completedSteps =
 					action.payload.completedSteps?.slice(0, MAX_STEPS) || [];
 				state.completed = action.payload.completed;
 				state.roleSpecificData = action.payload.roleSpecificData || {};
-				// Reset step history and data when starting new
 				state.stepHistory = [];
 				state.stepsData = {};
 			})
@@ -266,62 +225,52 @@ const onboardingSlice = createSlice({
 			})
 			// Handle updateStep
 			.addCase(updateStep.pending, (state) => {
+				state.loading = true;
 				state.error = null;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
 				state.loading = false;
-				const stepId = action.payload.id;
+				ensureCompletedSteps(state);
 
-				// Ensure we're accessing the nested data structure correctly
-				const responseData = action.payload.data;
-
-				// Initialize completedSteps if needed
-				if (!Array.isArray(state.completedSteps)) {
-					state.completedSteps = [];
-				}
-
-				if (responseData?.status === OnboardingStepStatus.COMPLETED) {
-					// Add to completedSteps if not already included
-					if (!state.completedSteps.includes(responseData.id)) {
-						state.completedSteps = [...state.completedSteps, responseData.id];
+				if (action.payload.status === OnboardingStepStatus.COMPLETED) {
+					if (!state.completedSteps.includes(action.payload.id)) {
+						state.completedSteps = [...state.completedSteps, action.payload.id];
 					}
 
-					// Update current step based on the response
-					if (typeof responseData.currentStep === "number") {
-						state.currentStep = responseData.currentStep;
-					} else if (responseData.id < MAX_STEPS - 1) {
-						state.currentStep = responseData.id + 1;
+					if (typeof action.payload.currentStep === "number") {
+						state.currentStep = action.payload.currentStep;
+					} else if (action.payload.id < MAX_STEPS - 1) {
+						state.currentStep = action.payload.id + 1;
 					}
 				}
 
-				// Update step data if provided
-				if (responseData?.data) {
-					state.stepsData[responseData.id] = responseData.data;
+				if (action.payload.data) {
+					state.stepsData[action.payload.id] = action.payload.data;
 				}
 			})
 			.addCase(updateStep.rejected, (state, action) => {
+				state.loading = false;
 				state.error = action.payload as string;
 			})
 			// Handle skipStep
 			.addCase(skipStep.pending, (state) => {
+				state.loading = true;
 				state.error = null;
 			})
 			.addCase(skipStep.fulfilled, (state, action) => {
-				if (
-					!state.completedSteps.includes(action.payload.id) &&
-					state.completedSteps.length < MAX_STEPS
-				) {
-					// Create a new array to update completedSteps
-					state.completedSteps = Array.isArray(state.completedSteps)
-						? [...state.completedSteps, action.payload.id]
-						: [action.payload.id];
-					// Move to next step after skipping
+				state.loading = false;
+				ensureCompletedSteps(state);
+
+				if (!state.completedSteps.includes(action.payload.id)) {
+					state.completedSteps = [...state.completedSteps, action.payload.id];
+
 					if (action.payload.id < MAX_STEPS - 1) {
 						state.currentStep = action.payload.id + 1;
 					}
 				}
 			})
 			.addCase(skipStep.rejected, (state, action) => {
+				state.loading = false;
 				state.error = action.payload as string;
 			})
 			// Handle finishOnboarding
@@ -329,9 +278,15 @@ const onboardingSlice = createSlice({
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(finishOnboarding.fulfilled, (state) => {
+			.addCase(finishOnboarding.fulfilled, (state, action) => {
 				state.loading = false;
 				state.completed = true;
+				// Handle any additional data from the completion response if needed
+				if (action.payload?.completedAt) {
+					state.stepsData[MAX_STEPS - 1] = {
+						completedAt: action.payload.completedAt,
+					};
+				}
 			})
 			.addCase(finishOnboarding.rejected, (state, action) => {
 				state.loading = false;
@@ -351,7 +306,7 @@ export const {
 	resetOnboarding,
 	setUserId,
 	setError,
-	goBack, // Export goBack reducer
+	goBack,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;
