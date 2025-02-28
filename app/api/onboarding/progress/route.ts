@@ -8,6 +8,7 @@ import Onboarding, { OnboardingStepSchemaType } from "../../models/Onboarding";
 import User from "../../models/User";
 import { OnboardingStatus, OnboardingStepStatus, UserRole } from "@/lib/types";
 import { MAX_STEPS, STEP_DETAILS } from "@/lib/constants/onboarding-steps";
+import errorMap from "zod/locales/en.js";
 
 interface OnboardingStep {
 	stepId: number;
@@ -130,7 +131,9 @@ export async function GET(req: Request) {
 	} catch (error) {
 		console.error("Fetch Onboarding Progress Error:", error);
 		return NextResponse.json(
-			{ code: "SERVER_ERROR", message: "Failed to fetch onboarding progress" },
+			{ code: "SERVER_ERROR", 
+				message: error instanceof Error ? error.message : "Failed to fetch onboarding progress" 
+			},
 			{ status: 500, headers }
 		);
 	}

@@ -2,7 +2,12 @@
 
 import mongoose, { Document, Schema } from "mongoose";
 import { OnboardingStatus, OnboardingStepStatus, UserRole } from "@/lib/types";
-import { MAX_STEPS } from "@/lib/constants/onboarding-steps";
+import {
+	MAX_STEPS,
+	STEP_DETAILS,
+	ROLE_SPECIFIC_STEPS,
+	ONBOARDING_STEPS,
+} from "@/lib/constants/onboarding-steps";
 import User from "./User";
 
 // Define the interface for your document (without redefining toJSON)
@@ -53,6 +58,17 @@ const OnboardingStepSchema = new mongoose.Schema({
 	},
 });
 
+// Define OnboardingStepSchemaType
+export interface OnboardingStepSchemaType {
+	stepId: number;
+	title: string;
+	status: OnboardingStepStatus;
+	data: any; // Or a more specific type
+	completedAt?: Date;
+	skippedAt?: Date;
+	skipReason?: string;
+}
+
 const OnboardingSchema = new Schema<OnboardingDoc>(
 	{
 		userId: {
@@ -87,23 +103,13 @@ const OnboardingSchema = new Schema<OnboardingDoc>(
 	},
 	{
 		timestamps: true,
+		toJSON: { virtuals: true }, // Enable virtuals in toJSON
 	}
 );
 
-// Define OnboardingStepSchemaType
-export interface OnboardingStepSchemaType {
-	stepId: number;
-	title: string;
-	status: OnboardingStepStatus;
-	data: any; // Or a more specific type
-	completedAt?: Date;
-	skippedAt?: Date;
-	skipReason?: string;
-}
-
 // Override toJSON in the schema instead of the interface
 OnboardingSchema.methods.toJSON = function () {
-	const obj = this.toObject();
+	const obj = this.toObject({ virtuals: true }); // Apply virtuals during toObject conversion
 	return {
 		...obj,
 		steps: obj.steps.map((step: OnboardingStepSchemaType) => ({
@@ -123,9 +129,66 @@ OnboardingSchema.methods.validateStepData = function (
 	stepId: number,
 	data: Record<string, any>,
 	role: UserRole
-) {
-	// Add validation logic based on step and role
-	return true;
+): boolean {
+	// General checks: Make sure data is an object
+	if (typeof data !== "object" || data === null) {
+		return false;
+	}
+
+	switch (stepId) {
+		case ONBOARDING_STEPS.PROFILE_SETUP: // Profile Setup Validation
+			if (
+				!data.firstName ||
+				typeof data.firstName !== "string" ||
+				data.firstName.trim() === ""
+			)
+				return false;
+			if (
+				!data.lastName ||
+				typeof data.lastName !== "string" ||
+				data.lastName.trim() === ""
+			)
+				return false;
+			if (
+				!data.phoneNumber ||
+				typeof data.phoneNumber !== "string" ||
+				!/^\+\d+$/.test(data.phoneNumber)
+			)
+				return false; // Basic phone number check
+			return true;
+
+		case ONBOARDING_STEPS.ROLE_SPECIFIC: // Role-Specific Validation
+			const roleSpecificConfig = ROLE_SPECIFIC_STEPS[role];
+			if (!roleSpecificConfig) return false; // No config for this role
+
+			for (const field of roleSpecificConfig.fields) {
+				if (field.required && !data[field.name]) return false; // Required field missing
+				if (field.type === "number" && typeof data[field.name] !== "number")
+					return false;
+				if (field.type === "select" && typeof data[field.name] !== "string")
+					return false; //validate you have it
+				if (
+					field.type === "multiselect" &&
+					(!Array.isArray(data[field.name]) || data[field.name].length === 0)
+				)
+					return false; //validate not empty
+			}
+			return true;
+
+		case ONBOARDING_STEPS.INTEGRATIONS: // Integrations Validation
+			// Add validation here if you need specific checks for integration data
+			return true;
+
+		case ONBOARDING_STEPS.PREFERENCES: // Preferences Validation
+			if (data.theme && !["light", "dark", "system"].includes(data.theme))
+				return false;
+			if (typeof data.emailNotifications !== "boolean") return false;
+			if (typeof data.smsNotifications !== "boolean") return false;
+			return true;
+
+		default:
+			return true; // No validation needed for other steps
+	}
 };
 
 // Add method to sync changes with user

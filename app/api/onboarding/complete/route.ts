@@ -134,7 +134,10 @@ export async function GET(req: Request) {
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to complete onboarding",
+				message:
+					error instanceof Error
+						? error.message
+						: "Failed to complete onboarding",
 			},
 			{ status: 500, headers }
 		);
