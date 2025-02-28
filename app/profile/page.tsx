@@ -15,6 +15,7 @@ import ProfileEdit from "@/components/profile/ProfileEdit";
 import PasswordChange from "@/components/profile/PasswordChange";
 import ProfileSkeleton from "./loading";
 import { ErrorState } from "@/components/ui/error";
+import { OnboardingHistory } from "./OnboardingHistory";
 
 export default function ProfilePage() {
     const user = useSelector((state: RootState) => state.auth?.user) as User;
@@ -43,10 +44,11 @@ export default function ProfilePage() {
         <div className="space-y-4">
             <h1 className="text-2xl sm:text-3xl font-bold">My Profile</h1>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full md:w-auto justify-between md:justify-start">
+                <TabsList className="w-full md:w-auto justify-between md:justify-start flex-wrap mb-10 gap-2">
                     <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                     <TabsTrigger value="edit">Edit Profile</TabsTrigger>
                     <TabsTrigger value="password">Password</TabsTrigger>
+                    <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
                     <ProfileDashboard user={user} />
@@ -56,6 +58,9 @@ export default function ProfilePage() {
                 </TabsContent>
                 <TabsContent value="password">
                     <PasswordChange />
+                </TabsContent>
+                <TabsContent value="onboarding">
+                    <OnboardingHistory />
                 </TabsContent>
             </Tabs>
         </div>

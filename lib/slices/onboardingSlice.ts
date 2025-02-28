@@ -197,11 +197,20 @@ const onboardingSlice = createSlice({
 			.addCase(fetchProgress.fulfilled, (state, action) => {
 				state.loading = false;
 				ensureCompletedSteps(state);
+				const progressData = action.payload.data || action.payload;
 				state.currentStep = action.payload.currentStep;
 				state.completedSteps =
 					action.payload.completedSteps?.slice(0, MAX_STEPS) || [];
 				state.completed = action.payload.completed;
 				state.roleSpecificData = action.payload.roleSpecificData || {};
+				// Store step data in stepsData
+				if (progressData.steps) {
+					progressData.steps.forEach((step: any) => {
+						if (step.data) {
+							state.stepsData[step.stepId] = step.data;
+						}
+					});
+				}
 			})
 			.addCase(fetchProgress.rejected, (state, action) => {
 				state.loading = false;
