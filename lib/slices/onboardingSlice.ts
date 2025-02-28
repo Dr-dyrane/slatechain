@@ -174,11 +174,11 @@ const onboardingSlice = createSlice({
 			state.loading = action.payload;
 		},
 		setCurrentStep: (state, action: PayloadAction<number>) => {
-			// Add current step to history before changing
-			state.stepHistory.push({
-				stepId: state.currentStep,
-				data: state.stepsData[state.currentStep] || {},
-			});
+			const stepId = state.currentStep;
+			// Ensure completedSteps is initialized
+			if (!Array.isArray(state.completedSteps)) {
+				state.completedSteps = [];
+			}
 			state.currentStep = Math.min(action.payload, MAX_STEPS - 1);
 		},
 		setStepData: (
@@ -269,28 +269,34 @@ const onboardingSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(updateStep.fulfilled, (state, action) => {
+				state.loading = false;
 				const stepId = action.payload.id;
 
-				if (action.payload.status === OnboardingStepStatus.COMPLETED) {
-					if (!state.completedSteps.includes(stepId)) {
-						// Use the spread operator to create a new array
-						state.completedSteps = [...state.completedSteps, stepId];
+				// Ensure we're accessing the nested data structure correctly
+				const responseData = action.payload.data;
+
+				// Initialize completedSteps if needed
+				if (!Array.isArray(state.completedSteps)) {
+					state.completedSteps = [];
+				}
+
+				if (responseData?.status === OnboardingStepStatus.COMPLETED) {
+					// Add to completedSteps if not already included
+					if (!state.completedSteps.includes(responseData.id)) {
+						state.completedSteps = [...state.completedSteps, responseData.id];
 					}
 
-					// Move to next step if not the last one
-					if (
-						action.payload.id < MAX_STEPS - 1 &&
-						state.completedSteps.length < MAX_STEPS
-					) {
-						state.currentStep = action.payload.id + 1;
+					// Update current step based on the response
+					if (typeof responseData.currentStep === "number") {
+						state.currentStep = responseData.currentStep;
+					} else if (responseData.id < MAX_STEPS - 1) {
+						state.currentStep = responseData.id + 1;
 					}
-				} else if (action.payload.status === OnboardingStepStatus.IN_PROGRESS) {
-					state.currentStep = action.payload.id;
 				}
 
 				// Update step data if provided
-				if (action.payload.data) {
-					state.stepsData[action.payload.id] = action.payload.data;
+				if (responseData?.data) {
+					state.stepsData[responseData.id] = responseData.data;
 				}
 			})
 			.addCase(updateStep.rejected, (state, action) => {
@@ -306,7 +312,9 @@ const onboardingSlice = createSlice({
 					state.completedSteps.length < MAX_STEPS
 				) {
 					// Create a new array to update completedSteps
-					state.completedSteps = [...state.completedSteps, action.payload.id];
+					state.completedSteps = Array.isArray(state.completedSteps)
+						? [...state.completedSteps, action.payload.id]
+						: [action.payload.id];
 					// Move to next step after skipping
 					if (action.payload.id < MAX_STEPS - 1) {
 						state.currentStep = action.payload.id + 1;
