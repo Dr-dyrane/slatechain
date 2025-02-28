@@ -232,6 +232,7 @@ export default function OnboardingPage() {
             <CurrentStepComponent
               role={user.role}
               name={user.name}
+              user={user}
               onComplete={handleStepComplete}
               data={roleSpecificData}
               onSubmit={handleNext}

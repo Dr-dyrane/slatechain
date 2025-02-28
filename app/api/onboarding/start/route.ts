@@ -1,8 +1,9 @@
+// api/onboarding/start/route.ts
+
 import { NextResponse } from "next/server";
 import { verifyAccessToken } from "@/lib/auth/jwt";
-
 import { OnboardingStatus, OnboardingStepStatus } from "@/lib/types";
-import { STEP_DETAILS } from "@/lib/constants/onboarding-steps"; // Import your step details
+import { STEP_DETAILS } from "@/lib/constants/onboarding-steps";
 import mongoose from "mongoose";
 import { connectToDatabase } from "../..";
 import User from "../../models/User";
@@ -32,6 +33,7 @@ export async function POST(req: Request) {
 				{ status: 401, headers }
 			);
 		}
+
 		const token = authorization.split(" ")[1];
 		const decoded = verifyAccessToken(token);
 
@@ -49,68 +51,74 @@ export async function POST(req: Request) {
 		session.startTransaction();
 
 		try {
+			// Find user
 			let user = await User.findById(decoded.userId).session(session);
 			if (!user) {
 				return NextResponse.json(
-					{
-						/* user not found error ...*/
-					},
-					{ status: 404 }
+                    {
+                        code: "USER_NOT_FOUND",
+                        message: "User not found",
+                    },
+					{ status: 404, headers }
 				);
 			}
 
+			// Find onboarding record
 			let onboarding = await Onboarding.findOne({
 				userId: decoded.userId,
 			}).session(session);
 
+			// If onboarding exists, don't reset if it's already in progress or completed
 			if (onboarding) {
-				//If onboarding already exists for the user:
-				// You can either reset it or return an error, depending on your requirements:
-				// Option 1: Reset onboarding (recommended)
-				onboarding.steps = Object.values(STEP_DETAILS).map((step, index) => ({
-					stepId: index,
-					title: step.title,
-					status: OnboardingStepStatus.NOT_STARTED,
-					data: {},
-				}));
-				onboarding.currentStep = 0;
-				onboarding.status = OnboardingStatus.NOT_STARTED;
-				// Option 2: Return an error because onboarding is already initialized
-				// return NextResponse.json({ code: "ONBOARDING_ALREADY_STARTED", message: "Onboarding has already been started for this user." }, { status: 400 });
-			} else {
-				// Create new onboarding document
+				if (onboarding.status === OnboardingStatus.COMPLETED) {
+					return NextResponse.json(
+						{
+							code: "ONBOARDING_COMPLETED",
+							message: "Onboarding is already completed",
+						},
+						{ status: 400, headers }
+					);
+				}
 
+				onboarding.status = OnboardingStatus.IN_PROGRESS;
+			} else {
+				// Create new onboarding record
 				onboarding = new Onboarding({
 					userId: decoded.userId,
 					steps: Object.values(STEP_DETAILS).map((step, index) => ({
-						// ... your steps map
+						stepId: index,
+						title: step.title,
+						status: OnboardingStepStatus.IN_PROGRESS, // Start fresh
+						data: {},
 					})),
-					currentStep: 0, // Start at 0
-					status: OnboardingStatus.NOT_STARTED,
+					currentStep: 0,
+					status: OnboardingStatus.IN_PROGRESS,
 					roleSpecificData: {},
 				});
 			}
 
-			user.onboardingStatus = OnboardingStatus.NOT_STARTED; // Set user's onboarding status here
-			await user.save({ session });
+			// Set user onboarding status
+			user.onboardingStatus = OnboardingStatus.IN_PROGRESS;
 
+			// Save user and onboarding data
+			await user.save({ session });
 			await onboarding.save({ session });
 
+			// Commit transaction
 			await session.commitTransaction();
+
 			return NextResponse.json(
 				{ code: "SUCCESS", data: onboarding },
-				{ status: 201 }
-			); // 201 Created
+				{ status: 201, headers }
+			);
 		} catch (error) {
-			// Rollback transaction on error
 			await session.abortTransaction();
 			throw error;
 		} finally {
-			// End session
 			session.endSession();
 		}
 	} catch (error) {
-		console.error("Start Onboarding:", error);
+		console.error("Start Onboarding Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",

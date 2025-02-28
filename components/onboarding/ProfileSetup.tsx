@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProfileFields } from "./ProfileFields";
 import type { UserRole } from "@/lib/types";
@@ -31,27 +31,27 @@ type ProfileFormValues = z.infer<typeof profileSchema>;
 interface ProfileSetupProps {
     role: UserRole;
     onComplete: (data: FormData) => Promise<void>;
-    data?: Record<string, any>;
+    user?: Record<string, any>;
     onSubmit: (data: ProfileFormValues) => void;
 }
 
 // ✅ In the ProfileSetup component
-export function ProfileSetup({ role, onComplete, onSubmit, data }: ProfileSetupProps) {
+export function ProfileSetup({ role, onComplete, onSubmit, user }: ProfileSetupProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    console.log("ProfileSetup", { role, data });
+    console.log("ProfileSetup", { role, user });
 
     // ✅ Initialize form with default values
     const form = useForm<ProfileFormValues>({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            firstName: data?.firstName || "",
-            lastName: data?.lastName || "",
-            email: data?.email || "",
-            phoneNumber: data?.phoneNumber || "",
-            companyName: data?.companyName || "",
-            businessType: data?.businessType || "",
-            employeeCount: data?.employeeCount || "",
+            firstName: user?.firstName || "",
+            lastName: user?.lastName || "",
+            email: user?.email || "",
+            phoneNumber: user?.phoneNumber || "",
+            companyName: user?.companyName || "",
+            businessType: user?.businessType || "",
+            employeeCount: user?.employeeCount || "",
         },
     });
 
