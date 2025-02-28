@@ -15,7 +15,8 @@ import {
   skipStep,
   completeStep, // Add this import
   setLoading,
-  goBack, // Import setLoading
+  goBack,
+  startOnboardingProcess, // Import setLoading
 } from "@/lib/slices/onboardingSlice"
 import { Welcome } from "@/components/onboarding/Welcome"
 import { ProfileSetup } from "@/components/onboarding/ProfileSetup"
@@ -88,6 +89,17 @@ export default function OnboardingPage() {
 
     try {
       dispatch(setLoading(true)); // Start loading
+
+      if (currentStep === 0) { // Call startOnboardingProcess only for the first step
+        try {
+          await dispatch(startOnboardingProcess()).unwrap();
+        } catch (startError) {
+          console.error("Error starting onboarding:", startError);
+          dispatch(setLoading(false));
+          return; // Stop further execution
+        }
+      }
+
       // Update current step as completed
       await dispatch(
         updateStep({
@@ -115,10 +127,10 @@ export default function OnboardingPage() {
     }
   }
 
-   // Handle back button click
-   const handleBack = () => {
+  // Handle back button click
+  const handleBack = () => {
     if (currentStep > 0) {
-       dispatch(goBack());
+      dispatch(goBack());
     }
   };
 
