@@ -179,8 +179,7 @@ const onboardingSlice = createSlice({
 		},
 		goBack: (state) => {
 			if (state.currentStep > 0) {
-				state.currentStep = state.currentStep - 1;
-			}
+				state.currentStep -= 1;			}
 		},
 	},
 	extraReducers: (builder) => {

@@ -1,10 +1,6 @@
+import { useFormContext, Controller } from "react-hook-form";
 import { Building, Briefcase, Users } from "lucide-react";
 import { InputField } from "../ui/input-field";
-
-interface ProfileFieldsProps {
-  formData: Record<string, string>;
-  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
 
 const profileFields = [
   {
@@ -23,28 +19,34 @@ const profileFields = [
     id: "employeeCount",
     name: "employeeCount",
     label: "Number of Employees",
-    type: "number",
     icon: Users,
   },
 ];
 
-export const ProfileFields: React.FC<ProfileFieldsProps> = ({
-  formData,
-  onInputChange,
-}) => (
-  <>
-    {profileFields.map((field) => (
-      <InputField
-        key={field.id}
-        id={field.id}
-        name={field.name}
-        label={field.label}
-        type={field.type || "text"}
-        value={formData[field.name] || ""}
-        onChange={onInputChange}
-        required
-        icon={field.icon}
-      />
-    ))}
-  </>
-);
+export const ProfileFields: React.FC = () => {
+  const { control } = useFormContext(); // ✅ Get control from form context
+
+  return (
+    <>
+      {profileFields.map((field) => (
+        <Controller
+          key={field.id}
+          name={field.name}
+          control={control}
+          render={({ field: { onChange, value } }) => (
+            <InputField
+              id={field.id}
+              name={field.name}
+              label={field.label}
+              type={"text"}
+              value={value || ""}
+              onChange={onChange} // ✅ Updates react-hook-form state
+              required
+              icon={field.icon}
+            />
+          )}
+        />
+      ))}
+    </>
+  );
+};

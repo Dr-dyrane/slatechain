@@ -161,7 +161,7 @@ export default function OnboardingPage() {
   }
 
   // If user is not logged in or onboarding is complete, show error state
-  if (!user || isComplete) {
+  if (!user) {
     return (
       <div className="flex h-full items-center justify-center bg-none">
         <ErrorState
@@ -170,9 +170,7 @@ export default function OnboardingPage() {
           message={
             !user
               ? "User information not found. Please log in and try again."
-              : isComplete
-                ? "Onboarding process is already completed."
-                : "Onboarding process has been cancelled."
+              : 'No onboarding process found. Please contact support for assistance.'
           }
           onRetry={handleRetry}
           onCancel={handleCancel}
