@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle, Check, Clock, XCircle } from "lucide-react"
+import { AlertCircle, Check, Clock, Edit, XCircle } from "lucide-react"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { format } from "date-fns"
+import Link from "next/link"
 
 interface OnboardingStepData {
   [key: string]: string | boolean | number | object | null | undefined;
@@ -158,9 +159,17 @@ export function OnboardingHistory() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Onboarding History</CardTitle>
-        <CardDescription>Your onboarding progress and preferences</CardDescription>
+      <CardHeader className="flex flex-row justify-between items-center">
+        <div>
+          <CardTitle>Onboarding History</CardTitle>
+          <CardDescription>Your onboarding progress and preferences</CardDescription>
+        </div>
+        <Link
+          href="/onboarding"
+          className="flex items-start"
+        >
+          <Edit className="h-4 w-4" />
+        </Link>
       </CardHeader>
       <CardContent>
         <Accordion type="single" collapsible>
