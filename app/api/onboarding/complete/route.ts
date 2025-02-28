@@ -53,12 +53,12 @@ export async function GET(req: Request) {
 			);
 		}
 
-		// Use a session to ensure atomic updates
+		// Start a transaction
 		const session = await mongoose.startSession();
 		session.startTransaction();
 
 		try {
-			// Check if user exists
+			// Find user and onboarding progress
 			const user = await User.findById(decoded.userId).session(session);
 			if (!user) {
 				await session.abortTransaction();
@@ -71,8 +71,8 @@ export async function GET(req: Request) {
 				);
 			}
 
-			// Find onboarding record
-			const onboarding = await Onboarding.findOne({
+			// Find onboarding progress
+			let onboarding = await Onboarding.findOne({
 				userId: decoded.userId,
 			}).session(session);
 			if (!onboarding) {
@@ -86,47 +86,42 @@ export async function GET(req: Request) {
 				);
 			}
 
-			// If already completed, return success
+			// If onboarding is already completed, return success but commit transaction
 			if (onboarding.status === OnboardingStatus.COMPLETED) {
-				await session.abortTransaction();
+				await session.commitTransaction();
 				return NextResponse.json(
 					{
 						code: "SUCCESS",
-						data: {
-							success: true,
-							completedAt: onboarding.completedAt,
-						},
+						data: { success: true, completedAt: onboarding.completedAt },
 					},
 					{ headers }
 				);
 			}
 
-			// Update onboarding status
+			// Update onboarding and user status
 			onboarding.status = OnboardingStatus.COMPLETED;
 			onboarding.completedAt = new Date();
+			user.onboardingStatus = OnboardingStatus.COMPLETED;
 
-			// Save onboarding changes - this will trigger the post-save hook to sync with user
-			await onboarding.save({ session });
+			// Save changes
+			await Promise.all([onboarding.save({ session }), user.save({ session })]);
 
-			// Commit the transaction
+			// Commit transaction
 			await session.commitTransaction();
 
 			return NextResponse.json(
 				{
 					code: "SUCCESS",
-					data: {
-						success: true,
-						completedAt: onboarding.completedAt,
-					},
+					data: { success: true, completedAt: onboarding.completedAt },
 				},
 				{ headers }
 			);
 		} catch (error) {
-			// If anything fails, abort the transaction
+			// Abort transaction on error
 			await session.abortTransaction();
 			throw error;
 		} finally {
-			// End the session
+			// End session
 			session.endSession();
 		}
 	} catch (error) {

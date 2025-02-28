@@ -16,6 +16,7 @@ export async function PUT(
 	req: Request,
 	{ params }: { params: { stepId: string } }
 ) {
+	// Apply rate limiting to prevent abuse
 	const { headers, limited } = await withRateLimit(
 		req,
 		"onboarding_update",
@@ -35,8 +36,9 @@ export async function PUT(
 	try {
 		await connectToDatabase();
 
+		// Verify authentication token
 		const authorization = req.headers.get("Authorization");
-		if (!authorization || !authorization.startsWith("Bearer ")) {
+		if (!authorization?.startsWith("Bearer ")) {
 			return NextResponse.json(
 				{
 					code: "NO_TOKEN",
@@ -85,6 +87,7 @@ export async function PUT(
 			);
 		}
 
+		// Validate step status
 		if (!Object.values(OnboardingStepStatus).includes(status)) {
 			return NextResponse.json(
 				{
@@ -100,84 +103,95 @@ export async function PUT(
 		session.startTransaction();
 
 		try {
-			// Find onboarding record
-			const onboarding = await Onboarding.findOne({ userId: decoded.userId });
+			let onboarding = await Onboarding.findOne({
+				userId: decoded.userId,
+			}).session(session);
+
+			// Initialize onboarding process if not started
 			if (!onboarding) {
-				return NextResponse.json(
-					{
-						code: "NOT_FOUND",
-						message: "Onboarding progress not found",
-					},
-					{ status: 404, headers }
-				);
+				if (stepId !== 0) {
+					return NextResponse.json(
+						{
+							code: "ONBOARDING_NOT_STARTED",
+							message: "Please start onboarding at step 0.",
+						},
+						{ status: 400, headers }
+					);
+				}
+
+				onboarding = new Onboarding({
+					userId: decoded.userId,
+					steps: Object.values(STEP_DETAILS).map((step, index) => ({
+						stepId: index,
+						title: step.title,
+						status: OnboardingStepStatus.NOT_STARTED,
+						data: {},
+					})),
+					currentStep: 1,
+					status: OnboardingStatus.IN_PROGRESS,
+				});
+
+				// Update user's onboarding status
+				user.onboardingStatus = OnboardingStatus.IN_PROGRESS;
+				await user.save({ session });
+				await onboarding.save({ session });
+
+				// Mark initial step as completed
+				onboarding.steps[0].status = OnboardingStepStatus.COMPLETED;
+				onboarding.currentStep = 1;
+				await onboarding.save({ session });
 			}
 
-			// If onboarding is already completed, don't allow updates
+			// Prevent updates if onboarding is complete
 			if (onboarding.status === OnboardingStatus.COMPLETED) {
 				return NextResponse.json(
 					{
 						code: "ONBOARDING_COMPLETE",
-						message: "Onboarding is already completed",
+						message: "Onboarding already completed.",
 					},
 					{ status: 400, headers }
 				);
 			}
 
-			// Update onboarding status to IN_PROGRESS if it's NOT_STARTED
-			if (onboarding.status === OnboardingStatus.NOT_STARTED) {
-				onboarding.status = OnboardingStatus.IN_PROGRESS;
-			}
-
-			// Update step
+			// Find step index
 			const stepIndex = onboarding.steps.findIndex(
 				(step: OnboardingStepSchemaType) => step.stepId === stepId
 			);
 
 			if (stepIndex === -1) {
 				return NextResponse.json(
-					{
-						code: "INVALID_STEP",
-						message: "Step not found",
-					},
+					{ code: "INVALID_STEP", message: "Step not found" },
 					{ status: 400, headers }
 				);
 			}
 
-			// Update step status (using type assertion for safety)
-			(onboarding.steps[stepIndex] as OnboardingStepSchemaType).status = status; // Type assertion
-
-			// Update step data if provided
+			onboarding.steps[stepIndex].status = status;
 			if (data) {
-				(onboarding.steps[stepIndex] as OnboardingStepSchemaType).data = {
-					// Type assertion
+				onboarding.steps[stepIndex].data = {
 					...onboarding.steps[stepIndex].data,
 					...data,
 				};
 			}
 
-			// Update timestamps based on status
+			// Mark step as completed and move to next step
 			if (status === OnboardingStepStatus.COMPLETED) {
-				(onboarding.steps[stepIndex] as OnboardingStepSchemaType).completedAt =
-					new Date(); // Type assertion
-
-				// Update current step if completing current
+				onboarding.steps[stepIndex].completedAt = new Date();
 				if (onboarding.currentStep === stepId && stepId < MAX_STEPS - 1) {
 					onboarding.currentStep = stepId + 1;
 				}
 			}
 
-			// Save role-specific data
-			if (data && data.roleSpecificData) {
+			// Skip step and move to next step
+			if (data?.roleSpecificData) {
 				onboarding.roleSpecificData = {
 					...onboarding.roleSpecificData,
 					...data.roleSpecificData,
 				};
 			}
 
-			// Save onboarding changes - this will trigger the post-save hook to sync with user
+			// Save onboarding progress
 			await onboarding.save({ session });
-
-			// Commit the transaction
+			// Commit transaction
 			await session.commitTransaction();
 
 			return NextResponse.json(
@@ -193,11 +207,11 @@ export async function PUT(
 				{ headers }
 			);
 		} catch (error) {
-			// If anything fails, abort the transaction
+			// Rollback transaction on error
 			await session.abortTransaction();
 			throw error;
 		} finally {
-			// End the session
+			// End session
 			session.endSession();
 		}
 	} catch (error) {
@@ -205,7 +219,10 @@ export async function PUT(
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: error instanceof Error ? error.message : "Failed to update onboarding step",
+				message:
+					error instanceof Error
+						? error.message
+						: "Failed to update onboarding step",
 			},
 			{ status: 500, headers }
 		);
