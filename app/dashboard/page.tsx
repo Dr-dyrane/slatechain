@@ -14,7 +14,7 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
-import { OnboardingStatus } from "@/lib/types"
+import { KYCStatus, OnboardingStatus } from "@/lib/types"
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -108,12 +108,15 @@ export default function Dashboard() {
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
 
-      {user && user.onboardingStatus !== OnboardingStatus.COMPLETED && <UserStatusAlert
-        kycStatus={user.kycStatus}
-        onboardingStatus={user.onboardingStatus}
-        onResumeOnboarding={handleResumeOnboarding}
-        onReviewKYC={handleReviewKYC}
-      />}
+      {user && (user.onboardingStatus !== OnboardingStatus.COMPLETED || user.kycStatus !== KYCStatus.APPROVED) && (
+        <UserStatusAlert
+          kycStatus={user.kycStatus}
+          onboardingStatus={user.onboardingStatus}
+          onResumeOnboarding={handleResumeOnboarding}
+          onReviewKYC={handleReviewKYC}
+        />
+      )}
+
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {kpiCards?.map((card, index) => (
