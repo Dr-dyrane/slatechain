@@ -85,10 +85,14 @@ export const updateStep = createAsyncThunk(
 			status: OnboardingStepStatus;
 			data?: Record<string, any>;
 		},
-		{ getState, rejectWithValue }
+		{ dispatch, rejectWithValue }
 	) => {
 		try {
 			const response = await updateOnboardingStep(stepId, status, data);
+			// Update roleSpecificData if it's in the response:
+			if (response?.data?.roleSpecificData) {
+				dispatch(setRoleSpecificData(response.data.roleSpecificData));
+			}
 			return getResponseData(response);
 		} catch (error) {
 			return rejectWithValue(
@@ -179,7 +183,8 @@ const onboardingSlice = createSlice({
 		},
 		goBack: (state) => {
 			if (state.currentStep > 0) {
-				state.currentStep -= 1;			}
+				state.currentStep -= 1;
+			}
 		},
 	},
 	extraReducers: (builder) => {

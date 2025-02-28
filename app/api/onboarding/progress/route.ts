@@ -7,8 +7,8 @@ import { withRateLimit } from "@/lib/utils";
 import Onboarding, { OnboardingStepSchemaType } from "../../models/Onboarding";
 import User from "../../models/User";
 import { OnboardingStatus, OnboardingStepStatus, UserRole } from "@/lib/types";
-import { MAX_STEPS, STEP_DETAILS } from "@/lib/constants/onboarding-steps";
-import errorMap from "zod/locales/en.js";
+import mongoose from "mongoose";
+import { STEP_DETAILS } from "@/lib/constants/onboarding-steps";
 
 interface OnboardingStep {
 	stepId: number;
@@ -16,7 +16,7 @@ interface OnboardingStep {
 	status: OnboardingStepStatus;
 }
 
-// Helper function to get default steps based on user role
+// Define the default onboarding steps for each role
 function getDefaultSteps(role: UserRole): OnboardingStep[] {
 	return Object.entries(STEP_DETAILS).map(([id, details]) => ({
 		stepId: Number.parseInt(id),
@@ -63,76 +63,78 @@ export async function GET(req: Request) {
 			);
 		}
 
-		const user = await User.findById(decoded.userId);
-		if (!user) {
-			return NextResponse.json(
-				{ code: "USER_NOT_FOUND", message: "User not found" },
-				{ status: 404, headers }
-			);
-		}
+		const session = await mongoose.startSession();
+		session.startTransaction();
 
-		let onboarding = await Onboarding.findOne({ userId: decoded.userId });
-
-		if (!onboarding) {
-			const defaultSteps = getDefaultSteps(user.role);
-			onboarding = await Onboarding.create({
-				userId: decoded.userId,
-				status: OnboardingStatus.NOT_STARTED,
-				currentStep: 0,
-				steps: defaultSteps,
-				roleSpecificData: {}, // Initialize roleSpecificData
-			});
-		}
-
-		// Validate and Correct Onboarding Data
-
-		onboarding.currentStep = Math.min(onboarding.currentStep, MAX_STEPS - 1); // Ensure currentStep is within bounds
-		onboarding.steps = onboarding.steps.filter(
-			(step: any) => step.stepId < MAX_STEPS
-		);
-
-		for (const step of onboarding.steps) {
-			if (
-				step.status === OnboardingStepStatus.COMPLETED &&
-				step.stepId >= onboarding.currentStep
-			) {
-				// If a step beyond the current step is marked as completed, reset its status
-				step.status = OnboardingStepStatus.NOT_STARTED;
+		try {
+			const user = await User.findById(decoded.userId).session(session);
+			if (!user) {
+				await session.abortTransaction();
+				return NextResponse.json(
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404, headers }
+				);
 			}
-		}
 
-		await onboarding.save();
+			let onboarding = await Onboarding.findOne({
+				userId: decoded.userId,
+			}).session(session);
 
-		onboarding.steps = onboarding.steps.filter(
-			(step: OnboardingStepSchemaType) => step.stepId < MAX_STEPS
-		);
+			if (!onboarding) {
+				const defaultSteps = getDefaultSteps(user.role);
+				onboarding = new Onboarding({
+					userId: decoded.userId,
+					steps: defaultSteps,
+					currentStep: 0,
+					status: OnboardingStatus.NOT_STARTED,
+					roleSpecificData: {},
+				});
 
-		const completedSteps = onboarding.steps
-			.filter(
-				(step: OnboardingStepSchemaType) =>
-					step.status === OnboardingStepStatus.COMPLETED
-			)
-			.map((step: OnboardingStepSchemaType) => step.stepId);
+				user.onboardingStatus = OnboardingStatus.NOT_STARTED;
+				await Promise.all([
+					user.save({ session }),
+					onboarding.save({ session }),
+				]);
+			}
 
-		return NextResponse.json(
-			{
-				code: "SUCCESS",
-				data: {
-					status: onboarding.status,
-					currentStep: onboarding.currentStep,
-					completedSteps: completedSteps,
-					steps: onboarding.steps,
-					completed: onboarding.status === OnboardingStatus.COMPLETED,
-					roleSpecificData: onboarding.roleSpecificData || {}, // Include roleSpecificData
+			const completedSteps = onboarding.steps
+				.filter(
+					(step: OnboardingStepSchemaType) =>
+						step.status === OnboardingStepStatus.COMPLETED
+				)
+				.map((step: OnboardingStepSchemaType) => step.stepId);
+
+			await session.commitTransaction();
+
+			return NextResponse.json(
+				{
+					code: "SUCCESS",
+					data: {
+						status: onboarding.status,
+						currentStep: onboarding.currentStep,
+						completedSteps,
+						steps: onboarding.steps,
+						completed: onboarding.status === OnboardingStatus.COMPLETED,
+						roleSpecificData: onboarding.roleSpecificData || {},
+					},
 				},
-			},
-			{ headers }
-		);
+				{ headers }
+			);
+		} catch (error) {
+			await session.abortTransaction();
+			throw error;
+		} finally {
+			session.endSession();
+		}
 	} catch (error) {
 		console.error("Fetch Onboarding Progress Error:", error);
 		return NextResponse.json(
-			{ code: "SERVER_ERROR", 
-				message: error instanceof Error ? error.message : "Failed to fetch onboarding progress" 
+			{
+				code: "SERVER_ERROR",
+				message:
+					error instanceof Error
+						? error.message
+						: "Failed to fetch onboarding progress",
 			},
 			{ status: 500, headers }
 		);
