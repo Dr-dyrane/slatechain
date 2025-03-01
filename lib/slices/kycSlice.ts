@@ -1,24 +1,41 @@
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
-	KYCState,
+	type KYCState,
 	KYCStatus,
-	KYCSubmissionRequest,
-	KYCDocument,
+	type KYCSubmissionRequest,
+	type KYCDocument,
 } from "@/lib/types";
 import {
 	fetchKYCStatus,
 	startKYCProcess,
 	uploadKYCDocument,
 	submitKYCData,
+	getKYCDocument,
+	deleteKYCDocument,
+	verifyKYCSubmission,
+	listPendingKYCSubmissions,
 } from "@/lib/api/kyc";
 
-const initialState: KYCState = {
+// Extended KYC state to include admin submissions
+interface ExtendedKYCState extends KYCState {
+	submissions?: Array<{
+		id: string;
+		userId: string;
+		fullName: string;
+		status: string;
+		createdAt: string;
+	}>;
+}
+
+const initialState: ExtendedKYCState = {
 	status: KYCStatus.NOT_STARTED,
 	documents: [],
+	submissions: [],
 	loading: false,
 	error: null,
 };
 
+// Existing thunks
 export const fetchKYCStatusThunk = createAsyncThunk<
 	{ status: KYCStatus; documents: KYCDocument[] },
 	void,
@@ -67,6 +84,71 @@ export const submitKYCDataThunk = createAsyncThunk<
 	}
 });
 
+// New document thunks
+export const getKYCDocumentThunk = createAsyncThunk<
+	KYCDocument,
+	string,
+	{ rejectValue: string }
+>("kyc/getDocument", async (documentId, { rejectWithValue }) => {
+	try {
+		return await getKYCDocument(documentId);
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
+export const deleteKYCDocumentThunk = createAsyncThunk<
+	{ success: boolean },
+	string,
+	{ rejectValue: string }
+>("kyc/deleteDocument", async (documentId, { rejectWithValue }) => {
+	try {
+		return await deleteKYCDocument(documentId);
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
+// Admin thunks
+export const verifyKYCSubmissionThunk = createAsyncThunk<
+	{ success: boolean },
+	{
+		submissionId: string;
+		status: "APPROVED" | "REJECTED";
+		rejectionReason?: string;
+	},
+	{ rejectValue: string }
+>(
+	"kyc/verifySubmission",
+	async ({ submissionId, status, rejectionReason }, { rejectWithValue }) => {
+		try {
+			return await verifyKYCSubmission(submissionId, status, rejectionReason);
+		} catch (error) {
+			return rejectWithValue((error as Error).message);
+		}
+	}
+);
+
+export const listPendingKYCSubmissionsThunk = createAsyncThunk<
+	{
+		submissions: Array<{
+			id: string;
+			userId: string;
+			fullName: string;
+			status: string;
+			createdAt: string;
+		}>;
+	},
+	void,
+	{ rejectValue: string }
+>("kyc/listPendingSubmissions", async (_, { rejectWithValue }) => {
+	try {
+		return await listPendingKYCSubmissions();
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
 const kycSlice = createSlice({
 	name: "kyc",
 	initialState,
@@ -74,9 +156,13 @@ const kycSlice = createSlice({
 		clearError: (state) => {
 			state.error = null;
 		},
+		clearSubmissions: (state) => {
+			state.submissions = [];
+		},
 	},
 	extraReducers: (builder) => {
 		builder
+			// Existing cases
 			.addCase(fetchKYCStatusThunk.pending, (state) => {
 				state.loading = true;
 				state.error = null;
@@ -125,9 +211,72 @@ const kycSlice = createSlice({
 			.addCase(submitKYCDataThunk.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload ?? "Failed to submit KYC data";
+			})
+			// New document cases
+			.addCase(getKYCDocumentThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(getKYCDocumentThunk.fulfilled, (state, action) => {
+				const index = state.documents.findIndex(
+					(doc) => doc.id === action.payload.id
+				);
+				if (index !== -1) {
+					state.documents[index] = action.payload;
+				} else {
+					state.documents.push(action.payload);
+				}
+				state.loading = false;
+			})
+			.addCase(getKYCDocumentThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload ?? "Failed to get document";
+			})
+			.addCase(deleteKYCDocumentThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(deleteKYCDocumentThunk.fulfilled, (state, action) => {
+				state.documents = state.documents.filter(
+					(doc) => doc.id !== action.meta.arg
+				);
+				state.loading = false;
+			})
+			.addCase(deleteKYCDocumentThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload ?? "Failed to delete document";
+			})
+			// Admin cases
+			.addCase(verifyKYCSubmissionThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(verifyKYCSubmissionThunk.fulfilled, (state, action) => {
+				if (state.submissions) {
+					state.submissions = state.submissions.filter(
+						(sub) => sub.id !== action.meta.arg.submissionId
+					);
+				}
+				state.loading = false;
+			})
+			.addCase(verifyKYCSubmissionThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload ?? "Failed to verify submission";
+			})
+			.addCase(listPendingKYCSubmissionsThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(listPendingKYCSubmissionsThunk.fulfilled, (state, action) => {
+				state.submissions = action.payload.submissions;
+				state.loading = false;
+			})
+			.addCase(listPendingKYCSubmissionsThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload ?? "Failed to list submissions";
 			});
 	},
 });
 
-export const { clearError } = kycSlice.actions;
+export const { clearError, clearSubmissions } = kycSlice.actions;
 export default kycSlice.reducer;

@@ -47,7 +47,10 @@ const kycSubmissionSchema = new mongoose.Schema<IKYCSubmission>(
 			enum: ["PENDING", "APPROVED", "REJECTED"],
 			default: "PENDING",
 		},
-		reviewedBy: String,
+		reviewedBy: {
+			type: String,
+			ref: "User",
+		},
 		reviewedAt: Date,
 		rejectionReason: String,
 	},
@@ -55,6 +58,9 @@ const kycSubmissionSchema = new mongoose.Schema<IKYCSubmission>(
 		timestamps: true,
 	}
 );
+
+kycSubmissionSchema.index({ userId: 1 });
+kycSubmissionSchema.index({ referenceId: 1 });
 
 const KYCSubmission =
 	mongoose.models.KYCSubmission ||

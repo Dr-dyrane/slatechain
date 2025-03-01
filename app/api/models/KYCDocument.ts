@@ -4,6 +4,7 @@ import { mongoose } from "..";
 
 export interface IKYCDocument {
 	userId: string;
+	submissionId?: string; // Linking to a specific KYC submission
 	type: string;
 	status: "PENDING" | "APPROVED" | "REJECTED";
 	url: string;
@@ -19,6 +20,10 @@ export interface IKYCDocument {
 const kycDocumentSchema = new mongoose.Schema<IKYCDocument>(
 	{
 		userId: { type: String, required: true, index: true },
+		submissionId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "KYCSubmission",
+		},
 		type: { type: String, required: true },
 		status: {
 			type: String,
@@ -36,6 +41,9 @@ const kycDocumentSchema = new mongoose.Schema<IKYCDocument>(
 		timestamps: true,
 	}
 );
+
+kycDocumentSchema.index({ userId: 1 });
+kycDocumentSchema.index({ submissionId: 1 });
 
 const KYCDocument =
 	mongoose.models.KYCDocument ||
