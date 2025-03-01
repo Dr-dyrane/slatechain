@@ -1,3 +1,5 @@
+// UsersPage.tsx
+
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
@@ -8,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { PlusIcon } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import type { User } from "@/lib/types"
-import { fetchUsers } from "@/lib/slices/user/user"
+
 import { EditUserModal } from "@/components/user/EditUserModal"
 import { DeleteUserModal } from "@/components/user/DeleteUserModal"
 import { UserModal } from "@/components/user/UserModal"
@@ -17,6 +19,26 @@ import { ErrorState } from "@/components/ui/error"
 import DashboardCard from "@/components/dashboard/DashboardCard"
 import UsersPageSkeleton from "./loading"
 
+// Import KYC related thunks and types
+import {
+  listPendingKYCSubmissionsThunk,
+  verifyKYCSubmissionThunk,
+  fetchUserKYCDocumentsThunk,
+  clearSubmissions,
+  clearError,
+} from "@/lib/slices/kycSlice"
+import type { KYCDocument } from "@/lib/types"
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" // Assuming you have this
+
+// New Components (Create these)
+import PendingKYCSubmissionsTable from "@/components/admin/PendingKYCSubmissionsTable" // Display pending submissions
+import ViewKYCSubmissionModal from "@/components/admin/ViewKYCSubmissionModal" // View individual documents
+import VerifyKYCModal from "@/components/admin/VerifyKYCModal" // Modal for approving/rejecting KYC
+import { IKYCDocument } from "../api/models/KYCDocument"
+import { IKYCSubmission } from "../api/models/KYCSubmission"
+import { fetchUsers } from "@/lib/slices/user/user"
+
 export default function UsersPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter()
@@ -24,8 +46,19 @@ export default function UsersPage() {
   const { items: users, loading, error } = useSelector((state: RootState) => state.user)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteUserOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+
+  // KYC State Selectors
+  const { submissions, loading: kycLoading, error: kycError, documents } = useSelector(
+    (state: RootState) => state.kyc
+  )
+
+  //KYC MODALS
+  const [selectedSubmission, setSelectedSubmission] = useState<IKYCSubmission | null>(null) // Use `any` or create a specific type if submissions are strongly typed
+  const [viewSubmissionModalOpen, setViewSubmissionModalOpen] = useState(false)
+  const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null)
+  const [verifyKYCModalOpen, setVerifyKYCModalOpen] = useState(false)
 
   useEffect(() => {
     if (currentUser?.role !== "admin") {
@@ -50,11 +83,11 @@ export default function UsersPage() {
 
   const handleDeleteUserOpen = (user: User) => {
     setSelectedUser(user)
-    setDeleteModalOpen(true)
+    setDeleteUserOpen(true)
   }
 
   const handleDeleteUserClose = () => {
-    setDeleteModalOpen(false)
+    setDeleteUserOpen(false)
     setSelectedUser(null)
   }
 
@@ -97,6 +130,62 @@ export default function UsersPage() {
         />
       </div>
     )
+  }
+
+  // --- KYC Functions ---
+
+  // Load Pending Submissions on tab change
+  const handleTabChange = (value: string) => {
+    if (value === "kyc") {
+      dispatch(listPendingKYCSubmissionsThunk())
+    } else {
+      dispatch(clearSubmissions()) //Clear previous submissions on tab change
+    }
+  }
+
+  // Handlers for modals
+
+  const handleViewSubmission = async (submission: IKYCSubmission) => {
+    setSelectedSubmission(submission)
+    await dispatch(fetchUserKYCDocumentsThunk(submission.userId))
+    setViewSubmissionModalOpen(true)
+  }
+
+  const handleCloseViewSubmissionModal = () => {
+    setViewSubmissionModalOpen(false)
+    setSelectedSubmission(null)
+  }
+
+
+  const handleOpenVerifyModal = (submission: IKYCSubmission) => {
+    // Replace `any` with your submission type
+    setSelectedSubmission(submission)
+    setVerifyKYCModalOpen(true)
+  }
+
+  const handleCloseVerifyModal = () => {
+    setVerifyKYCModalOpen(false)
+    setSelectedSubmission(null)
+  }
+
+  // Function to handle KYC verification
+  const handleVerifyKYC = async (
+    submissionId: string,
+    status: "APPROVED" | "REJECTED",
+    rejectionReason?: string
+  ) => {
+    try {
+      await dispatch(
+        verifyKYCSubmissionThunk({ submissionId, status, rejectionReason })
+      )
+        .unwrap()
+      // After successful verification, refresh the pending submissions
+      dispatch(listPendingKYCSubmissionsThunk())
+      handleCloseVerifyModal()
+    } catch (error) {
+      // Handle error (e.g., display an error message)
+      console.error("KYC verification failed:", error)
+    }
   }
 
   return (
@@ -153,10 +242,57 @@ export default function UsersPage() {
         />
       </div>
 
-      <DataTable columns={Columns} data={users} onEdit={handleEditUserOpen} onDelete={handleDeleteUserOpen} />
+      <Tabs defaultValue="users" className="w-[400px]" onValueChange={handleTabChange}>
+        <TabsList>
+          <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="kyc">Pending KYC</TabsTrigger>
+        </TabsList>
+        <TabsContent value="users">
+          <DataTable columns={Columns} data={users} onEdit={handleEditUserOpen} onDelete={handleDeleteUserOpen} />
+        </TabsContent>
+        <TabsContent value="kyc">
+          {kycLoading ? (
+            <div>Loading KYC Submissions...</div>
+          ) : kycError ? (
+            <ErrorState
+              title="KYC Error"
+              description="Failed to load pending KYC submissions."
+              message={kycError}
+              onRetry={() => dispatch(listPendingKYCSubmissionsThunk())}
+              onCancel={() => {
+                dispatch(clearSubmissions())
+                dispatch(clearError())
+              }}
+            />
+          ) : submissions && submissions.length > 0 ? (
+            <PendingKYCSubmissionsTable
+              submissions={submissions as any}
+              onViewDocument={handleViewSubmission}
+              onVerify={handleOpenVerifyModal}
+            />
+          ) : (
+            <div>No pending KYC submissions.</div>
+          )}
+        </TabsContent>
+      </Tabs>
+
       <UserModal open={addModalOpen} onClose={handleAddUserClose} />
       <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} />
       <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} />
+
+      {/* KYC Modals */}
+      <ViewKYCSubmissionModal
+        open={viewSubmissionModalOpen}
+        onClose={handleCloseViewSubmissionModal}
+        submission={selectedSubmission}
+        documents={documents}
+      />
+      <VerifyKYCModal
+        open={verifyKYCModalOpen}
+        onClose={handleCloseVerifyModal}
+        submission={selectedSubmission}
+        onVerify={handleVerifyKYC}
+      />
     </div>
   )
 }

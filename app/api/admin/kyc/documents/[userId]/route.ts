@@ -6,7 +6,7 @@ import { verifyAccessToken } from "@/lib/auth/jwt";
 import { UserRole } from "@/lib/types";
 import { connectToDatabase } from "@/app/api";
 import User from "@/app/api/models/User";
-import KYCSubmission from "@/app/api/models/KYCSubmission";
+import KYCDocument from "@/app/api/models/KYCDocument"; // Import the KYCDocument model
 
 export async function GET(
 	req: Request,
@@ -53,24 +53,21 @@ export async function GET(
 			);
 		}
 
-		// Find the KYC submission for the user
-		const submission = await KYCSubmission.findOne({ userId }).populate(
-			"userId",
-			"firstName lastName email"
-		);
+		// Find the KYC documents for the user
+		const documents = await KYCDocument.find({ userId });
 
-		if (!submission) {
+		if (!documents) {
 			return NextResponse.json(
-				{ code: "NOT_FOUND", message: "KYC submission not found" },
+				{ code: "NOT_FOUND", message: "KYC documents not found" },
 				{ status: 404 }
 			);
 		}
 
-		return NextResponse.json({ submission });
+		return NextResponse.json({ documents });
 	} catch (error) {
-		console.error("Fetch KYC Submission Error:", error);
+		console.error("Fetch KYC Documents Error:", error);
 		return NextResponse.json(
-			{ code: "SERVER_ERROR", message: "Failed to fetch KYC submission" },
+			{ code: "SERVER_ERROR", message: "Failed to fetch KYC documents" },
 			{ status: 500 }
 		);
 	}
