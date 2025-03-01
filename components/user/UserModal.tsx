@@ -65,6 +65,7 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
         isPhoneVerified: false,
         kycStatus: KYCStatus.NOT_STARTED,
         onboardingStatus: OnboardingStatus.NOT_STARTED,
+        integrations: {},
       }
 
       await dispatch(addUser(newUser)).unwrap()
