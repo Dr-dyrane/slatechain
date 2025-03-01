@@ -34,7 +34,7 @@ const VerifyKYCModal: React.FC<Props> = ({ open, onClose, submission, onVerify }
     return (
         <Dialog open={open} onOpenChange={onClose}>
             {submission && (
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>Verify KYC Submission</DialogTitle>
                         <DialogDescription>User: {submission.fullName}</DialogDescription>

@@ -38,6 +38,7 @@ import VerifyKYCModal from "@/components/admin/VerifyKYCModal" // Modal for appr
 import { IKYCDocument } from "../api/models/KYCDocument"
 import { IKYCSubmission } from "../api/models/KYCSubmission"
 import { fetchUsers } from "@/lib/slices/user/user"
+import LoadingTable from "@/components/admin/LoadingTable"
 
 export default function UsersPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -252,7 +253,7 @@ export default function UsersPage() {
         </TabsContent>
         <TabsContent value="kyc">
           {kycLoading ? (
-            <div>Loading KYC Submissions...</div>
+            <LoadingTable />
           ) : kycError ? (
             <ErrorState
               title="KYC Error"
@@ -269,6 +270,7 @@ export default function UsersPage() {
               submissions={submissions as any}
               onViewDocument={handleViewSubmission}
               onVerify={handleOpenVerifyModal}
+              isLoading={kycLoading}
             />
           ) : (
             <div>No pending KYC submissions.</div>

@@ -30,7 +30,7 @@ const ViewKYCSubmissionModal: React.FC<Props> = ({ open, onClose, submission, do
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>View KYC Submission</DialogTitle>
                     <DialogDescription>User: {submission.fullName}</DialogDescription>
