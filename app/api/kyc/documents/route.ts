@@ -7,8 +7,56 @@ import { withRateLimit } from "@/lib/utils";
 import KYCDocument from "../../models/KYCDocument";
 import mongoose from "mongoose";
 
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+async function validateAndExtractFile(req: Request) {
+	try {
+		const formData = await req.formData();
+		const file = formData.get("document") as File;
+		const type = formData.get("type") as string;
+
+		if (!file || !type) {
+			throw {
+				code: "INVALID_INPUT",
+				message: "File and document type are required",
+				status: 400,
+			};
+		}
+
+		if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+			throw {
+				code: "INVALID_FILE_TYPE",
+				message: "File must be JPEG, PNG, or PDF",
+				status: 400,
+			};
+		}
+
+		if (file.size > MAX_FILE_SIZE) {
+			throw {
+				code: "FILE_TOO_LARGE",
+				message: "File size must be less than 5MB",
+				status: 400,
+			};
+		}
+
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+		const base64String = buffer.toString("base64");
+
+		return {
+			base64Url: `data:${file.type};base64,${base64String}`,
+			originalFilename: file.name,
+			mimeType: file.type,
+			fileSize: file.size,
+			type,
+		};
+	} catch (error) {
+		throw error;
+	}
+}
+
 export async function POST(req: Request) {
-	// Rate limit: 10 uploads per minute
 	const { headers, limited } = await withRateLimit(req, "document_upload", 10);
 
 	if (limited) {
@@ -24,14 +72,10 @@ export async function POST(req: Request) {
 	try {
 		await connectToDatabase();
 
-		// Verify authentication token
 		const authorization = req.headers.get("Authorization");
 		if (!authorization?.startsWith("Bearer ")) {
 			return NextResponse.json(
-				{
-					code: "NO_TOKEN",
-					message: "Authentication required",
-				},
+				{ code: "NO_TOKEN", message: "Authentication required" },
 				{ status: 401, headers }
 			);
 		}
@@ -41,73 +85,28 @@ export async function POST(req: Request) {
 
 		if (!decoded) {
 			return NextResponse.json(
-				{
-					code: "INVALID_TOKEN",
-					message: "Invalid or expired token",
-				},
+				{ code: "INVALID_TOKEN", message: "Invalid or expired token" },
 				{ status: 401, headers }
 			);
 		}
 
-		// Parse multipart form data
-		const formData = await req.formData();
-		const file = formData.get("document") as File;
-		const type = formData.get("type") as string;
-
-		if (!file || !type) {
-			return NextResponse.json(
-				{
-					code: "INVALID_INPUT",
-					message: "File and document type are required",
-				},
-				{ status: 400, headers }
-			);
-		}
-
-		// Validate file type
-		const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-		if (!allowedTypes.includes(file.type)) {
-			return NextResponse.json(
-				{
-					code: "INVALID_FILE_TYPE",
-					message: "File must be JPEG, PNG, or PDF",
-				},
-				{ status: 400, headers }
-			);
-		}
-
-		// Validate file size (5MB max)
-		const maxSize = 5 * 1024 * 1024; // 5MB
-		if (file.size > maxSize) {
-			return NextResponse.json(
-				{
-					code: "FILE_TOO_LARGE",
-					message: "File size must be less than 5MB",
-				},
-				{ status: 400, headers }
-			);
-		}
+		const { base64Url, originalFilename, mimeType, fileSize, type } =
+			await validateAndExtractFile(req);
 
 		const session = await mongoose.startSession();
 		session.startTransaction();
 
 		try {
-			// Convert file to base64
-			const arrayBuffer = await file.arrayBuffer();
-			const buffer = Buffer.from(arrayBuffer);
-			const base64String = buffer.toString("base64");
-
-			// Create document record
-			const document = await KYCDocument.create(
+			const [document] = await KYCDocument.create(
 				[
 					{
 						userId: decoded.userId,
 						type,
 						status: "PENDING",
-						url: `data:${file.type};base64,${base64String}`, // Store as data URL
-						originalFilename: file.name,
-						mimeType: file.type,
-						fileSize: file.size,
+						url: base64Url,
+						originalFilename,
+						mimeType,
+						fileSize,
 					},
 				],
 				{ session }
@@ -115,14 +114,13 @@ export async function POST(req: Request) {
 
 			await session.commitTransaction();
 
-			// Return the created document
 			return NextResponse.json(
 				{
-					id: document[0]._id,
-					type: document[0].type,
-					status: document[0].status,
-					url: document[0].url,
-					uploadedAt: document[0].createdAt,
+					id: document._id,
+					type: document.type,
+					status: document.status,
+					url: document.url,
+					uploadedAt: document.createdAt,
 				},
 				{ headers }
 			);
@@ -134,12 +132,17 @@ export async function POST(req: Request) {
 		}
 	} catch (error) {
 		console.error("Document Upload Error:", error);
+
+		const status =
+			typeof error === "object" && error !== null && "status" in error
+				? Number(error.status)
+				: 500;
+		const message =
+			error instanceof Error ? error.message : "Failed to upload document";
+
 		return NextResponse.json(
-			{
-				code: "SERVER_ERROR",
-				message: "Failed to upload document",
-			},
-			{ status: 500, headers }
+			{ code: "SERVER_ERROR", message },
+			{ status, headers }
 		);
 	}
 }

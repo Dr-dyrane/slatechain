@@ -162,7 +162,10 @@ export async function DELETE(
 			}
 
 			// Check if user owns the document or is admin
-			if (document.userId !== decoded.userId && decoded.role !== "admin") {
+			if (
+				document.userId.toString() !== decoded.userId &&
+				decoded.role !== "admin"
+			) {
 				return NextResponse.json(
 					{
 						code: "FORBIDDEN",
