@@ -15,6 +15,7 @@ import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
 import { KYCStatus, OnboardingStatus } from "@/lib/types"
+import { fetchUser } from "@/lib/slices/authSlice"
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -46,7 +47,7 @@ export default function Dashboard() {
     dispatch(fetchKPIs() as any);
     dispatch(fetchDemandPlanningData() as any);
     dispatch(fetchAreaChartData() as any)
-
+    dispatch(fetchUser() as any)
   }, [dispatch]);
 
   const handleResumeOnboarding = () => {
