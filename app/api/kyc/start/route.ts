@@ -34,24 +34,18 @@ export async function POST(req: Request) {
 		const authorization = req.headers.get("Authorization");
 		if (!authorization?.startsWith("Bearer ")) {
 			return NextResponse.json(
-				{
-					code: "NO_TOKEN",
-					message: "Authentication required",
-				},
-				{ status: 401, headers }
+				{ code: "NO_TOKEN", message: "Authentication required" },
+				{ status: 401 }
 			);
 		}
 
 		const token = authorization.split(" ")[1];
 		const decoded = verifyAccessToken(token);
 
-		if (!decoded) {
+		if (!decoded || !decoded.userId) {
 			return NextResponse.json(
-				{
-					code: "INVALID_TOKEN",
-					message: "Invalid or expired token",
-				},
-				{ status: 401, headers }
+				{ code: "INVALID_TOKEN", message: "Invalid or expired token" },
+				{ status: 401 }
 			);
 		}
 
@@ -63,11 +57,8 @@ export async function POST(req: Request) {
 			const user = await User.findById(decoded.userId).session(session);
 			if (!user) {
 				return NextResponse.json(
-					{
-						code: "USER_NOT_FOUND",
-						message: "User not found",
-					},
-					{ status: 404, headers }
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404 }
 				);
 			}
 
@@ -78,7 +69,7 @@ export async function POST(req: Request) {
 						code: "INVALID_STATUS",
 						message: "KYC process has already been started",
 					},
-					{ status: 400, headers }
+					{ status: 400 }
 				);
 			}
 
@@ -88,21 +79,25 @@ export async function POST(req: Request) {
 
 			await session.commitTransaction();
 
-			return NextResponse.json(user.kycStatus, { headers });
+			return NextResponse.json(
+				{ code: "SUCCESS", kycStatus: user.kycStatus },
+				{ status: 200 }
+			);
 		} catch (error) {
 			await session.abortTransaction();
-			throw error;
+			console.error("Transaction Error:", error);
+			return NextResponse.json(
+				{ code: "TRANSACTION_FAILED", message: "Could not start KYC process" },
+				{ status: 500 }
+			);
 		} finally {
 			session.endSession();
 		}
 	} catch (error) {
 		console.error("Start KYC Error:", error);
 		return NextResponse.json(
-			{
-				code: "SERVER_ERROR",
-				message: "Failed to start KYC process",
-			},
-			{ status: 500, headers }
+			{ code: "SERVER_ERROR", message: "An unexpected error occurred" },
+			{ status: 500 }
 		);
 	}
 }
