@@ -294,6 +294,7 @@ export default function UsersPage() {
         onClose={handleCloseVerifyModal}
         submission={selectedSubmission}
         onVerify={handleVerifyKYC}
+        documents={documents}
       />
     </div>
   )
