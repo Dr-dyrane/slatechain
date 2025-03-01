@@ -14,6 +14,8 @@ interface KYCResponseDocument {
 	status: string;
 	url: string;
 	uploadedAt: Date;
+	mimeType?: string
+	fileSize?: number
 }
 
 export async function GET(req: Request) {
@@ -73,11 +75,14 @@ export async function GET(req: Request) {
 				"_id type status url createdAt"
 			);
 			documents = docs.map((doc) => ({
-				id: doc._id,
+				id: doc._id.toString(),
 				type: doc.type,
 				status: doc.status,
 				url: doc.url,
 				uploadedAt: doc.createdAt,
+				originalFilename: doc.originalFilename,
+				mimeType: doc.mimeType,
+				fileSize: doc.fileSize,
 			}));
 		}
 

@@ -121,6 +121,9 @@ export async function POST(req: Request) {
 					status: document.status,
 					url: document.url,
 					uploadedAt: document.createdAt,
+					originalFilename: document.originalFilename,
+					mimeType: document.mimeType,
+					fileSize: document.fileSize,
 				},
 				{ headers }
 			);
