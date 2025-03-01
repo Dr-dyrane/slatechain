@@ -25,6 +25,7 @@ import {
   verifyKYCSubmissionThunk,
   clearSubmissions,
   clearError,
+  setLoading,
 } from "@/lib/slices/kycSlice"
 import type { KYCDocument } from "@/lib/types"
 
@@ -174,6 +175,7 @@ export default function UsersPage() {
     rejectionReason?: string
   ) => {
     try {
+      dispatch(setLoading(true));
       await dispatch(
         verifyKYCSubmissionThunk({ submissionId, status, rejectionReason })
       )
@@ -184,6 +186,9 @@ export default function UsersPage() {
     } catch (error) {
       // Handle error (e.g., display an error message)
       console.error("KYC verification failed:", error)
+    } finally {
+      dispatch(setLoading(false))
+      handleCloseVerifyModal()
     }
   }
 

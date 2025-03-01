@@ -148,6 +148,9 @@ const kycSlice = createSlice({
 		clearSubmissions: (state) => {
 			state.submissions = [];
 		},
+		setLoading: (state, action) => {
+			state.loading = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -262,5 +265,5 @@ const kycSlice = createSlice({
 	},
 });
 
-export const { clearError, clearSubmissions } = kycSlice.actions;
+export const { clearError, clearSubmissions, setLoading } = kycSlice.actions;
 export default kycSlice.reducer;
