@@ -38,8 +38,8 @@ const ViewKYCSubmissionModal: React.FC<Props> = ({ open, onClose, submission, do
 
                 <div>
                     {documents && documents.length > 0 ? (
-                        documents.map((document) => (
-                            <div key={document.id} className="mb-4">
+                        documents.map((document, index) => (
+                            <div key={document.id || `document-${index}`} className="mb-4">
                                 <h4 className="font-semibold">Document Type: {document.type}</h4>
                                 {document.url?.toLowerCase().endsWith(".pdf") ? (
                                     <iframe src={document.url} width="100%" height="500px" />
