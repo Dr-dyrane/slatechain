@@ -1,3 +1,5 @@
+// app/api/kyc/submit/route.ts
+
 import { NextResponse } from "next/server"
 import { verifyAccessToken } from "@/lib/auth/jwt"
 import { connectToDatabase } from "../../index"
