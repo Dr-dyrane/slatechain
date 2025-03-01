@@ -242,8 +242,8 @@ export default function UsersPage() {
         />
       </div>
 
-      <Tabs defaultValue="users" className="w-full" onValueChange={handleTabChange}>
-        <TabsList>
+      <Tabs defaultValue="users" onValueChange={handleTabChange}>
+        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="kyc">Pending KYC</TabsTrigger>
         </TabsList>
