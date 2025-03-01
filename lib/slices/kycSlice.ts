@@ -14,6 +14,7 @@ import {
 	deleteKYCDocument,
 	verifyKYCSubmission,
 	listPendingKYCSubmissions,
+	fetchUserKYCDocuments,
 } from "@/lib/api/kyc";
 
 // Extended KYC state to include admin submissions
@@ -149,6 +150,18 @@ export const listPendingKYCSubmissionsThunk = createAsyncThunk<
 	}
 });
 
+export const fetchUserKYCDocumentsThunk = createAsyncThunk<
+	KYCDocument[],
+	string, // userId as the parameter
+	{ rejectValue: string }
+>("kyc/fetchUserDocuments", async (userId, { rejectWithValue }) => {
+	try {
+		return await fetchUserKYCDocuments(userId);
+	} catch (error) {
+		return rejectWithValue((error as Error).message);
+	}
+});
+
 const kycSlice = createSlice({
 	name: "kyc",
 	initialState,
@@ -274,6 +287,18 @@ const kycSlice = createSlice({
 			.addCase(listPendingKYCSubmissionsThunk.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload ?? "Failed to list submissions";
+			})
+			.addCase(fetchUserKYCDocumentsThunk.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(fetchUserKYCDocumentsThunk.fulfilled, (state, action) => {
+				state.documents = action.payload; // Replace existing documents with fetched ones
+				state.loading = false;
+			})
+			.addCase(fetchUserKYCDocumentsThunk.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload ?? "Failed to fetch user's KYC documents";
 			});
 	},
 });
