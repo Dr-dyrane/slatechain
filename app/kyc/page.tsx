@@ -245,8 +245,8 @@ export default function KYCPage() {
   }
 
   return (
-    <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center bg-none">
-      <Card className="w-full max-w-4xl">
+    <div className="flex min-h-screen overflow-y-auto scrollbar-hide items-center justify-center p-4 sm:p-8 bg-none">
+      <Card className="w-full max-w-4xl mx-auto overflow-y-auto scrollbar-hide">
         <CardHeader className="flex flex-row justify-between">
           <div>
             <CardTitle>KYC Verification</CardTitle>
