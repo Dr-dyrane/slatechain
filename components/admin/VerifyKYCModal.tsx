@@ -30,7 +30,7 @@ const VerifyKYCModal: React.FC<Props> = ({ open, onClose, submission, onVerify, 
     const handleVerify = () => {
         if (!submission) return
 
-        onVerify(submission.userId, status, rejectionReason)
+        onVerify(submission.id || '', status, rejectionReason)
     }
 
     return (

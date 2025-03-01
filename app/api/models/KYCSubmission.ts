@@ -4,6 +4,7 @@ import { mongoose } from "..";
 import { KYCDocument, UserRole } from "@/lib/types";
 
 export interface IKYCSubmission {
+	id?: string
 	userId: string;
 	referenceId: string;
 	fullName: string;
