@@ -69,19 +69,19 @@ const PendingKYCSubmissionsTable: React.FC<Props> = ({
                 <table className="min-w-full border border-muted rounded-lg">
                     <thead className="bg-muted">
                         <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground Capitalize">
+                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground capitalize">
                                 User ID
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground Capitalize">
+                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground capitalize">
                                 Full Name
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground Capitalize hidden lg:table-cell">
+                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground capitalize hidden lg:table-cell">
                                 Status
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground Capitalize">
+                            <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground capitalize">
                                 Submitted At
                             </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground Capitalize">
+                            <th className="px-4 py-2 text-right text-xs font-medium text-muted-foreground capitalize">
                                 Actions
                             </th>
                         </tr>

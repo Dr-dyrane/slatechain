@@ -55,15 +55,15 @@ export const Columns: ColumnDef<User>[] = [
 function getBadgeVariantForRole(role: UserRole) {
     switch (role) {
         case UserRole.ADMIN:
-            return "default"
+            return "success"
         case UserRole.SUPPLIER:
             return "secondary"
         case UserRole.MANAGER:
             return "outline"
         case UserRole.CUSTOMER:
-            return "destructive"
+            return "warning"
         default:
-            return "default"
+            return "success"
     }
 }
 

@@ -273,7 +273,7 @@ export default function UsersPage() {
               isLoading={kycLoading}
             />
           ) : (
-            <div>No pending KYC submissions.</div>
+            <div className="flex justify-center items-center">No pending KYC submissions.</div>
           )}
         </TabsContent>
       </Tabs>
