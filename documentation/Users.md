@@ -240,13 +240,16 @@ https://your-api-base-url/api/v1
   - `newPassword`: New password to set (String).
 
 - **Response (200 OK):**
+
   ```json
   {
-  "success": true
+  	"success": true
   }
+  ```
+
+  - Returns Success Status
 
   ```
-  * Returns Success Status
 
   ```
 
@@ -271,10 +274,10 @@ https://your-api-base-url/api/v1
 
 - **Response (200 OK):**
   `json
-      {
-          "code" : "reset_code_123"
-      }
-     `
+    {
+        "code" : "reset_code_123"
+    }
+   `
 - Return a reset code to be used later in the reset process.
 
 - **Error Responses:**
@@ -320,5 +323,23 @@ export interface PasswordChangeFormData {
 - Only Admins have the permission to manage users.
 
 ```
+
+
+USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
+$
+
+USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
+$ curl -X POST \
+  http://localhost:3000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "firstName": "Test",
+    "lastName": "Admin",
+    "email": "testadmin@example.com",
+    "password": "SecurePassword123",
+    "role": "admin"
+  }'
+{"user":{"id":"67c350542b82547adc46f749","firstName":"Test","lastName":"Admin","name":"Test Admin","email":"testadmin@example.com","role":"admin","isEmailVerified":false,"isPhoneVerified":false,"kycStatus":"NOT_STARTED","onboardingStatus":"NOT_STARTED","integrations":{},"createdAt":"2025-03-01T18:22:12.195Z","updatedAt":"2025-03-01T18:22:12.195Z"},"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2MzNTA1NDJiODI1NDdhZGM0NmY3NDkiLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6InRlc3RhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0MDg1MzMzMiwiZXhwIjoxNzQwODU0MjMyfQ.sniSzQ2rKPFEVnrRPjOE3RQL60E6zuDFWas3jk3UhQw","refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2MzNTA1NDJiODI1NDdhZGM0NmY3NDkiLCJ0b2tlbklkIjoiMmZkMzFhN2MtMWMzYy00MmNhLWFhYjUtN2E5MTkzNTMwNjcyIiwiaWF0IjoxNzQwODUzMzMyLCJleHAiOjE3NDE0NTgxMzJ9.s9IH4hColzJ7tZpCM_1T1Tmjw9ddDoRIP4qqWx4lqrM"}
+USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
 
 ```
