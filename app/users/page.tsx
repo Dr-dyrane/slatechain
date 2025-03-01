@@ -23,7 +23,6 @@ import UsersPageSkeleton from "./loading"
 import {
   listPendingKYCSubmissionsThunk,
   verifyKYCSubmissionThunk,
-  fetchUserKYCDocumentsThunk,
   clearSubmissions,
   clearError,
 } from "@/lib/slices/kycSlice"
@@ -148,7 +147,6 @@ export default function UsersPage() {
 
   const handleViewSubmission = async (submission: IKYCSubmission) => {
     setSelectedSubmission(submission)
-    await dispatch(fetchUserKYCDocumentsThunk(submission.userId))
     setViewSubmissionModalOpen(true)
   }
 
@@ -287,14 +285,14 @@ export default function UsersPage() {
         open={viewSubmissionModalOpen}
         onClose={handleCloseViewSubmissionModal}
         submission={selectedSubmission}
-        documents={documents}
+        documents={selectedSubmission?.documents || null} //Reflected here too
       />
       <VerifyKYCModal
         open={verifyKYCModalOpen}
         onClose={handleCloseVerifyModal}
         submission={selectedSubmission}
         onVerify={handleVerifyKYC}
-        documents={documents}
+        documents={selectedSubmission?.documents || null} //Reflected here too
       />
     </div>
   )

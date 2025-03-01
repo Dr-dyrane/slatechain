@@ -14,18 +14,12 @@ import {
 	deleteKYCDocument,
 	verifyKYCSubmission,
 	listPendingKYCSubmissions,
-	fetchUserKYCDocuments,
 } from "@/lib/api/kyc";
+import { IKYCSubmission } from "@/app/api/models/KYCSubmission";
 
 // Extended KYC state to include admin submissions
 interface ExtendedKYCState extends KYCState {
-	submissions?: Array<{
-		id: string;
-		userId: string;
-		fullName: string;
-		status: string;
-		createdAt: string;
-	}>;
+	submissions?: IKYCSubmission[];
 }
 
 const initialState: ExtendedKYCState = {
@@ -131,32 +125,14 @@ export const verifyKYCSubmissionThunk = createAsyncThunk<
 );
 
 export const listPendingKYCSubmissionsThunk = createAsyncThunk<
-	{
-		submissions: Array<{
-			id: string;
-			userId: string;
-			fullName: string;
-			status: string;
-			createdAt: string;
-		}>;
-	},
+	IKYCSubmission[], // Return type is now IKYCSubmission[]
 	void,
 	{ rejectValue: string }
 >("kyc/listPendingSubmissions", async (_, { rejectWithValue }) => {
 	try {
-		return await listPendingKYCSubmissions();
-	} catch (error) {
-		return rejectWithValue((error as Error).message);
-	}
-});
+		const response = await listPendingKYCSubmissions(); // Await the API call
 
-export const fetchUserKYCDocumentsThunk = createAsyncThunk<
-	KYCDocument[],
-	string, // userId as the parameter
-	{ rejectValue: string }
->("kyc/fetchUserDocuments", async (userId, { rejectWithValue }) => {
-	try {
-		return await fetchUserKYCDocuments(userId);
+		return response.submissions as any; // Extract the submissions array and cast
 	} catch (error) {
 		return rejectWithValue((error as Error).message);
 	}
@@ -264,12 +240,7 @@ const kycSlice = createSlice({
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(verifyKYCSubmissionThunk.fulfilled, (state, action) => {
-				if (state.submissions) {
-					state.submissions = state.submissions.filter(
-						(sub) => sub.id !== action.meta.arg.submissionId
-					);
-				}
+			.addCase(verifyKYCSubmissionThunk.fulfilled, (state) => {
 				state.loading = false;
 			})
 			.addCase(verifyKYCSubmissionThunk.rejected, (state, action) => {
@@ -281,24 +252,12 @@ const kycSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(listPendingKYCSubmissionsThunk.fulfilled, (state, action) => {
-				state.submissions = action.payload.submissions;
+				state.submissions = action.payload;
 				state.loading = false;
 			})
 			.addCase(listPendingKYCSubmissionsThunk.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload ?? "Failed to list submissions";
-			})
-			.addCase(fetchUserKYCDocumentsThunk.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
-			.addCase(fetchUserKYCDocumentsThunk.fulfilled, (state, action) => {
-				state.documents = action.payload; // Replace existing documents with fetched ones
-				state.loading = false;
-			})
-			.addCase(fetchUserKYCDocumentsThunk.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload ?? "Failed to fetch user's KYC documents";
 			});
 	},
 });

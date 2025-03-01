@@ -7,10 +7,10 @@ import { withRateLimit } from "@/lib/utils"
 import KYCSubmission from "../../../models/KYCSubmission"
 import User from "../../../models/User"
 import { UserRole } from "@/lib/types"
+import KYCDocument from "@/app/api/models/KYCDocument"
 
 export async function GET(req: Request) {
-  // Rate limit: 30 requests per minute for admin listing
-  const { headers, limited } = await withRateLimit(req, "admin_kyc_list", 30)
+  const { headers, limited } = await withRateLimit(req, "list_users", 30)
 
   if (limited) {
     return NextResponse.json(
@@ -28,44 +28,26 @@ export async function GET(req: Request) {
     // Verify authentication token
     const authorization = req.headers.get("Authorization")
     if (!authorization?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        {
-          code: "NO_TOKEN",
-          message: "Authentication required",
-        },
-        { status: 401, headers },
-      )
+      return NextResponse.json({ code: "NO_TOKEN", message: "Authentication required" }, { status: 401, headers })
     }
 
     const token = authorization.split(" ")[1]
     const decoded = verifyAccessToken(token)
 
     if (!decoded) {
-      return NextResponse.json(
-        {
-          code: "INVALID_TOKEN",
-          message: "Invalid or expired token",
-        },
-        { status: 401, headers },
-      )
+      return NextResponse.json({ code: "INVALID_TOKEN", message: "Invalid or expired token" }, { status: 401, headers })
     }
 
     // Verify admin role
     const admin = await User.findById(decoded.userId)
     if (!admin || admin.role !== UserRole.ADMIN) {
-      return NextResponse.json(
-        {
-          code: "FORBIDDEN",
-          message: "Admin access required",
-        },
-        { status: 403, headers },
-      )
+      return NextResponse.json({ code: "FORBIDDEN", message: "Admin access required" }, { status: 403, headers })
     }
 
-    // Get query parameters
+    // Get query parameters for pagination
     const url = new URL(req.url)
-    const page = Number.parseInt(url.searchParams.get("page") || "1")
-    const limit = Number.parseInt(url.searchParams.get("limit") || "10")
+    const page = Number(url.searchParams.get("page")) || 1
+    const limit = Number(url.searchParams.get("limit")) || 10
     const status = url.searchParams.get("status") || "PENDING"
 
     // Calculate skip value
@@ -81,16 +63,24 @@ export async function GET(req: Request) {
       KYCSubmission.countDocuments({ status }),
     ])
 
+    const submissionsWithDocuments = await Promise.all(
+      submissions.map(async (submission) => {
+        const documents = await KYCDocument.find({ userId: submission.userId })
+        return {
+          id: submission._id,
+          userId: submission.userId,
+          fullName: submission.fullName,
+          status: submission.status,
+          createdAt: submission.createdAt,
+          role: submission.role,
+          documents: documents || [], // Ensure it's always an array
+        }
+      }),
+    )
+
     return NextResponse.json(
       {
-        submissions: submissions.map((sub) => ({
-          id: sub._id,
-          userId: sub.userId,
-          fullName: sub.fullName,
-          status: sub.status,
-          createdAt: sub.createdAt,
-          role: sub.role,
-        })),
+        submissions: submissionsWithDocuments,
         pagination: {
           total,
           page,

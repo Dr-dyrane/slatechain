@@ -84,11 +84,6 @@ export const listPendingKYCSubmissions = async (
   return apiClient.get<PaginatedKYCSubmissions>(`/admin/kyc/list?${params.toString()}`)
 }
 
-// Fetch KYC documents for a specific user (NEW ENDPOINT)
-export const fetchUserKYCDocuments = async (userId: string): Promise<KYCDocument[]> => {
-  return apiClient.get<KYCDocument[]>(`/admin/kyc/documents/${userId}`);
-};
-
 // Types for the API responses
 export interface KYCStatusResponse {
   status: KYCStatus

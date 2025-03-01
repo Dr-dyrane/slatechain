@@ -1,7 +1,7 @@
 // app/api/models/KYCSubmission.ts
 
 import { mongoose } from "..";
-import { UserRole } from "@/lib/types";
+import { KYCDocument, UserRole } from "@/lib/types";
 
 export interface IKYCSubmission {
 	userId: string;
@@ -22,6 +22,7 @@ export interface IKYCSubmission {
 	rejectionReason?: string;
 	createdAt: Date;
 	updatedAt: Date;
+	documents: KYCDocument[];
 }
 
 const kycSubmissionSchema = new mongoose.Schema<IKYCSubmission>(
