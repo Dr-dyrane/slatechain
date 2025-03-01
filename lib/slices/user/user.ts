@@ -1,11 +1,23 @@
+// lib/slices/user/user.ts
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/api/apiClient";
 import type { User } from "@/lib/types";
+import { apiClient } from "@/lib/api/apiClient/[...live]";
 
 interface UserState {
 	items: User[];
 	loading: boolean;
 	error: string | null;
+}
+
+interface PaginatedUsersResponse {
+	users: User[];
+	pagination: {
+		total: number;
+		page: number;
+		limit: number;
+		pages: number;
+	};
 }
 
 const initialState: UserState = {
@@ -18,8 +30,31 @@ export const fetchUsers = createAsyncThunk(
 	"user/fetchUsers",
 	async (_, thunkAPI) => {
 		try {
-			const response = await apiClient.get<User[]>("/users");
-			return response;
+			let allUsers: User[] = [];
+			let page = 1;
+			const limit = 10; // You can adjust this limit as needed
+
+			while (true) {
+				// Fetch a page of users
+				const response = await apiClient.get<PaginatedUsersResponse>(
+					`/users?page=${page}&limit=${limit}`
+				);
+
+				// Add the users from the current page to the accumulated list
+				allUsers = allUsers.concat(response.users);
+
+				// Check if there are more pages
+				if (response.pagination.page >= response.pagination.pages) {
+					// If there are no more pages, break out of the loop
+					break;
+				}
+
+				// Increment the page number for the next request
+				page++;
+			}
+
+			// Once you have fetched all pages, return the entire list of users
+			return allUsers;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(error.message || "Failed to fetch users");
 		}

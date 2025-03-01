@@ -93,24 +93,24 @@ export default function UsersPage() {
 
   // Calculate KPIs
   const kpis = useMemo(() => {
-    const totalUsers = users.length
-    const activeUsers = users.filter((user) => user.onboardingStatus === "COMPLETED").length
-    const pendingKYC = users.filter((user) => user.kycStatus === "PENDING_REVIEW").length
-    const userRoles = users.reduce(
+    const totalUsers = users?.length || 0;  // Optional chaining + default value
+    const activeUsers = users?.filter((user) => user.onboardingStatus === "COMPLETED").length || 0;
+    const pendingKYC = users?.filter((user) => user.kycStatus === "PENDING_REVIEW").length || 0;
+    const userRoles = users?.reduce(
       (acc, user) => {
-        acc[user.role] = (acc[user.role] || 0) + 1
-        return acc
+        acc[user.role] = (acc[user.role] || 0) + 1;
+        return acc;
       },
-      {} as Record<string, number>,
-    )
+      {} as Record<string, number>
+    );
 
     return {
       totalUsers,
       activeUsers,
       pendingKYC,
       userRoles,
-    }
-  }, [users])
+    };
+  }, [users]);
 
   if (loading) {
     return <UsersPageSkeleton />
@@ -242,7 +242,7 @@ export default function UsersPage() {
         />
       </div>
 
-      <Tabs defaultValue="users" className="w-[400px]" onValueChange={handleTabChange}>
+      <Tabs defaultValue="users" className="w-full" onValueChange={handleTabChange}>
         <TabsList>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="kyc">Pending KYC</TabsTrigger>
