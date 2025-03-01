@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { IKYCSubmission } from "@/app/api/models/KYCSubmission";
 import { format } from "date-fns";
-import { ShieldCheck, View } from "lucide-react";
+import { Eye, ShieldCheck, Signature, View } from "lucide-react";
 
 interface Props {
     submissions: IKYCSubmission[];
@@ -112,11 +112,11 @@ const PendingKYCSubmissionsTable: React.FC<Props> = ({
                                     <td className="px-4 py-2 text-right flex gap-2 items-center justify-end">
                                         <Button variant="outline" size="sm" onClick={() => onViewDocument(submission)}>
                                             <span className="hidden lg:flex mr-2">View</span>
-                                            <View />
+                                            <Eye />
                                         </Button>
                                         <Button size="sm" onClick={() => onVerify(submission)}>
                                             <span className="hidden lg:flex mr-2">Verify</span>
-                                            <ShieldCheck />
+                                            <Signature />
                                         </Button>
                                     </td>
                                 </tr>
