@@ -93,16 +93,16 @@ export default function UsersPage() {
 
   // Calculate KPIs
   const kpis = useMemo(() => {
-    const totalUsers = users?.length || 0;  // Optional chaining + default value
-    const activeUsers = users?.filter((user) => user.onboardingStatus === "COMPLETED").length || 0;
-    const pendingKYC = users?.filter((user) => user.kycStatus === "PENDING_REVIEW").length || 0;
-    const userRoles = users?.reduce(
-      (acc, user) => {
-        acc[user.role] = (acc[user.role] || 0) + 1;
-        return acc;
-      },
-      {} as Record<string, number>
-    );
+    // Use optional chaining and nullish coalescing operator for safety
+    const totalUsers = users?.length ?? 0;
+    const activeUsers = users?.filter((user) => user.onboardingStatus === "COMPLETED").length ?? 0;
+    const pendingKYC = users?.filter((user) => user.kycStatus === "PENDING_REVIEW").length ?? 0;
+
+    // Safe handling for userRoles calculation as well
+    const userRoles = users?.reduce((acc, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>) ?? {}; // Default value of empty object
 
     return {
       totalUsers,
