@@ -103,7 +103,11 @@ export default function KYCPage() {
       }
 
       await dispatch(submitKYCDataThunk(kycData as any)).unwrap()
-      router.push("/onboarding")
+      if (user && user.onboardingStatus !== OnboardingStatus.COMPLETED) {
+        router.push("/onboarding")
+      } else {
+        router.push("/dashboard")
+      }
     } catch (error) {
       setError(error instanceof Error ? error.message : "KYC submission failed. Please try again.")
     }

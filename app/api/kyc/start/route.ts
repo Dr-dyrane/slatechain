@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 			await session.commitTransaction();
 
 			return NextResponse.json(
-				{ code: "SUCCESS", kycStatus: user.kycStatus },
+				{ code: "SUCCESS", status: user.kycStatus },
 				{ status: 200 }
 			);
 		} catch (error) {

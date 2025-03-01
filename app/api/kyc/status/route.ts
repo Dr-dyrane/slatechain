@@ -85,7 +85,7 @@ export async function GET(req: Request) {
 			{
 				code: "SUCCESS",
 				message: "KYC status retrieved successfully",
-				kycStatus: user.kycStatus,
+				status: user.kycStatus,
 				documents,
 			},
 			{ status: 200, headers }
