@@ -2,7 +2,7 @@
 
 import type { AxiosRequestConfig } from "axios";
 import type { Notification } from "@/lib/types";
-import { apiClient } from "./apiClient";
+import { apiClient } from "./apiClient/[...live]";
 
 class NotificationApiClient {
 	async getNotifications(config?: AxiosRequestConfig): Promise<Notification[]> {

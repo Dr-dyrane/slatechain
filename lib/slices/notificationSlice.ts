@@ -22,7 +22,8 @@ export const fetchNotifications = createAsyncThunk<
 	{ rejectValue: string }
 >("notifications/fetchNotifications", async (_, { rejectWithValue }) => {
 	try {
-		return await notificationApiClient.getNotifications();
+		const notifications = await notificationApiClient.getNotifications();
+		return notifications || [];
 	} catch (error: any) {
 		return rejectWithValue(error.message || "Failed to fetch notifications");
 	}
@@ -106,9 +107,9 @@ const notificationSlice = createSlice({
 			})
 			.addCase(
 				fetchNotifications.fulfilled,
-				(state, action: PayloadAction<Notification[]>) => {
+				(state, action: PayloadAction<Notification[] | undefined>) => {
 					state.loading = false;
-					state.notifications = action.payload;
+					state.notifications = action.payload || [];
 					state.error = null;
 				}
 			)
@@ -122,7 +123,7 @@ const notificationSlice = createSlice({
 					state.loading = false;
 					const updatedNotification = action.payload;
 					state.notifications = state.notifications.map((notification) =>
-						notification.id === updatedNotification.id
+						notification.id === updatedNotification?.id
 							? updatedNotification
 							: notification
 					);
@@ -163,12 +164,13 @@ const notificationSlice = createSlice({
 			.addCase(
 				fetchUnreadCount.fulfilled,
 				(state, action: PayloadAction<number>) => {
-					state.unreadCount = action.payload;
+					state.unreadCount = action.payload || 0;
 					state.error = null;
 				}
 			)
 			.addCase(fetchUnreadCount.rejected, (state, action) => {
 				state.error = action.payload as string;
+				state.unreadCount = 0;
 			});
 	},
 });
