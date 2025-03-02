@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyAccessToken } from "@/lib/auth/jwt";
+import { withRateLimit } from "@/lib/utils";
 
 // Define the type for our cached mongoose instance
 interface MongooseCache {
@@ -63,6 +66,66 @@ export async function disconnectFromDatabase(): Promise<void> {
 		global.mongooseCache.conn = null;
 		global.mongooseCache.promise = null;
 		console.log("🟡 Disconnected from database");
+	}
+}
+
+// ✅ getUserId
+export async function getUserId(req: NextRequest): Promise<string | null> {
+	const authorization = req.headers.get("Authorization");
+	if (!authorization?.startsWith("Bearer ")) return null;
+
+	const token = authorization.split(" ")[1];
+	try {
+		const decoded = verifyAccessToken(token);
+		return decoded?.userId || null;
+	} catch (error) {
+		console.error("Token Verification Error:", error);
+		return null;
+	}
+}
+
+// ✅ handleRequest
+export async function handleRequest(
+	req: NextRequest,
+	handler: (req: NextRequest, userId: string) => Promise<NextResponse>,
+	rateLimitKey: string,
+	rateLimit: number
+): Promise<NextResponse> {
+	try {
+		const { headers, limited } = await withRateLimit(
+			req,
+			rateLimitKey,
+			rateLimit
+		);
+		if (limited) {
+			return NextResponse.json(
+				{
+					code: "RATE_LIMIT",
+					message: "Too many requests. Please try again later.",
+				},
+				{ status: 429, headers }
+			);
+		}
+
+		await connectToDatabase();
+		const userId = await getUserId(req);
+		if (!userId) {
+			return NextResponse.json(
+				{ code: "INVALID_TOKEN", message: "Authentication required" },
+				{ status: 401, headers }
+			);
+		}
+
+		return await handler(req, userId);
+	} catch (error) {
+		console.error("Server Error:", error);
+		return NextResponse.json(
+			{
+				code: "SERVER_ERROR",
+				message: "An unexpected error occurred. Please try again later.",
+			},
+			{ status: 500 }
+		);
 	}
 }
 
