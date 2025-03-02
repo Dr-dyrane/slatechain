@@ -14,7 +14,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
 import { NotificationDrawer } from "../ui/NotificationDrawer";
 import useMediaQuery from "@/hooks/use-media-query";
-import { baseNavItems, getBaseNavItems, getNavItems } from "@/lib/config/navigation";
+import { getBaseNavItems, getNavItems } from "@/lib/config/navigation";
 
 
 interface LayoutProps {

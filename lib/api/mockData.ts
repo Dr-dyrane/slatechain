@@ -1196,6 +1196,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			currentStep: 2,
 			completedSteps: [0, 1],
 			completed: false,
+			roleSpecificData: [],
 		}),
 		"/inventory": (): InventoryItem[] => mockInventory,
 		"/warehouses": (): Warehouse[] => mockWarehouses,
@@ -1406,6 +1407,7 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			currentStep: 0,
 			completedSteps: [],
 			completed: false,
+			roleSpecificData: [],
 		}),
 		"/onboarding/steps": (data: {
 			stepId: number;

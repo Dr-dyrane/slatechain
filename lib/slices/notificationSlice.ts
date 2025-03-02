@@ -16,91 +16,78 @@ const initialState: NotificationState = {
 };
 
 // Async Thunks
-export const fetchNotifications = createAsyncThunk(
-	"notifications/fetchNotifications",
-	async (_, thunkAPI) => {
-		try {
-			const notifications = await notificationApiClient.getNotifications();
-			return notifications;
-		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to fetch notifications"
-			);
-		}
+export const fetchNotifications = createAsyncThunk<
+	Notification[],
+	void,
+	{ rejectValue: string }
+>("notifications/fetchNotifications", async (_, { rejectWithValue }) => {
+	try {
+		return await notificationApiClient.getNotifications();
+	} catch (error: any) {
+		return rejectWithValue(error.message || "Failed to fetch notifications");
 	}
-);
+});
 
-export const markNotificationAsRead = createAsyncThunk(
+export const markNotificationAsRead = createAsyncThunk<
+	Notification,
+	string,
+	{ rejectValue: string }
+>(
 	"notifications/markNotificationAsRead",
-	async (notificationId: string, thunkAPI) => {
+	async (notificationId, { rejectWithValue }) => {
 		try {
-			const notification =
-				await notificationApiClient.markAsRead(notificationId);
-			return notification;
+			return await notificationApiClient.markAsRead(notificationId);
 		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
+			return rejectWithValue(
 				error.message || "Failed to mark notification as read"
 			);
 		}
 	}
 );
 
-export const deleteNotification = createAsyncThunk(
+export const deleteNotification = createAsyncThunk<
+	string,
+	string,
+	{ rejectValue: string }
+>(
 	"notifications/deleteNotification",
-	async (notificationId: string, thunkAPI) => {
+	async (notificationId, { rejectWithValue }) => {
 		try {
 			await notificationApiClient.deleteNotification(notificationId);
 			return notificationId;
 		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to delete notification"
-			);
+			return rejectWithValue(error.message || "Failed to delete notification");
 		}
 	}
 );
 
-export const createNotification = createAsyncThunk(
-	"notifications/createNotification",
-	async (notification: Omit<Notification, "id" | "createdAt">, thunkAPI) => {
-		try {
-			const newNotification =
-				await notificationApiClient.createNotification(notification);
-			return newNotification;
-		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to create notification"
-			);
-		}
+export const markAllNotificationsAsRead = createAsyncThunk<
+	{ success: boolean; count: number },
+	void,
+	{ rejectValue: string }
+>("notifications/markAllAsRead", async (_, { rejectWithValue }) => {
+	try {
+		const result = await notificationApiClient.markAllAsRead();
+		return result;
+	} catch (error: any) {
+		return rejectWithValue(
+			error.message || "Failed to mark all notifications as read"
+		);
 	}
-);
+});
 
-export const markAllNotificationsAsRead = createAsyncThunk(
-	"notifications/markAllAsRead",
-	async (_, thunkAPI) => {
-		try {
-			const result = await notificationApiClient.markAllAsRead();
-			return result;
-		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to mark all notifications as read"
-			);
-		}
+export const fetchUnreadCount = createAsyncThunk<
+	number,
+	void,
+	{ rejectValue: string }
+>("notifications/fetchUnreadCount", async (_, { rejectWithValue }) => {
+	try {
+		const result = await notificationApiClient.getUnreadCount();
+		return result.count;
+	} catch (error: any) {
+		return rejectWithValue(error.message || "Failed to fetch unread count");
 	}
-);
-
-export const fetchUnreadCount = createAsyncThunk(
-	"notifications/fetchUnreadCount",
-	async (_, thunkAPI) => {
-		try {
-			const result = await notificationApiClient.getUnreadCount();
-			return result.count;
-		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to fetch unread count"
-			);
-		}
-	}
-);
+});
 
 // Create Notification Slice
 const notificationSlice = createSlice({
@@ -158,19 +145,6 @@ const notificationSlice = createSlice({
 				}
 			)
 			.addCase(deleteNotification.rejected, (state, action) => {
-				state.loading = false;
-				state.error = action.payload as string;
-			})
-			.addCase(
-				createNotification.fulfilled,
-				(state, action: PayloadAction<Notification>) => {
-					state.loading = false;
-					const newNotification = action.payload;
-					state.notifications = [...state.notifications, newNotification];
-					state.error = null;
-				}
-			)
-			.addCase(createNotification.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload as string;
 			})
