@@ -170,6 +170,7 @@ class ApiClient {
 						this.refreshSubscribers.forEach((callback) => callback(""));
 						this.refreshSubscribers = [];
 						tokenManager.clearTokens();
+						window.location.href = "/login"; //added this to redirect to login page when token is expired
 						return Promise.reject(
 							new LogoutError("Session expired, please log in again.")
 						);
