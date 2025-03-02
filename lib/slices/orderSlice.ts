@@ -26,10 +26,10 @@ export const fetchOrders = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Order[]>("/orders");
-			return response;
+			return response ?? []; // Handle null/undefined responses
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to fetch orders"
+				error?.message || "Failed to fetch orders"
 			);
 		}
 	}
@@ -44,10 +44,12 @@ export const addOrder = createAsyncThunk(
 	) => {
 		try {
 			const response = await apiClient.post<Order>("/orders", order);
-			return response;
+			return (
+				response ?? thunkAPI.rejectWithValue("Invalid response from server")
+			);
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to add order item"
+				error?.message || "Failed to add order item"
 			);
 		}
 	}
@@ -59,10 +61,12 @@ export const updateOrder = createAsyncThunk(
 	async (order: Order, thunkAPI) => {
 		try {
 			const response = await apiClient.put<Order>(`/orders/${order.id}`, order);
-			return response;
+			return (
+				response ?? thunkAPI.rejectWithValue("Invalid response from server")
+			);
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to update order item"
+				error?.message || "Failed to update order item"
 			);
 		}
 	}
@@ -77,7 +81,26 @@ export const removeOrder = createAsyncThunk(
 			return id;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to remove order item"
+				error?.message || "Failed to remove order item"
+			);
+		}
+	}
+);
+
+// Process payment
+export const markOrderAsPaidAsync = createAsyncThunk(
+	"order/markOrderAsPaid",
+	async ({ id, method }: { id: string; method: string }, thunkAPI) => {
+		try {
+			const response = await apiClient.post<Order>(`/orders/${id}/payment`, {
+				method,
+			});
+			return (
+				response ?? thunkAPI.rejectWithValue("Invalid response from server")
+			);
+		} catch (error: any) {
+			return thunkAPI.rejectWithValue(
+				error?.message || "Payment processing failed"
 			);
 		}
 	}
@@ -96,16 +119,6 @@ const orderSlice = createSlice({
 				state.items[index] = action.payload;
 			}
 		},
-		// Mark an order as paid
-		markOrderAsPaid: (state, action) => {
-			state.paymentLoading = true;
-			const order = state.items.find((order) => order.id === action.payload);
-			if (order) {
-				order.status = "PROCESSING"; // Move to processing after payment
-				order.paid = true;
-			}
-			state.paymentLoading = false;
-		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -115,15 +128,20 @@ const orderSlice = createSlice({
 			})
 			.addCase(fetchOrders.fulfilled, (state, action) => {
 				state.loading = false;
-				state.items = action.payload ?? [];
+				state.items = action.payload || []; // Ensuring no null/undefined
 			})
 			.addCase(fetchOrders.rejected, (state, action) => {
 				state.loading = false;
 				state.error = action.payload as string;
+				state.items = []; // Reset orders to prevent stale data
 			})
+
 			.addCase(addOrder.fulfilled, (state, action) => {
-				state.items.push(action.payload);
+				if (action.payload) {
+					state.items.push(action.payload);
+				}
 			})
+
 			.addCase(updateOrder.pending, (state) => {
 				state.updateLoading = true;
 				state.error = null;
@@ -141,13 +159,33 @@ const orderSlice = createSlice({
 				state.updateLoading = false;
 				state.error = action.payload as string;
 			})
+
 			.addCase(removeOrder.fulfilled, (state, action) => {
 				state.items = state.items.filter(
 					(order) => order.id !== action.payload
 				);
+			})
+
+			.addCase(markOrderAsPaidAsync.pending, (state) => {
+				state.paymentLoading = true;
+				state.error = null;
+			})
+			.addCase(markOrderAsPaidAsync.fulfilled, (state, action) => {
+				state.paymentLoading = false;
+				const index = state.items.findIndex(
+					(order) => order.id === action.payload.id
+				);
+				if (index !== -1) {
+					state.items[index].paid = true;
+					state.items[index].status = "PROCESSING"; // Move to processing
+				}
+			})
+			.addCase(markOrderAsPaidAsync.rejected, (state, action) => {
+				state.paymentLoading = false;
+				state.error = action.payload as string;
 			});
 	},
 });
 
-export const { updateOrderState, markOrderAsPaid } = orderSlice.actions;
+export const { updateOrderState } = orderSlice.actions;
 export default orderSlice.reducer;

@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,39 +10,46 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogCancel,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2, CreditCard } from "lucide-react"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, CreditCard } from "lucide-react";
+import { markOrderAsPaidAsync } from "@/lib/slices/orderSlice";
+import { AppDispatch, RootState } from "@/lib/store";
 
 interface PaymentModalProps {
-  open: boolean
-  onClose: () => void
-  onPaymentComplete: (success: boolean) => void
-  amount: number
+  open: boolean;
+  onClose: () => void;
+  onPaymentComplete: (success: boolean) => void;
+  amount: number;
+  orderId: string;
 }
 
-export function PaymentModal({ open, onClose, onPaymentComplete, amount }: PaymentModalProps) {
-  const [loading, setLoading] = useState(false)
-  const [cardNumber, setCardNumber] = useState("")
-  const [expiryDate, setExpiryDate] = useState("")
-  const [cvv, setCvv] = useState("")
+export function PaymentModal({ open, onClose, onPaymentComplete, amount, orderId }: PaymentModalProps) {
+  const dispatch = useDispatch<AppDispatch>()
+  const paymentLoading = useSelector((state: RootState) => state.orders.paymentLoading);
+  const [cardNumber, setCardNumber] = useState("");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [cvv, setCvv] = useState("");
 
   const handlePayment = async () => {
     if (!cardNumber || !expiryDate || !cvv) {
-      alert("Please fill in all payment details")
-      return
+      alert("Please fill in all payment details");
+      return;
     }
 
-    setLoading(true)
-    // Simulate API call to payment gateway
-    setTimeout(() => {
-      setLoading(false)
-      // Simulate successful payment (you can add logic here to simulate failures as well)
-      onPaymentComplete(true)
-    }, 2000)
-  }
+    try {
+      const resultAction = await dispatch(markOrderAsPaidAsync({ id: orderId, method: "card" }));
+      if (markOrderAsPaidAsync.fulfilled.match(resultAction)) {
+        onPaymentComplete(true);
+      } else {
+        alert("Payment failed: " + resultAction.payload);
+      }
+    } catch (error) {
+      alert("An error occurred while processing the payment.");
+    }
+  };
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
@@ -79,13 +87,13 @@ export function PaymentModal({ open, onClose, onPaymentComplete, amount }: Payme
         </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <Button onClick={handlePayment} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
-            {loading ? "Processing..." : "Pay Now"}
+          <Button onClick={handlePayment} disabled={paymentLoading}>
+            {paymentLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CreditCard className="mr-2 h-4 w-4" />}
+            {paymentLoading ? "Processing..." : "Pay Now"}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }
 
