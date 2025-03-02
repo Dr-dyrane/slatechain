@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import type { RootState, AppDispatch } from "@/lib/store"
 import { fetchKYCStatusThunk, startKYCProcessThunk, submitKYCDataThunk } from "@/lib/slices/kycSlice"
-import { KYCStatus, UserRole, OnboardingStatus } from "@/lib/types"
+import { KYCStatus, UserRole, OnboardingStatus, KYCDocument } from "@/lib/types"
 import { AdminKYCForm } from "@/components/kyc/AdminKYCForm"
 import { SupplierKYCForm } from "@/components/kyc/SupplierKYCForm"
 import { ManagerKYCForm } from "@/components/kyc/ManagerKYCForm"
@@ -94,7 +94,7 @@ export default function KYCPage() {
       }
 
       // Check if required documents are uploaded
-      const hasIdDocument = documents.some((doc) => doc.type === "ID_DOCUMENT")
+      const hasIdDocument = documents.some((doc: KYCDocument) => doc.type === "ID_DOCUMENT")
       const hasTaxDocument = user!.role !== UserRole.SUPPLIER || documents.some((doc) => doc.type === "TAX_DOCUMENT")
 
       if (!hasIdDocument || !hasTaxDocument) {

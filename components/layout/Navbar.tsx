@@ -13,7 +13,7 @@ import { Logo } from "../Logo"
 import { useRouter } from "next/navigation"
 import type { Notification, User } from "@/lib/types"
 import { ProfileSheet } from "./MobileSideBar"
-import { fetchNotifications, fetchUnreadCount } from "@/lib/slices/notificationSlice"
+import { fetchNotifications } from "@/lib/slices/notificationSlice"
 
 interface Props {
   setIsMobileNotificationDrawerOpen: (open: boolean) => void
@@ -32,21 +32,14 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
 
     // Initial fetch
     dispatch(fetchNotifications())
-    dispatch(fetchUnreadCount())
 
     // Set up polling interval - every 30 seconds
     const notificationInterval = setInterval(() => {
       dispatch(fetchNotifications())
     }, 30000)
 
-    // Set up a faster polling for unread count - every 10 seconds
-    const unreadCountInterval = setInterval(() => {
-      dispatch(fetchUnreadCount())
-    }, 10000)
-
     return () => {
       clearInterval(notificationInterval)
-      clearInterval(unreadCountInterval)
     }
   }, [dispatch, isAuthenticated])
 
