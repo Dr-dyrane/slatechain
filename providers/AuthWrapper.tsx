@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { RootState, AppDispatch } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
 import { initializeApp } from "@/lib/helpers/appInitializer"; // Import the helper
+import { UserRole } from "@/lib/types";
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -14,22 +15,14 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const dispatch = useDispatch<AppDispatch>();
 
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-    // const authState = useSelector((state: RootState) => state.auth);
-    // const onboardingState = useSelector((state: RootState) => state.onboarding);
-    // const inventoryState = useSelector((state: RootState) => state.inventory);
-    // const kycState = useSelector((state: RootState) => state.kyc);
+    const user = useSelector((state: RootState) => state.auth.user);
+    const role = user?.role;
 
     const [isChecking, setIsChecking] = useState(true);
 
-    // useEffect(() => {
-    //     if (status === "authenticated" && session.user) {
-    //         dispatch(setUser(session.user as any));
-    //     }
-    // }, [status, session, dispatch]);
-
     useEffect(() => {
         if (isAuthenticated) {
-            initializeApp(dispatch);
+            initializeApp(dispatch, role as UserRole);
         }
     }, [isAuthenticated]);
 

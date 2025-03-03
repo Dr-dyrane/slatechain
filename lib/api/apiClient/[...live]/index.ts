@@ -1,6 +1,7 @@
 // lib/api/apiClient/[...live]/index.ts
 
 import { tokenManager } from "@/lib/helpers/tokenManager";
+import { logout } from "@/lib/slices/authSlice";
 import axios, {
 	type AxiosError,
 	AxiosInstance,
@@ -170,7 +171,7 @@ class ApiClient {
 						this.refreshSubscribers.forEach((callback) => callback(""));
 						this.refreshSubscribers = [];
 						tokenManager.clearTokens();
-						window.location.href = "/login"; //added this to redirect to login page when token is expired
+						logout(); // Log out user
 						return Promise.reject(
 							new LogoutError("Session expired, please log in again.")
 						);
