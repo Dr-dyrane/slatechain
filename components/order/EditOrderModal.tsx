@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { updateOrder, markOrderAsPaid } from "@/lib/slices/orderSlice"
+import { updateOrder, markOrderAsPaidAsync } from "@/lib/slices/orderSlice"
 import type { Order, OrderItem } from "@/lib/types"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { toast } from "sonner"
@@ -77,7 +77,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
 
   const handlePaymentProcess = (paymentResult: boolean) => {
     if (editedOrder) {
-      dispatch(markOrderAsPaid(editedOrder.id))
+      dispatch(markOrderAsPaidAsync({id:editedOrder.id.toLocaleString(), method: "card"}))
       setEditedOrder((prevOrder) => ({
         ...prevOrder!,
         paid: paymentResult,
@@ -168,6 +168,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
         onClose={() => setShowPaymentModal(false)}
         onPaymentComplete={handlePaymentProcess}
         amount={editedOrder.totalAmount || 0}
+        orderId={editedOrder.id.toLocaleString()}
       />
     </AlertDialog>
   )
