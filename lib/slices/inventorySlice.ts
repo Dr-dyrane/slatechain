@@ -1,13 +1,14 @@
-// src/lib/slices/InventorySlice.ts
+// src/lib/slices/inventorySlice.ts
+
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/api/apiClient";
-import {
+import type {
 	InventoryItem,
 	InventoryState,
 	ManufacturingOrder,
 	StockMovement,
 	Warehouse,
 } from "@/lib/types";
+import { apiClient } from "@/lib/api/apiClient";
 
 const initialState: InventoryState = {
 	items: [],
@@ -18,6 +19,7 @@ const initialState: InventoryState = {
 	error: null,
 };
 
+// Async Thunks
 export const fetchInventory = createAsyncThunk(
 	"inventory/fetchInventory",
 	async (_, thunkAPI) => {
@@ -83,7 +85,7 @@ export const fetchWarehouses = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Warehouse[]>("/warehouses");
-			return response;
+			return response || [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch warehouses"
@@ -149,7 +151,7 @@ export const fetchStockMovements = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<StockMovement[]>("/stock-movements");
-			return response;
+			return response || [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch stock movements"
@@ -183,7 +185,7 @@ export const fetchManufacturingOrders = createAsyncThunk(
 			const response = await apiClient.get<ManufacturingOrder[]>(
 				"/manufacturing-orders"
 			);
-			return response;
+			return response || [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch manufacturing orders"
@@ -320,6 +322,7 @@ const inventorySlice = createSlice({
 			.addCase(fetchWarehouses.fulfilled, (state, action) => {
 				state.loading = false;
 				state.warehouses = action.payload;
+				state.error = null;
 			})
 			.addCase(fetchWarehouses.rejected, (state, action) => {
 				state.loading = false;
@@ -345,7 +348,7 @@ const inventorySlice = createSlice({
 		// Stock Movement reducers
 		builder
 			.addCase(fetchStockMovements.fulfilled, (state, action) => {
-				state.stockMovements = action.payload;
+				state.stockMovements = action.payload ?? [];
 			})
 			.addCase(createStockMovement.fulfilled, (state, action) => {
 				state.stockMovements.push(action.payload);
@@ -354,7 +357,7 @@ const inventorySlice = createSlice({
 		// Manufacturing Order reducers
 		builder
 			.addCase(fetchManufacturingOrders.fulfilled, (state, action) => {
-				state.manufacturingOrders = action.payload;
+				state.manufacturingOrders = action.payload ?? [];
 			})
 			.addCase(createManufacturingOrder.fulfilled, (state, action) => {
 				state.manufacturingOrders.push(action.payload);

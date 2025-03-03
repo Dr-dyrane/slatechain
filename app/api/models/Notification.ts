@@ -18,6 +18,8 @@ const notificationSchema = new mongoose.Schema(
 				"INVENTORY_ALERT",
 				"INTEGRATION_STATUS",
 				"WAREHOUSE_UPDATE",
+				"MANUFACTURING_ORDER",
+				"STOCK_MOVEMENT",
 				"INVENTORY_UPDATE",
 			],
 			required: true,

@@ -703,6 +703,8 @@ export type NotificationType =
 	| "INVENTORY_ALERT"
 	| "WAREHOUSE_UPDATE"
 	| "INVENTORY_UPDATE"
+	| "STOCK_MOVEMENT"
+	| "MANUFACTURING_ORDER"
 	| "INTEGRATION_STATUS";
 
 // Notification State
