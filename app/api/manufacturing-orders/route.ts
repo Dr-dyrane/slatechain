@@ -10,12 +10,16 @@ import mongoose from "mongoose";
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/manufacturing-orders - List all manufacturing orders
+// GET /api/manufacturing-orders - List manufacturing orders for a specific user
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const orders = await ManufacturingOrder.find().sort({ createdAt: -1 });
+			// Fetch manufacturing orders only by userId
+			const orders = await ManufacturingOrder.find({ userId }).sort({
+				createdAt: -1,
+			});
+
 			return NextResponse.json(orders);
 		},
 		"manufacturing_order_list",

@@ -6,12 +6,14 @@ import { createNotification } from "@/app/actions/notifications";
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/warehouses - List all warehouses
+// GET /api/warehouses - List warehouses for a specific user
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const warehouses = await Warehouse.find().sort({ createdAt: -1 });
+			const warehouses = await Warehouse.find({ userId }).sort({
+				createdAt: -1,
+			});
 			return NextResponse.json(warehouses);
 		},
 		"warehouse_list",

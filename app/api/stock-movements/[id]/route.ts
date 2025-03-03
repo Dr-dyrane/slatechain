@@ -24,10 +24,15 @@ export async function GET(
 				);
 			}
 
-			const movement = await StockMovement.findById(params.id);
+			// Fetch the stock movement and ensure it belongs to the user
+			const movement = await StockMovement.findOne({ _id: params.id, userId });
+
 			if (!movement) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Stock movement not found" },
+					{
+						code: "NOT_FOUND",
+						message: "Stock movement not found or unauthorized",
+					},
 					{ status: 404 }
 				);
 			}

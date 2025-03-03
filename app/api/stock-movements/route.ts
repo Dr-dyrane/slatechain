@@ -10,12 +10,14 @@ import mongoose from "mongoose";
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/stock-movements - List all stock movements
+// GET /api/stock-movements - List stock movements for a specific user
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const movements = await StockMovement.find().sort({ createdAt: -1 });
+			const movements = await StockMovement.find({ userId }).sort({
+				createdAt: -1,
+			});
 			return NextResponse.json(movements);
 		},
 		"stock_movement_list",

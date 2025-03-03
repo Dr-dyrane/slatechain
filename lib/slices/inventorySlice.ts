@@ -10,7 +10,6 @@ import type {
 } from "@/lib/types";
 import { apiClient } from "../api/apiClient/[...live]";
 
-
 const initialState: InventoryState = {
 	items: [],
 	warehouses: [],
@@ -25,8 +24,32 @@ export const fetchInventory = createAsyncThunk(
 	"inventory/fetchInventory",
 	async (_, thunkAPI) => {
 		try {
-			const response = await apiClient.get<InventoryItem[]>("/inventory");
-			return response || [];
+			let allInventory: InventoryItem[] = [];
+			let page = 1;
+			const limit = 50; // Default limit from API
+
+			while (true) {
+				// Fetch inventory data page by page
+				const response = await apiClient.get<{
+					items: InventoryItem[];
+					page: number;
+					totalPages: number;
+				}>(`/inventory?page=${page}&limit=${limit}`);
+
+				// Add fetched items to the list
+				allInventory = allInventory.concat(response.items);
+
+				// Stop when all pages are fetched
+				if (response.page >= response.totalPages) {
+					break;
+				}
+
+				// Move to the next page
+				page++;
+			}
+
+			// Return the complete inventory list
+			return allInventory;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch inventory"

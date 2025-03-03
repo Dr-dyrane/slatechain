@@ -25,10 +25,18 @@ export async function GET(
 				);
 			}
 
-			const order = await ManufacturingOrder.findById(params.id);
+			// Fetch the order and ensure it belongs to the user
+			const order = await ManufacturingOrder.findOne({
+				_id: params.id,
+				userId,
+			});
+
 			if (!order) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Manufacturing order not found" },
+					{
+						code: "NOT_FOUND",
+						message: "Manufacturing order not found or unauthorized",
+					},
 					{ status: 404 }
 				);
 			}

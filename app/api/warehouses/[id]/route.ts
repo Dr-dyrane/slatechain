@@ -25,10 +25,12 @@ export async function GET(
 				);
 			}
 
-			const warehouse = await Warehouse.findById(params.id);
+			// Fetch the warehouse and ensure it belongs to the user
+			const warehouse = await Warehouse.findOne({ _id: params.id, userId });
+
 			if (!warehouse) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Warehouse not found" },
+					{ code: "NOT_FOUND", message: "Warehouse not found or unauthorized" },
 					{ status: 404 }
 				);
 			}

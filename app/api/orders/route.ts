@@ -8,12 +8,12 @@ import Order from "../models/Order";
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/orders - List all orders
+// GET /api/orders - List orders for a specific user
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const orders = await Order.find().sort({ createdAt: -1 });
+			const orders = await Order.find({ userId }).sort({ createdAt: -1 });
 			return NextResponse.json(orders);
 		},
 		"orders_list",

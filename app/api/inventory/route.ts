@@ -8,13 +8,36 @@ import { createNotification } from "@/app/actions/notifications";
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/inventory - List all inventory items
+// GET /api/inventory - List inventory items for a specific user
+
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const inventory = await Inventory.find().sort({ createdAt: -1 });
-			return NextResponse.json(inventory);
+			// Get pagination parameters
+			const { searchParams } = new URL(req.url);
+			const page = Number.parseInt(searchParams.get("page") || "1");
+			const limit = Number.parseInt(searchParams.get("limit") || "50");
+
+			// Fetch inventory only by userId
+			const query = { userId };
+
+			// Execute query with pagination
+			const [items, total] = await Promise.all([
+				Inventory.find(query)
+					.sort({ createdAt: -1 })
+					.skip((page - 1) * limit)
+					.limit(limit),
+				Inventory.countDocuments(query),
+			]);
+
+			return NextResponse.json({
+				items,
+				total,
+				page,
+				limit,
+				totalPages: Math.ceil(total / limit),
+			});
 		},
 		"inventory_list",
 		LIST_RATE_LIMIT

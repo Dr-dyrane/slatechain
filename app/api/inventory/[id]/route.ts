@@ -25,10 +25,15 @@ export async function GET(
 				);
 			}
 
-			const item = await Inventory.findById(params.id);
+			// Fetch inventory item and ensure it belongs to the user
+			const item = await Inventory.findOne({ _id: params.id, userId });
+
 			if (!item) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Inventory item not found" },
+					{
+						code: "NOT_FOUND",
+						message: "Inventory item not found or unauthorized",
+					},
 					{ status: 404 }
 				);
 			}
