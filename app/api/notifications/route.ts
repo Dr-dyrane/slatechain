@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 				createdAt: -1,
 			});
 
-			return NextResponse.json({ notifications });
+			return NextResponse.json(notifications);
 		},
 		"notifications_list",
 		LIST_RATE_LIMIT
