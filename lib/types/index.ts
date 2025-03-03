@@ -701,6 +701,8 @@ export type NotificationType =
 	| "GENERAL"
 	| "ORDER_UPDATE"
 	| "INVENTORY_ALERT"
+	| "WAREHOUSE_UPDATE"
+	| "INVENTORY_UPDATE"
 	| "INTEGRATION_STATUS";
 
 // Notification State
