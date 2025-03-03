@@ -8,7 +8,8 @@ import type {
 	StockMovement,
 	Warehouse,
 } from "@/lib/types";
-import { apiClient } from "@/lib/api/apiClient";
+import { apiClient } from "../api/apiClient/[...live]";
+
 
 const initialState: InventoryState = {
 	items: [],
