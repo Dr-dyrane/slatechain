@@ -47,8 +47,8 @@ export default function ProfilePage() {
                 <TabsList className="w-full md:w-auto justify-between md:justify-start flex-wrap mb-10 gap-2">
                     <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                     <TabsTrigger value="edit">Edit Profile</TabsTrigger>
-                    <TabsTrigger value="password">Password</TabsTrigger>
-                    <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+                    <TabsTrigger className="bg-muted" value="password">Password</TabsTrigger>
+                    <TabsTrigger className="bg-muted" value="onboarding">Onboarding</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
                     <ProfileDashboard user={user} />

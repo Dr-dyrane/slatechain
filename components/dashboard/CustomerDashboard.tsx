@@ -280,11 +280,11 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
 
             {/* Tabs for different sections */}
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="w-full mb-6 flex flex-wrap justify-start">
+                <TabsList className="w-full mb-12 gap-2 flex flex-wrap justify-start">
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="orders">My Orders</TabsTrigger>
-                    <TabsTrigger value="products">Available Products</TabsTrigger>
-                    <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                    <TabsTrigger className="bg-muted" value="products">Products</TabsTrigger>
+                    <TabsTrigger className="bg-muted" value="recommendations">Recommendations</TabsTrigger>
                 </TabsList>
 
                 {/* Overview Tab */}
