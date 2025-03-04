@@ -200,7 +200,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
 
     return (
         <div className="space-y-6">
-            <h1 className="text-2xl sm:text-3xl font-bold">Customer Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Your Dashboard</h1>
 
             {user && (user.onboardingStatus !== OnboardingStatus.COMPLETED || user.kycStatus !== KYCStatus.APPROVED) && (
                 <UserStatusAlert
