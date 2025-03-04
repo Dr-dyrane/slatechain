@@ -9,6 +9,12 @@ import { formatCurrency } from "@/lib/utils";
 
 const RATE_LIMIT = 60; // 60 requests per minute
 
+// function to format percentages consistently
+function formatPercentage(value: number): string {
+	const sign = value >= 0 ? "+" : "";
+	return `${sign}${value.toFixed(1)}%`;
+}
+
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
@@ -190,7 +196,7 @@ export async function GET(req: NextRequest) {
 						title: "Total Revenue",
 						icon: "DollarSign",
 						value: formatCurrency(totalRevenue),
-						description: `${revenuePercentChange.toFixed(1)}% from last month`,
+						description: `${formatPercentage(revenuePercentChange)} from last month`,
 						type: "revenue",
 						sparklineData,
 					},
@@ -198,7 +204,7 @@ export async function GET(req: NextRequest) {
 						title: "Inventory Items",
 						icon: "CreditCard",
 						value: `+${inventoryCount}`,
-						description: `${inventoryPercentChange.toFixed(1)}% from last month`,
+						description: `${formatPercentage(inventoryPercentChange)} from last month`,
 						type: "number",
 						sparklineData: null,
 					},
