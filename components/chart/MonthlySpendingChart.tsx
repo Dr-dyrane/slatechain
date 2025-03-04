@@ -33,11 +33,14 @@ export function MonthlySpendingChart({
     description = "Your spending patterns over time",
     loading = false,
 }: MonthlySpendingChartProps) {
+    // Check if all amounts are zero
+    const allAmountsZero = data.every(item => item.amount === 0);
+
     // Format the data for the chart
     const chartData = data.map((item) => ({
         name: item.month,
         value: item.amount,
-    }))
+    }));
 
     // Calculate the maximum value for the Y-axis
     const maxValue = Math.max(...chartData.map((item) => item.value)) * 1.2
@@ -76,26 +79,32 @@ export function MonthlySpendingChart({
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                            <XAxis
-                                dataKey="name"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                            />
-                            <YAxis
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
-                                tickFormatter={(value) => formatCurrency(value)} // Remove boolean argument
-                                domain={[0, maxValue]}
-                            />
-                            <Tooltip content={CustomTooltip} />
-                            <Bar dataKey="value" fill={barColor} radius={[4, 4, 0, 0]} barSize={30} />
-                        </BarChart>
-                    </ResponsiveContainer>
+                    allAmountsZero ? (
+                        <div className="h-full w-full flex items-center justify-center text-muted-foreground">
+                            No spending data available for the selected period.
+                        </div>
+                    ) : (
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                                <XAxis
+                                    dataKey="name"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                                />
+                                <YAxis
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fill: "hsl(var(--foreground))", fontSize: 12 }}
+                                    tickFormatter={(value) => formatCurrency(value)}
+                                    domain={[0, maxValue]}
+                                />
+                                <Tooltip content={CustomTooltip} />
+                                <Bar dataKey="value" fill={barColor} radius={[4, 4, 0, 0]} barSize={30} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    )
                 )}
             </CardContent>
         </Card>
