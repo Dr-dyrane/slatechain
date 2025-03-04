@@ -63,7 +63,7 @@ export default function InventoryPage() {
                 ];
             case "manufacturing":
                 return [
-                    { title: "Total Manufacturing Orders", value: inventory.manufacturingOrders?.length.toString(), type: "number", icon: "Factory", description: "Total manufacturing orders", sparklineData: [inventory.manufacturingOrders?.length || 0] },
+                    { title: "Total Orders", value: inventory.manufacturingOrders?.length.toString(), type: "number", icon: "Factory", description: "Total manufacturing orders", sparklineData: [inventory.manufacturingOrders?.length || 0] },
                     { title: "Orders Completed", value: (inventory.manufacturingOrders?.filter(mo => mo.status === "COMPLETED") || []).length.toString(), type: "number", icon: "CheckCircle", description: "Number of completed orders", sparklineData: [(inventory.manufacturingOrders?.filter(mo => mo.status === "COMPLETED") || []).length] },
                     { title: "Orders In Progress", value: (inventory.manufacturingOrders?.filter(mo => mo.status === "IN_PROGRESS") || []).length.toString(), type: "number", icon: "Clock", description: "Number of orders in progress", sparklineData: [(inventory.manufacturingOrders?.filter(mo => mo.status === "IN_PROGRESS") || []).length] }
                 ];
