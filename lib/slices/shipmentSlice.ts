@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/api/apiClient";
 import {
 	Route,
 	Carrier,
@@ -8,6 +7,7 @@ import {
 	ShipmentState,
 	Transport,
 } from "@/lib/types";
+import { apiClient } from "../api/apiClient/[...live]";
 
 const initialState: ShipmentState = {
 	items: [],
