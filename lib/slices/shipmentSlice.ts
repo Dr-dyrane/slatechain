@@ -24,7 +24,7 @@ export const fetchShipments = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Shipment[]>("/shipments");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch shipments"
@@ -83,7 +83,7 @@ export const fetchCarriers = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Carrier[]>("/carriers");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch carriers"
@@ -140,7 +140,7 @@ export const fetchRoutes = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Route[]>("/routes");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch routes"
@@ -194,7 +194,7 @@ export const fetchTransports = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Transport[]>("/transports");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch transports"
@@ -256,7 +256,7 @@ export const fetchFreights = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Freight[]>("/freights");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch freights"
@@ -322,6 +322,7 @@ const shipmentSlice = createSlice({
 		},
 	},
 	extraReducers: (builder) => {
+		// Old reducers for shipment management
 		builder
 			.addCase(fetchShipments.pending, (state) => {
 				state.loading = true;
@@ -329,7 +330,7 @@ const shipmentSlice = createSlice({
 			})
 			.addCase(fetchShipments.fulfilled, (state, action) => {
 				state.loading = false;
-				state.items = action.payload;
+				state.items = action.payload ?? [];
 			})
 			.addCase(fetchShipments.rejected, (state, action) => {
 				state.loading = false;
@@ -385,7 +386,7 @@ const shipmentSlice = createSlice({
 			})
 			.addCase(fetchCarriers.fulfilled, (state, action) => {
 				state.loading = false;
-				state.carriers = action.payload;
+				state.carriers = action.payload ?? [];
 			})
 			.addCase(fetchCarriers.rejected, (state, action) => {
 				state.loading = false;
@@ -415,7 +416,7 @@ const shipmentSlice = createSlice({
 			})
 			.addCase(fetchRoutes.fulfilled, (state, action) => {
 				state.loading = false;
-				state.routes = action.payload;
+				state.routes = action.payload ?? [];
 			})
 			.addCase(fetchRoutes.rejected, (state, action) => {
 				state.loading = false;
@@ -445,7 +446,7 @@ const shipmentSlice = createSlice({
 			})
 			.addCase(fetchTransports.fulfilled, (state, action) => {
 				state.loading = false;
-				state.transports = action.payload;
+				state.transports = action.payload ?? [];
 			})
 			.addCase(fetchTransports.rejected, (state, action) => {
 				state.loading = false;
@@ -475,7 +476,7 @@ const shipmentSlice = createSlice({
 			})
 			.addCase(fetchFreights.fulfilled, (state, action) => {
 				state.loading = false;
-				state.freights = action.payload;
+				state.freights = action.payload ?? [];
 			})
 			.addCase(fetchFreights.rejected, (state, action) => {
 				state.loading = false;
