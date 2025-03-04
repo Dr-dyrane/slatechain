@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import DashboardCard from "@/components/dashboard/DashboardCard"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export interface OrderRow {
   id: string
@@ -123,6 +124,8 @@ export const columns: ColumnDef<OrderRow>[] = [
 
 export default function OrdersPage() {
   const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const orders = useSelector((state: RootState) => state.orders.items)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -133,7 +136,15 @@ export default function OrdersPage() {
 
   useEffect(() => {
     dispatch(fetchOrders())
-  }, [dispatch])
+    const openAddModal = searchParams.get("add") === "true"; // Get the query parameter.
+
+    if (openAddModal) {
+      setAddModalOpen(true);  // Open the modal if the parameter is true.
+      //Remove query params
+      const newURL = window.location.pathname;
+      router.replace(newURL, { scroll: false });
+    }
+  }, [dispatch, searchParams, router])
 
   const handleAddModalOpen = () => setAddModalOpen(true)
   const handleEditModalOpen = (order: Order) => {

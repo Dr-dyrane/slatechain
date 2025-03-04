@@ -351,7 +351,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                                 )}
                             </CardContent>
                             <CardFooter>
-                                <Link href="/orders" className="w-full">
+                                <Link href="/orders?add=true" className="w-full">
                                     <Button className="w-full">
                                         <ShoppingCart className="mr-2 h-4 w-4" />
                                         Place New Order
@@ -401,7 +401,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                         </CardContent>
                         <CardFooter className="flex justify-between">
                             <div className="text-sm text-muted-foreground">Showing {orders?.length || 0} orders</div>
-                            <Link href="/orders">
+                            <Link href="/orders?add=true">
                                 <Button>
                                     <ShoppingCart className="mr-2 h-4 w-4" />
                                     Place New Order
