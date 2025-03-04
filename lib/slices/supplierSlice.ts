@@ -23,7 +23,7 @@ export const fetchSuppliers = createAsyncThunk(
 	async (_, thunkAPI) => {
 		try {
 			const response = await apiClient.get<Supplier[]>("/suppliers");
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch suppliers"
@@ -87,7 +87,7 @@ export const fetchSupplierDocuments = createAsyncThunk(
 			const response = await apiClient.get<SupplierDocument[]>(
 				`/suppliers/${supplierId}/documents`
 			);
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch supplier documents"
@@ -139,7 +139,7 @@ export const fetchChatMessages = createAsyncThunk(
 			const response = await apiClient.get<ChatMessage[]>(
 				`/suppliers/${supplierId}/chat`
 			);
-			return response;
+			return response ?? [];
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch chat messages"
@@ -177,7 +177,7 @@ const supplierSlice = createSlice({
 			})
 			.addCase(fetchSuppliers.fulfilled, (state, action) => {
 				state.loading = false;
-				state.items = action.payload;
+				state.items = action.payload ?? [];
 			})
 			.addCase(fetchSuppliers.rejected, (state, action) => {
 				state.loading = false;
@@ -200,7 +200,7 @@ const supplierSlice = createSlice({
 				);
 			})
 			.addCase(fetchSupplierDocuments.fulfilled, (state, action) => {
-				state.documents = action.payload;
+				state.documents = action.payload ?? [];
 			})
 			.addCase(addSupplierDocument.fulfilled, (state, action) => {
 				state.documents.push(action.payload);
@@ -215,7 +215,7 @@ const supplierSlice = createSlice({
 				);
 			})
 			.addCase(fetchChatMessages.fulfilled, (state, action) => {
-				state.chatMessages = action.payload;
+				state.chatMessages = action.payload ?? [];
 			})
 			.addCase(sendChatMessage.fulfilled, (state, action) => {
 				state.chatMessages.push(action.payload);
