@@ -1,0 +1,1 @@
+// app/api/freights/[id]/route.ts
