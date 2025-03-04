@@ -42,6 +42,7 @@ import { DataTable } from "../table/DataTable"
 import { toast } from "sonner"
 import { columns, OrderRow } from "@/app/orders/page"
 import UserStatusAlert from "./UserStatusAlert"
+import { MonthlySpendingChart } from "../chart/MonthlySpendingChart"
 
 
 interface CustomerDashboardProps {
@@ -275,24 +276,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
             ) : null}
 
             {/* Monthly Spending Chart */}
-            {orderSummary?.monthlySpending && orderSummary.monthlySpending.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Monthly Spending</CardTitle>
-                        <CardDescription>Your spending patterns over time</CardDescription>
-                    </CardHeader>
-                    <CardContent className="h-[300px]">
-                        {customerLoading.orderSummary ? (
-                            <Skeleton className="h-[250px] w-full" />
-                        ) : (
-                            <div className="h-full">
-                                <BarChart3 className="h-full w-full" />
-                                {/* Replace with actual chart component using orderSummary.monthlySpending */}
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
-            )}
+            {orderSummary?.monthlySpending && orderSummary.monthlySpending.length > 0 && <MonthlySpendingChart data={orderSummary.monthlySpending} loading={customerLoading.orderSummary} />}
 
             {/* Tabs for different sections */}
             <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
