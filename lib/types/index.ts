@@ -563,6 +563,29 @@ export interface ChatMessage {
 	timestamp: string;
 }
 
+// Route Status
+export enum RouteStatus {
+	PLANNED = "PLANNED",
+	ACTIVE = "ACTIVE",
+	INACTIVE = "INACTIVE",
+	UNDER_MAINTENANCE = "UNDER_MAINTENANCE",
+}
+
+// Route Type
+export enum RouteType {
+	LOCAL = "LOCAL",
+	REGIONAL = "REGIONAL",
+	INTERNATIONAL = "INTERNATIONAL",
+}
+
+// Freight Status
+export enum FreightStatus {
+	PENDING = "PENDING",
+	IN_TRANSIT = "IN_TRANSIT",
+	DELIVERED = "DELIVERED",
+	ON_HOLD = "ON_HOLD",
+}
+
 // Demand Planning and Forecasting
 
 export interface ForecastParameter {
