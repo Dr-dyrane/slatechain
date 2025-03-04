@@ -1,7 +1,7 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { RootState } from "@/lib/store";
-import { Redis } from "@upstash/redis"
+import { Redis } from "@upstash/redis";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -23,9 +23,9 @@ export interface SidebarItemMeta {
 }
 
 export interface RateLimitConfig {
-	uniqueTokenPerInterval?: number
-	interval?: number
-  }
+	uniqueTokenPerInterval?: number;
+	interval?: number;
+}
 
 export const getSidebarItemMeta = (
 	state: RootState,
@@ -45,13 +45,13 @@ export const getSidebarItemMeta = (
 						? {
 								count: lowStockItems,
 								variant: "warning",
-						  }
+							}
 						: undefined,
 				serviceIcon: state.auth.user?.integrations?.erp_crm?.enabled
 					? {
 							src: "/icons/sap.svg",
 							alt: "ERP Integration",
-					  }
+						}
 					: undefined,
 			};
 
@@ -65,7 +65,7 @@ export const getSidebarItemMeta = (
 						? {
 								count: pendingOrders,
 								variant: "default",
-						  }
+							}
 						: undefined,
 			};
 
@@ -79,7 +79,7 @@ export const getSidebarItemMeta = (
 						? {
 								count: inTransitShipments,
 								variant: "default",
-						  }
+							}
 						: undefined,
 			};
 
@@ -101,7 +101,7 @@ export const getSidebarItemMeta = (
 					? {
 							src: "/icons/sap.svg",
 							alt: "CRM Integration",
-					  }
+						}
 					: undefined,
 			};
 
@@ -113,7 +113,7 @@ export const getSidebarItemMeta = (
 							src: "/icons/shopify.svg",
 							alt: "Shopify Integration",
 						},
-				  }
+					}
 				: {};
 
 		default:
@@ -122,82 +122,154 @@ export const getSidebarItemMeta = (
 };
 
 export interface RateLimiter {
-  check: (limit: number, identifier: string) => Promise<void>
-  pending: (identifier: string) => Promise<number>
-  reset: (identifier: string) => Promise<void>
+	check: (limit: number, identifier: string) => Promise<void>;
+	pending: (identifier: string) => Promise<number>;
+	reset: (identifier: string) => Promise<void>;
 }
 
-export async function getRateLimitHeaders(remaining: number, limit: number, reset: number) {
-  return {
-    "X-RateLimit-Limit": limit.toString(),
-    "X-RateLimit-Remaining": Math.max(0, remaining).toString(),
-    "X-RateLimit-Reset": reset.toString(),
-  }
+export async function getRateLimitHeaders(
+	remaining: number,
+	limit: number,
+	reset: number
+) {
+	return {
+		"X-RateLimit-Limit": limit.toString(),
+		"X-RateLimit-Remaining": Math.max(0, remaining).toString(),
+		"X-RateLimit-Reset": reset.toString(),
+	};
 }
 
-export function createRateLimiter(prefix: string, config: RateLimitConfig = {}): RateLimiter {
-  const {
-    uniqueTokenPerInterval = 500, // Default number of tokens per interval
-    interval = 60000, // Default interval of 60 seconds
-  } = config
+export function createRateLimiter(
+	prefix: string,
+	config: RateLimitConfig = {}
+): RateLimiter {
+	const {
+		uniqueTokenPerInterval = 500, // Default number of tokens per interval
+		interval = 60000, // Default interval of 60 seconds
+	} = config;
 
-  const redis = Redis.fromEnv()
+	const redis = Redis.fromEnv();
 
-  return {
-    check: async (limit: number, identifier: string) => {
-      const key = `${prefix}:${identifier}`
-      const count = await redis.incr(key)
+	return {
+		check: async (limit: number, identifier: string) => {
+			const key = `${prefix}:${identifier}`;
+			const count = await redis.incr(key);
 
-      // Set expiry on first request
-      if (count === 1) {
-        await redis.expire(key, Math.floor(interval / 1000))
-      }
+			// Set expiry on first request
+			if (count === 1) {
+				await redis.expire(key, Math.floor(interval / 1000));
+			}
 
-      if (count > limit) {
-        const ttl = await redis.ttl(key)
-        throw new Error(
-          JSON.stringify({
-            error: "Too Many Requests",
-            limit,
-            remaining: 0,
-            reset: Date.now() + ttl * 1000,
-          }),
-        )
-      }
-    },
+			if (count > limit) {
+				const ttl = await redis.ttl(key);
+				throw new Error(
+					JSON.stringify({
+						error: "Too Many Requests",
+						limit,
+						remaining: 0,
+						reset: Date.now() + ttl * 1000,
+					})
+				);
+			}
+		},
 
-    pending: async (identifier: string) => {
-      const key = `${prefix}:${identifier}`
-      return redis.get(key) as Promise<number>
-    },
+		pending: async (identifier: string) => {
+			const key = `${prefix}:${identifier}`;
+			return redis.get(key) as Promise<number>;
+		},
 
-    reset: async (identifier: string) => {
-      const key = `${prefix}:${identifier}`
-      await redis.del(key)
-    },
-  }
+		reset: async (identifier: string) => {
+			const key = `${prefix}:${identifier}`;
+			await redis.del(key);
+		},
+	};
 }
 
 // Middleware to handle rate limiting
-export async function withRateLimit(req: Request, prefix: string, limit: number, interval = 60000) {
-  const ip = req.headers.get("x-forwarded-for") ?? "anonymous"
-  const limiter = createRateLimiter(prefix, { interval })
+export async function withRateLimit(
+	req: Request,
+	prefix: string,
+	limit: number,
+	interval = 60000
+) {
+	const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+	const limiter = createRateLimiter(prefix, { interval });
 
-  try {
-    await limiter.check(limit, ip)
-    const pending = await limiter.pending(ip)
-    const remaining = Math.max(0, limit - (pending ?? 0))
-    const reset = Date.now() + interval
+	try {
+		await limiter.check(limit, ip);
+		const pending = await limiter.pending(ip);
+		const remaining = Math.max(0, limit - (pending ?? 0));
+		const reset = Date.now() + interval;
 
-    return {
-      headers: await getRateLimitHeaders(remaining, limit, reset),
-      limited: false,
-    }
-  } catch (error) {
-	const data = JSON.parse((error as Error).message);
-    return {
-      headers: await getRateLimitHeaders(0, limit, data.reset),
-      limited: true,
-    }
-  }
+		return {
+			headers: await getRateLimitHeaders(remaining, limit, reset),
+			limited: false,
+		};
+	} catch (error) {
+		const data = JSON.parse((error as Error).message);
+		return {
+			headers: await getRateLimitHeaders(0, limit, data.reset),
+			limited: true,
+		};
+	}
+}
+
+/**
+ * Formats a number as currency
+ * @param value The number to format
+ * @param currency The currency code (default: USD)
+ * @returns Formatted currency string
+ */
+export function formatCurrency(value: number, currency = "USD"): string {
+	return new Intl.NumberFormat("en-US", {
+		style: "currency",
+		currency,
+		maximumFractionDigits: 2,
+	}).format(value);
+}
+
+/**
+ * Formats a number with thousand separators
+ * @param value The number to format
+ * @returns Formatted number string
+ */
+export function formatNumber(value: number): string {
+	return new Intl.NumberFormat("en-US").format(value);
+}
+
+/**
+ * Formats a date to a readable string
+ * @param date The date to format
+ * @param format The format to use (default: 'medium')
+ * @returns Formatted date string
+ */
+export function formatDate(
+	date: Date | string,
+	format: "short" | "medium" | "long" = "medium"
+): string {
+	const dateObj = typeof date === "string" ? new Date(date) : date;
+
+	const options: Intl.DateTimeFormatOptions = {
+		year: "numeric",
+		month: format === "short" ? "short" : "long",
+		day: "numeric",
+	};
+
+	if (format === "long") {
+		options.weekday = "long";
+		options.hour = "2-digit";
+		options.minute = "2-digit";
+	}
+
+	return new Intl.DateTimeFormat("en-US", options).format(dateObj);
+}
+
+/**
+ * Formats a percentage value
+ * @param value The decimal value to format as percentage
+ * @param decimals Number of decimal places (default: 1)
+ * @returns Formatted percentage string
+ */
+export function formatPercentage(value: number, decimals = 1): string {
+	return `${(value * 100).toFixed(decimals)}%`;
 }
