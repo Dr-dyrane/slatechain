@@ -14,8 +14,9 @@ import DashboardCard from "@/components/dashboard/DashboardCard";
 import DashboardSkeleton from "./loading";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { AreaChartGradient } from "@/components/chart/AreaChartGradient"
-import { KYCStatus, OnboardingStatus } from "@/lib/types"
+import { KYCStatus, OnboardingStatus, UserRole } from "@/lib/types"
 import { fetchUser } from "@/lib/slices/authSlice"
+import CustomerDashboard from "@/components/dashboard/CustomerDashboard"
 
 const demandColumns = [
   { accessorKey: "name", header: "Name" },
@@ -57,6 +58,11 @@ export default function Dashboard() {
 
   const handleReviewKYC = () => {
     router.push('/kyc')
+  }
+
+   // If the user is a customer, render the customer dashboard
+   if (user?.role === UserRole.CUSTOMER) {
+    return <CustomerDashboard user={user} />
   }
 
   //Data

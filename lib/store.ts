@@ -20,16 +20,25 @@ import kpiReducer from "./slices/kpi/kpiSlice";
 import supplierReducer from "./slices/supplierSlice";
 import userReducer from "./slices/user/user";
 import shopifyReducer from "./slices/shopifySlice";
+import customerReducer from "./slices/customerSlice";
 import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
 import { useDispatch } from "react-redux";
 
-
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
 	storage,
-	whitelist: ["auth", "onboarding", "kyc", "user", "kpi", 'integration', 'notifications'],
+	whitelist: [
+		"auth",
+		"onboarding",
+		"kyc",
+		"user",
+		"kpi",
+		"integration",
+		"notifications",
+		"customer",
+	],
 });
 
 const createRootReducer = () =>
@@ -46,6 +55,7 @@ const createRootReducer = () =>
 		shopify: shopifyReducer,
 		integration: integrationReducer,
 		notifications: notificationReducer,
+		customer: customerReducer,
 	});
 
 export const createStore = (userId: string | null) => {

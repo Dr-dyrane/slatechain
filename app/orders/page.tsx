@@ -16,7 +16,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import DashboardCard from "@/components/dashboard/DashboardCard"
 
-interface OrderRow {
+export interface OrderRow {
   id: string
   orderNumber: string
   name: string
@@ -26,7 +26,7 @@ interface OrderRow {
   items: OrderItem[]
 }
 
-const columns: ColumnDef<OrderRow>[] = [
+export const columns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: "orderNumber",
     header: "Order Number",
