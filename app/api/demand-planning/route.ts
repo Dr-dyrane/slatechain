@@ -23,7 +23,10 @@ export async function GET(req: NextRequest) {
 			// Calculate forecast accuracy
 			// In a real system, this would compare past forecasts with actual demand
 			// For this example, we'll simulate it with a realistic value
-			const forecastAccuracy = 0.85 + (Math.random() * 0.1 - 0.05); // 80-90% accuracy
+			// 80-90% accuracy is considered good for most businesses
+			const forecastAccuracy = parseFloat(
+				(0.85 + (Math.random() * 0.1 - 0.05)).toFixed(3)
+			); // 3 decimal places
 
 			// Calculate mean absolute deviation (MAD)
 			// This measures the average absolute difference between forecasted and actual demand
@@ -39,7 +42,8 @@ export async function GET(req: NextRequest) {
 			// Calculate service level
 			// This is the probability of not having a stockout
 			// Simulated value for this example
-			const serviceLevel = 0.92 + Math.random() * 0.06; // 92-98%
+			// 92-98% service level is considered good for most businesses
+			const serviceLevel = parseFloat((0.92 + Math.random() * 0.06).toFixed(3)); // 3 decimal places
 
 			// Generate forecasts for top inventory items
 			const topItems = await Inventory.find().limit(5);
@@ -48,7 +52,9 @@ export async function GET(req: NextRequest) {
 			for (const item of topItems) {
 				// Calculate historical demand (simplified)
 				const itemOrders = orders.filter((order) =>
-					order.items.some((i:OrderItem) => i.productId === item._id.toString())
+					order.items.some(
+						(i: OrderItem) => i.productId === item._id.toString()
+					)
 				);
 
 				// Calculate average monthly demand
