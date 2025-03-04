@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/api/apiClient";
 import type { Supplier, SupplierDocument, ChatMessage } from "@/lib/types";
+import { apiClient } from "../api/apiClient/[...live]";
 
 interface SupplierState {
 	items: Supplier[];
