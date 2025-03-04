@@ -339,7 +339,5 @@ $ curl -X POST \
     "password": "SecurePassword123",
     "role": "admin"
   }'
-{"user":{"id":"67c350542b82547adc46f749","firstName":"Test","lastName":"Admin","name":"Test Admin","email":"testadmin@example.com","role":"admin","isEmailVerified":false,"isPhoneVerified":false,"kycStatus":"NOT_STARTED","onboardingStatus":"NOT_STARTED","integrations":{},"createdAt":"2025-03-01T18:22:12.195Z","updatedAt":"2025-03-01T18:22:12.195Z"},"accessToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2MzNTA1NDJiODI1NDdhZGM0NmY3NDkiLCJyb2xlIjoiYWRtaW4iLCJlbWFpbCI6InRlc3RhZG1pbkBleGFtcGxlLmNvbSIsImlhdCI6MTc0MDg1MzMzMiwiZXhwIjoxNzQwODU0MjMyfQ.sniSzQ2rKPFEVnrRPjOE3RQL60E6zuDFWas3jk3UhQw","refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2MzNTA1NDJiODI1NDdhZGM0NmY3NDkiLCJ0b2tlbklkIjoiMmZkMzFhN2MtMWMzYy00MmNhLWFhYjUtN2E5MTkzNTMwNjcyIiwiaWF0IjoxNzQwODUzMzMyLCJleHAiOjE3NDE0NTgxMzJ9.s9IH4hColzJ7tZpCM_1T1Tmjw9ddDoRIP4qqWx4lqrM"}
-USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
 
 ```
