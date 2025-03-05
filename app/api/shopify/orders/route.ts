@@ -3,7 +3,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import User from "@/app/api/models/User";
-import { mockShopifyOrders } from "@/lib/mock/mock-shopify-orders";
+import axios from "axios";
+import type { ShopifyOrder } from "@/lib/types";
 
 const FETCH_RATE_LIMIT = 30;
 
@@ -55,21 +56,12 @@ export async function GET(req: NextRequest) {
 			}
 
 			try {
-				// In a real implementation, we would fetch orders from Shopify API
-				// For now, return mock data
+				let orders: ShopifyOrder[] = [];
 
-				// Example of how to fetch from Shopify API:
-				/*
-        const response = await axios.get(`${shopifyIntegration.storeUrl}/admin/api/2023-07/orders.json`, {
-          headers: {
-            'X-Shopify-Access-Token': shopifyIntegration.apiKey
-          }
-        });
-        const orders = response.data.orders;
-        */
-
-				// Using mock data for now
-				const orders = mockShopifyOrders;
+				orders = await fetchShopifyOrders(
+					shopifyIntegration.apiKey,
+					shopifyIntegration.storeUrl
+				);
 
 				return NextResponse.json({
 					success: true,
@@ -90,4 +82,32 @@ export async function GET(req: NextRequest) {
 		"shopify_orders",
 		FETCH_RATE_LIMIT
 	);
+}
+
+// Function to fetch orders from Shopify API
+async function fetchShopifyOrders(
+	apiKey: string,
+	storeUrl: string
+): Promise<ShopifyOrder[]> {
+	try {
+		// Ensure storeUrl is properly formatted
+		const baseUrl = storeUrl.endsWith("/") ? storeUrl.slice(0, -1) : storeUrl;
+
+		// Make API call to Shopify
+		const response = await axios.get(
+			`${baseUrl}/admin/api/2023-07/orders.json?status=any&limit=50`,
+			{
+				headers: {
+					"X-Shopify-Access-Token": apiKey,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		// Return the orders from the response
+		return response.data.orders;
+	} catch (error) {
+		console.error("Error fetching Shopify orders:", error);
+		throw error;
+	}
 }
