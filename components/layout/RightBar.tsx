@@ -32,7 +32,7 @@ export const RightBar: React.FC<Props> = ({ notifications }) => {
       </div>
       <div className="divide-y divide-border space-y-4 px-4 pb-[6.5rem] mt-2 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide">
         {notifications.length > 0 ? (
-          notifications.map((notification) => <NotificationCard key={notification.id} notification={notification} />)
+          notifications.map((notification, index) => <NotificationCard key={index} notification={notification} />)
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <BellOff className="h-12 w-12 text-muted-foreground mb-4" />

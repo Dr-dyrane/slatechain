@@ -41,7 +41,7 @@ export const NotificationDrawer: React.FC<NotificationDrawerProps> = ({ open, on
                 </SheetHeader>
                 <div className="divide-y divide-border space-y-4 px-4 pb-[3.5rem] mt-2 max-h-[90vh] overflow-y-scroll scrollbar-hide">
                     {notifications.length > 0 ? (
-                        notifications.map((notification) => <NotificationCard key={notification.id} notification={notification} />)
+                        notifications.map((notification, index) => <NotificationCard key={index} notification={notification} />)
                     ) : (
                         <div className="flex flex-col items-center justify-center py-12 text-center">
                             <BellOff className="h-12 w-12 text-muted-foreground mb-4" />

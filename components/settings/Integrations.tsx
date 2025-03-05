@@ -42,6 +42,8 @@ export function Integrations() {
         }),
       )
     }
+    setSelectedCategory(null)
+    setSelectedCategory(selectedCategory)
   }
 
   const handleToggleIntegration = (enabled: boolean) => {
