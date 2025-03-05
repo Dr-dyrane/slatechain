@@ -4,8 +4,9 @@ import {
 	createAsyncThunk,
 	type PayloadAction,
 } from "@reduxjs/toolkit";
-import { apiClient } from "@/lib/api/apiClient"; // Make sure this is correctly set up
+
 import type { ShopifyOrder, ShopifyState, ShopifyShop } from "@/lib/types"; // Correct import
+import { apiClient } from "../api/apiClient/[...live]";
 
 // Define API response interfaces
 interface ShopifyOrdersResponse {
@@ -28,7 +29,7 @@ export const fetchShopifyOrders = createAsyncThunk<
 >("shopify/fetchShopifyOrders", async (_, thunkAPI) => {
 	try {
 		const response = await apiClient.get<ShopifyOrdersResponse>(
-			"/api/shopify/orders"
+			"/shopify/orders"
 		);
 		return response.orders;
 	} catch (error: any) {
@@ -46,7 +47,7 @@ export const fetchShopifyShop = createAsyncThunk<
 >("shopify/fetchShopifyShop", async (_, thunkAPI) => {
 	try {
 		const response =
-			await apiClient.get<ShopifyShopResponse>("/api/shopify/shop");
+			await apiClient.get<ShopifyShopResponse>("/shopify/shop");
 		return response.shop;
 	} catch (error: any) {
 		return thunkAPI.rejectWithValue(
