@@ -11,11 +11,14 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	// Await params before using it
+	const { id } = await params;
+
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate notification ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid notification ID" },
 					{ status: 400 }
@@ -24,7 +27,7 @@ export async function DELETE(
 
 			// Find and delete the notification
 			const notification = await Notification.findOneAndDelete({
-				_id: params.id,
+				_id: id,
 				userId,
 			});
 

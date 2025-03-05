@@ -42,11 +42,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -54,7 +55,7 @@ export async function GET(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -66,7 +67,7 @@ export async function GET(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -75,7 +76,7 @@ export async function GET(
 			}
 
 			// Get chat messages
-			const messages = await ChatMessage.find({ supplierId: params.id }).sort({
+			const messages = await ChatMessage.find({ supplierId: id }).sort({
 				createdAt: 1,
 			});
 
@@ -91,11 +92,12 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -103,7 +105,7 @@ export async function POST(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -115,7 +117,7 @@ export async function POST(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -147,7 +149,7 @@ export async function POST(
 
 			// Create message
 			const message = await ChatMessage.create({
-				supplierId: params.id,
+				supplierId: id,
 				senderId: userId,
 				senderName: `${user.firstName} ${user.lastName}`,
 				message: messageData.message,

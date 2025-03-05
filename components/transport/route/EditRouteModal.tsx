@@ -54,7 +54,7 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
     } = useForm<RouteFormValues>({
         resolver: zodResolver(routeSchema),
         defaultValues: {
-            id: route?.id || "",
+            id: route?._id || "",
             name: route?.name || "",
             startLocation: route?.startLocation || "",
             endLocation: route?.endLocation || "",
@@ -66,7 +66,7 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
     useEffect(() => {
         if (route) {
             reset({
-                id: route?.id || "",
+                id: route?._id || "",
                 name: route?.name || "",
                 startLocation: route?.startLocation || "",
                 endLocation: route?.endLocation || "",

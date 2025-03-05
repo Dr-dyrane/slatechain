@@ -62,7 +62,7 @@ export function DeleteRouteModal({
     } = useForm<DeleteFormValues>({
         resolver: zodResolver(deleteSchema),
         defaultValues: {
-            id: route?.id ?? "",
+            id: route?._id ?? "",
         },
         mode: "onChange", // Enables dynamic validation
     });

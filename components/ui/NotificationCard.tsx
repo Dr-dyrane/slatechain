@@ -5,7 +5,7 @@ import { useState } from "react"
 import type { Notification, NotificationType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, Package, Activity, Users, X, Check } from "lucide-react"
+import { Bell, Package, Activity, Users, X, Check, Warehouse, ShoppingBag, Truck, Blocks } from "lucide-react"
 import { useDispatch } from "react-redux"
 import type { AppDispatch } from "@/lib/store"
 import { markNotificationAsRead, deleteNotification } from "@/lib/slices/notificationSlice"
@@ -20,6 +20,11 @@ const iconMap: Record<NotificationType, React.ComponentType<{ className?: string
     ORDER_UPDATE: Package,
     INVENTORY_ALERT: Activity,
     INTEGRATION_STATUS: Users,
+    WAREHOUSE_UPDATE: Warehouse,
+    INVENTORY_UPDATE: ShoppingBag,
+    STOCK_MOVEMENT: Truck,
+    MANUFACTURING_ORDER: Package,
+    INTEGRATION_SYNC: Blocks,
 }
 
 export const NotificationCard: React.FC<NotificationCardProps> = ({ notification }) => {
@@ -32,19 +37,19 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
 
         // Mark as read if not already read
         if (!notification.read) {
-            dispatch(markNotificationAsRead(notification.id))
+            dispatch(markNotificationAsRead(notification._id as string))
         }
     }
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation() // Prevent card click
-        dispatch(deleteNotification(notification.id))
+        dispatch(deleteNotification(notification._id as string))
     }
 
     const handleMarkAsRead = (e: React.MouseEvent) => {
         e.stopPropagation() // Prevent card click
         if (!notification.read) {
-            dispatch(markNotificationAsRead(notification.id))
+            dispatch(markNotificationAsRead(notification._id as string))
         }
     }
 

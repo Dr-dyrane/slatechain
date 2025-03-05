@@ -43,11 +43,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -55,7 +56,7 @@ export async function GET(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -67,7 +68,7 @@ export async function GET(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -76,7 +77,7 @@ export async function GET(
 			}
 
 			// Get supplier documents
-			const documents = await SupplierDocument.find({ supplierId: params.id });
+			const documents = await SupplierDocument.find({ supplierId: id });
 
 			// If supplier is also a user, check for KYC documents
 			if (supplier.userId) {
@@ -93,7 +94,7 @@ export async function GET(
 				// Convert KYC documents to supplier document format
 				const kycAsSupplierDocs = kycDocuments.map((kycDoc) => ({
 					id: kycDoc._id,
-					supplierId: params.id,
+					supplierId: id,
 					name: kycDoc.originalFilename || `${kycDoc.type} Document`,
 					type: "KYC",
 					url: kycDoc.url,
@@ -120,11 +121,12 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -132,7 +134,7 @@ export async function POST(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -144,7 +146,7 @@ export async function POST(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -166,7 +168,7 @@ export async function POST(
 			}
 
 			// Add supplierId to document data
-			documentData.supplierId = params.id;
+			documentData.supplierId = id;
 
 			// Check if this is linking to an existing KYC document
 			if (

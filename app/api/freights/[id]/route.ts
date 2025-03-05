@@ -13,11 +13,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate freight ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid freight ID" },
 					{ status: 400 }
@@ -25,7 +26,7 @@ export async function GET(
 			}
 
 			// Find freight and ensure it belongs to the user
-			const freight = await Freight.findOne({ _id: params.id, userId });
+			const freight = await Freight.findOne({ _id: id, userId });
 
 			if (!freight) {
 				return NextResponse.json(
@@ -46,11 +47,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate freight ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid freight ID" },
 					{ status: 400 }
@@ -58,7 +60,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const freight = await Freight.findOne({ _id: params.id, userId });
+			const freight = await Freight.findOne({ _id: id, userId });
 
 			if (!freight) {
 				return NextResponse.json(
@@ -69,7 +71,7 @@ export async function PUT(
 
 			// Update freight
 			const updatedFreight = await Freight.findByIdAndUpdate(
-				params.id,
+				id,
 				updates,
 				{ new: true }
 			);
@@ -86,11 +88,12 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate freight ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid freight ID" },
 					{ status: 400 }
@@ -98,7 +101,7 @@ export async function DELETE(
 			}
 
 			// Find freight and ensure it belongs to the user
-			const freight = await Freight.findOne({ _id: params.id, userId });
+			const freight = await Freight.findOne({ _id: id, userId });
 
 			if (!freight) {
 				return NextResponse.json(

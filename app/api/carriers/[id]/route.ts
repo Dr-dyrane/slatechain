@@ -13,11 +13,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate carrier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid carrier ID" },
 					{ status: 400 }
@@ -25,7 +26,7 @@ export async function GET(
 			}
 
 			// Find carrier and ensure it belongs to the user
-			const carrier = await Carrier.findOne({ _id: params.id, userId });
+			const carrier = await Carrier.findOne({ _id: id, userId });
 
 			if (!carrier) {
 				return NextResponse.json(
@@ -46,11 +47,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate carrier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid carrier ID" },
 					{ status: 400 }
@@ -58,7 +60,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const carrier = await Carrier.findOne({ _id: params.id, userId });
+			const carrier = await Carrier.findOne({ _id: id, userId });
 
 			if (!carrier) {
 				return NextResponse.json(
@@ -69,7 +71,7 @@ export async function PUT(
 
 			// Update carrier
 			const updatedCarrier = await Carrier.findByIdAndUpdate(
-				params.id,
+				id,
 				updates,
 				{ new: true }
 			);
@@ -86,11 +88,12 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate carrier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid carrier ID" },
 					{ status: 400 }
@@ -98,7 +101,7 @@ export async function DELETE(
 			}
 
 			// Find carrier and ensure it belongs to the user
-			const carrier = await Carrier.findOne({ _id: params.id, userId });
+			const carrier = await Carrier.findOne({ _id: id, userId });
 
 			if (!carrier) {
 				return NextResponse.json(

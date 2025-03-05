@@ -14,11 +14,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate order ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid order ID" },
 					{ status: 400 }
@@ -27,7 +28,7 @@ export async function GET(
 
 			// Fetch the order and ensure it belongs to the user
 			const order = await ManufacturingOrder.findOne({
-				_id: params.id,
+				_id: id,
 				userId,
 			});
 
@@ -53,11 +54,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate order ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid order ID" },
 					{ status: 400 }
@@ -65,7 +67,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const order = await ManufacturingOrder.findById(params.id);
+			const order = await ManufacturingOrder.findById(id);
 
 			if (!order) {
 				return NextResponse.json(
@@ -89,7 +91,7 @@ export async function PUT(
 
 			// Update order
 			const updatedOrder = await ManufacturingOrder.findByIdAndUpdate(
-				params.id,
+				id,
 				updates,
 				{ new: true }
 			);
@@ -122,18 +124,19 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate order ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid order ID" },
 					{ status: 400 }
 				);
 			}
 
-			const order = await ManufacturingOrder.findById(params.id);
+			const order = await ManufacturingOrder.findById(id);
 			if (!order) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Manufacturing order not found" },

@@ -55,7 +55,7 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
     } = useForm<CarrierFormValues>({
         resolver: zodResolver(carrierSchema),
         defaultValues: {
-            id: carrier?.id || "",
+            id: carrier?._id || "",
             name: carrier?.name || "",
             contactPerson: carrier?.contactPerson || "",
             email: carrier?.email || "",
@@ -68,7 +68,7 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
     useEffect(() => {
         if (carrier) {
             reset({
-                id: carrier?.id || "",
+                id: carrier?._id || "",
                 name: carrier?.name || "",
                 contactPerson: carrier?.contactPerson || "",
                 email: carrier?.email || "",

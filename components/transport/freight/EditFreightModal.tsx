@@ -58,7 +58,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
     } = useForm<FreightFormValues>({
         resolver: zodResolver(freightSchema),
         defaultValues: {
-            id: freight?.id || "",
+            id: freight?._id || "",
             name: freight?.name || "",
             type: freight?.type || "",
             weight: freight?.weight || 0,
@@ -71,7 +71,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
     useEffect(() => {
         if (freight) {
             reset({
-                id: freight?.id || "",
+                id: freight?._id || "",
                 name: freight?.name || "",
                 type: freight?.type || "",
                 weight: freight?.weight || 0,

@@ -10,15 +10,16 @@ const PAYMENT_RATE_LIMIT = 10
 
 // POST /api/orders/[id]/payment - Process payment for an order
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = await params
   return handleRequest(
     req,
     async (req, userId) => {
       // Validate order ID
-      if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
         return NextResponse.json({ code: "INVALID_ID", message: "Invalid order ID" }, { status: 400 })
       }
 
-      const order = await Order.findById(params.id)
+      const order = await Order.findById(id)
       if (!order) {
         return NextResponse.json({ code: "NOT_FOUND", message: "Order not found" }, { status: 404 })
       }

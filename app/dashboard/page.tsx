@@ -60,8 +60,8 @@ export default function Dashboard() {
     router.push('/kyc')
   }
 
-   // If the user is a customer, render the customer dashboard
-   if (user?.role === UserRole.CUSTOMER) {
+  // If the user is a customer, render the customer dashboard
+  if (user?.role === UserRole.CUSTOMER) {
     return <CustomerDashboard user={user} />
   }
 

@@ -42,12 +42,13 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
-				!mongoose.Types.ObjectId.isValid(params.id) ||
+				!mongoose.Types.ObjectId.isValid(id) ||
 				!mongoose.Types.ObjectId.isValid(params.documentId)
 			) {
 				return NextResponse.json(
@@ -57,7 +58,7 @@ export async function GET(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -71,7 +72,7 @@ export async function GET(
 			// Find document
 			const document = await SupplierDocument.findOne({
 				_id: params.documentId,
-				supplierId: params.id,
+				supplierId: id,
 			});
 
 			if (!document) {
@@ -93,12 +94,13 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
-				!mongoose.Types.ObjectId.isValid(params.id) ||
+				!mongoose.Types.ObjectId.isValid(id) ||
 				!mongoose.Types.ObjectId.isValid(params.documentId)
 			) {
 				return NextResponse.json(
@@ -108,7 +110,7 @@ export async function PUT(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -124,7 +126,7 @@ export async function PUT(
 			// Find document
 			const document = await SupplierDocument.findOne({
 				_id: params.documentId,
-				supplierId: params.id,
+				supplierId: id,
 			});
 
 			if (!document) {
@@ -156,12 +158,13 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
-				!mongoose.Types.ObjectId.isValid(params.id) ||
+				!mongoose.Types.ObjectId.isValid(id) ||
 				!mongoose.Types.ObjectId.isValid(params.documentId)
 			) {
 				return NextResponse.json(
@@ -171,7 +174,7 @@ export async function DELETE(
 			}
 
 			// Check access
-			const hasAccess = await hasAccessToSupplier(userId, params.id);
+			const hasAccess = await hasAccessToSupplier(userId, id);
 			if (!hasAccess) {
 				return NextResponse.json(
 					{
@@ -185,7 +188,7 @@ export async function DELETE(
 			// Find document
 			const document = await SupplierDocument.findOne({
 				_id: params.documentId,
-				supplierId: params.id,
+				supplierId: id,
 			});
 
 			if (!document) {

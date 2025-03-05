@@ -14,11 +14,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate inventory ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid inventory ID" },
 					{ status: 400 }
@@ -26,7 +27,7 @@ export async function GET(
 			}
 
 			// Fetch inventory item and ensure it belongs to the user
-			const item = await Inventory.findOne({ _id: params.id, userId });
+			const item = await Inventory.findOne({ _id: id, userId });
 
 			if (!item) {
 				return NextResponse.json(
@@ -50,11 +51,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate inventory ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid inventory ID" },
 					{ status: 400 }
@@ -62,7 +64,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const item = await Inventory.findById(params.id);
+			const item = await Inventory.findById(id);
 
 			if (!item) {
 				return NextResponse.json(
@@ -78,7 +80,7 @@ export async function PUT(
 
 			// Update item
 			const updatedItem = await Inventory.findByIdAndUpdate(
-				params.id,
+				id,
 				updates,
 				{ new: true }
 			);
@@ -111,18 +113,19 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate inventory ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid inventory ID" },
 					{ status: 400 }
 				);
 			}
 
-			const item = await Inventory.findById(params.id);
+			const item = await Inventory.findById(id);
 			if (!item) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Inventory item not found" },

@@ -499,6 +499,7 @@ export interface Transport {
 
 export interface Carrier {
 	id: string;
+	_id?: string;
 	name: string;
 	contactPerson: string;
 	email: string;
@@ -510,6 +511,7 @@ export interface Carrier {
 // Route interface
 export interface Route {
 	id: string;
+	_id?: string;
 	name: string;
 	startLocation: string;
 	endLocation: string;
@@ -520,6 +522,7 @@ export interface Route {
 // Freight interface
 export interface Freight {
 	id: string;
+	_id?: string;
 	type: string;
 	name: string;
 	weight: number;
@@ -718,6 +721,7 @@ export interface ShopifyState {
 // Notification Types
 export interface Notification {
 	id: string;
+	_id?: string;
 	userId: string;
 	type: NotificationType;
 	title: string;

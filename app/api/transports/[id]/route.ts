@@ -13,11 +13,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate transport ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid transport ID" },
 					{ status: 400 }
@@ -25,7 +26,7 @@ export async function GET(
 			}
 
 			// Find transport and ensure it belongs to the user
-			const transport = await Transport.findOne({ _id: params.id, userId });
+			const transport = await Transport.findOne({ _id: id, userId });
 
 			if (!transport) {
 				return NextResponse.json(
@@ -46,11 +47,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate transport ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid transport ID" },
 					{ status: 400 }
@@ -58,7 +60,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const transport = await Transport.findOne({ _id: params.id, userId });
+			const transport = await Transport.findOne({ _id: id, userId });
 
 			if (!transport) {
 				return NextResponse.json(
@@ -68,11 +70,9 @@ export async function PUT(
 			}
 
 			// Update transport
-			const updatedTransport = await Transport.findByIdAndUpdate(
-				params.id,
-				updates,
-				{ new: true }
-			);
+			const updatedTransport = await Transport.findByIdAndUpdate(id, updates, {
+				new: true,
+			});
 
 			return NextResponse.json(updatedTransport);
 		},
@@ -86,11 +86,12 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate transport ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid transport ID" },
 					{ status: 400 }
@@ -98,7 +99,7 @@ export async function DELETE(
 			}
 
 			// Find transport and ensure it belongs to the user
-			const transport = await Transport.findOne({ _id: params.id, userId });
+			const transport = await Transport.findOne({ _id: id, userId });
 
 			if (!transport) {
 				return NextResponse.json(

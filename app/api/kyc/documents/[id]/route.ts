@@ -11,6 +11,7 @@ export async function GET(
 	req: Request,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	// Rate limit: 60 requests per minute
 	const { headers, limited } = await withRateLimit(req, "document_get", 60);
 
@@ -53,7 +54,7 @@ export async function GET(
 		}
 
 		// Find document
-		const document = await KYCDocument.findById(params.id);
+		const document = await KYCDocument.findById(id);
 
 		if (!document) {
 			return NextResponse.json(
@@ -103,6 +104,7 @@ export async function DELETE(
 	req: Request,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	// Rate limit: 10 deletes per minute
 	const { headers, limited } = await withRateLimit(req, "document_delete", 10);
 
@@ -149,7 +151,7 @@ export async function DELETE(
 
 		try {
 			// Find document
-			const document = await KYCDocument.findById(params.id).session(session);
+			const document = await KYCDocument.findById(id).session(session);
 
 			if (!document) {
 				return NextResponse.json(

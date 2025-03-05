@@ -62,7 +62,7 @@ export function DeleteFreightModal({
     } = useForm<DeleteFormValues>({
         resolver: zodResolver(deleteSchema),
         defaultValues: {
-            id: freight?.id ?? "",
+            id: freight?._id ?? "",
         },
         mode: "onChange", // Enables dynamic validation
     });

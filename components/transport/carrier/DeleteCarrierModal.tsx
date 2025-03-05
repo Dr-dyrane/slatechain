@@ -62,7 +62,7 @@ export function DeleteCarrierModal({
     } = useForm<DeleteFormValues>({
         resolver: zodResolver(deleteSchema),
         defaultValues: {
-            id: carrier?.id ?? "",
+            id: carrier?._id ?? "",
         },
         mode: "onChange", // Enables dynamic validation
     });

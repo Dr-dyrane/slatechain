@@ -13,11 +13,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate movement ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid movement ID" },
 					{ status: 400 }
@@ -25,7 +26,7 @@ export async function GET(
 			}
 
 			// Fetch the stock movement and ensure it belongs to the user
-			const movement = await StockMovement.findOne({ _id: params.id, userId });
+			const movement = await StockMovement.findOne({ _id: id, userId });
 
 			if (!movement) {
 				return NextResponse.json(
@@ -49,11 +50,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate movement ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid movement ID" },
 					{ status: 400 }
@@ -61,7 +63,7 @@ export async function PUT(
 			}
 
 			const updates = await req.json();
-			const movement = await StockMovement.findById(params.id);
+			const movement = await StockMovement.findById(id);
 
 			if (!movement) {
 				return NextResponse.json(
@@ -77,7 +79,7 @@ export async function PUT(
 
 			// Update movement
 			const updatedMovement = await StockMovement.findByIdAndUpdate(
-				params.id,
+				id,
 				updates,
 				{ new: true }
 			);

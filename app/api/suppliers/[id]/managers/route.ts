@@ -15,11 +15,12 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -38,7 +39,7 @@ export async function GET(
 			// Only admins and managers assigned to this supplier can view managers
 			if (user.role !== UserRole.ADMIN) {
 				const hasAccess = await Supplier.findOne({
-					_id: params.id,
+					_id: id,
 					assignedManagers: userId,
 				});
 
@@ -54,7 +55,7 @@ export async function GET(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -80,11 +81,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate supplier ID
-			if (!mongoose.Types.ObjectId.isValid(params.id)) {
+			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid supplier ID" },
 					{ status: 400 }
@@ -112,7 +114,7 @@ export async function PUT(
 			}
 
 			// Find supplier
-			const supplier = await Supplier.findById(params.id);
+			const supplier = await Supplier.findById(id);
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -163,7 +165,7 @@ export async function PUT(
 
 			// Update supplier's assigned managers
 			const updatedSupplier = await Supplier.findByIdAndUpdate(
-				params.id,
+				id,
 				{ assignedManagers: managerIds },
 				{ new: true }
 			);
