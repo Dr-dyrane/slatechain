@@ -735,6 +735,7 @@ export type NotificationType =
 	| "INVENTORY_UPDATE"
 	| "STOCK_MOVEMENT"
 	| "MANUFACTURING_ORDER"
+	| "INTEGRATION_SYNC"
 	| "INTEGRATION_STATUS";
 
 // Notification State

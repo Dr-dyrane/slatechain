@@ -5,6 +5,7 @@ import { handleRequest } from "@/app/api";
 import User from "@/app/api/models/User";
 import { createNotification } from "@/app/actions/notifications";
 import type { IntegrationCategory } from "@/lib/slices/integrationSlice";
+import { handleIntegrationActivation } from "@/app/actions/integrations";
 
 const UPDATE_RATE_LIMIT = 20;
 
@@ -136,6 +137,26 @@ export async function PUT(
 					enabled: user.integrations[category].enabled,
 				}
 			);
+
+			// Handle integration activation if enabled
+			if (user.integrations[category].enabled) {
+				const activationResult = await handleIntegrationActivation(
+					userId,
+					category,
+					updates.service,
+					true,
+					updates.apiKey || "",
+					updates.storeUrl
+				);
+
+				// If activation was successful, update the connection status
+				if (activationResult.success) {
+					// Update connection status and last synced time
+					// user.integrations[category].connectionStatus = "connected";
+					// user.integrations[category].lastSyncedAt = new Date().toISOString();
+					await user.save();
+				}
+			}
 
 			return NextResponse.json({
 				success: true,
