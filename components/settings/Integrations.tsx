@@ -58,7 +58,12 @@ export function Integrations() {
         },
       }
       dispatch(updateUser(updatedUser))
-      dispatch(toggleIntegration(selectedCategory))
+      dispatch(
+        toggleIntegration({
+          category: selectedCategory,
+          enabled,
+        })
+      )
     }
   }
 

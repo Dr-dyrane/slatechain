@@ -123,6 +123,13 @@ export interface ShopifyIntegrationSettings {
 	storeUrl: string | null;
 }
 
+export interface IntegrationDetails {
+	enabled: boolean;
+	service: string | null;
+	apiKey?: string | null;
+	storeUrl?: string | null;
+}
+
 // Auth
 export interface AuthState {
 	user: User | null;
