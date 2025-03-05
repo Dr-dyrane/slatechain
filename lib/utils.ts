@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import type { RootState } from "@/lib/store";
 import { Redis } from "@upstash/redis";
+import type { NextRequest } from "next/server";
+import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -272,4 +274,139 @@ export function formatDate(
  */
 export function formatPercentage(value: number, decimals = 1): string {
 	return `${(value * 100).toFixed(decimals)}%`;
+}
+
+/**
+ * Verifies that a webhook request is from Shopify
+ */
+export async function verifyShopifyWebhook(req: NextRequest): Promise<boolean> {
+	try {
+		const hmacHeader = req.headers.get("X-Shopify-Hmac-Sha256");
+		if (!hmacHeader) {
+			return false;
+		}
+
+		const shopifyWebhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET;
+		if (!shopifyWebhookSecret) {
+			console.error("SHOPIFY_WEBHOOK_SECRET is not configured");
+			return false;
+		}
+
+		// Get the raw body
+		const rawBody = await req.text();
+
+		// Calculate the HMAC
+		const calculatedHmac = crypto
+			.createHmac("sha256", shopifyWebhookSecret)
+			.update(rawBody, "utf8")
+			.digest("base64");
+
+		// Compare the calculated HMAC with the one from the header
+		return crypto.timingSafeEqual(
+			Buffer.from(calculatedHmac),
+			Buffer.from(hmacHeader)
+		);
+	} catch (error) {
+		console.error("Error verifying Shopify webhook:", error);
+		return false;
+	}
+}
+
+/**
+ * Verifies that a webhook request is from SAP
+ */
+export async function verifySAPWebhook(req: NextRequest): Promise<boolean> {
+	try {
+		const signatureHeader = req.headers.get("X-SAP-Signature");
+		if (!signatureHeader) {
+			return false;
+		}
+
+		const sapWebhookSecret = process.env.SAP_WEBHOOK_SECRET;
+		if (!sapWebhookSecret) {
+			console.error("SAP_WEBHOOK_SECRET is not configured");
+			return false;
+		}
+
+		// Get the raw body
+		const rawBody = await req.text();
+
+		// Calculate the signature
+		const calculatedSignature = crypto
+			.createHmac("sha256", sapWebhookSecret)
+			.update(rawBody, "utf8")
+			.digest("hex");
+
+		// Compare the calculated signature with the one from the header
+		return signatureHeader === calculatedSignature;
+	} catch (error) {
+		console.error("Error verifying SAP webhook:", error);
+		return false;
+	}
+}
+
+/**
+ * Verifies that a webhook request is from Power BI
+ */
+export async function verifyPowerBIWebhook(req: NextRequest): Promise<boolean> {
+	try {
+		const signatureHeader = req.headers.get("X-PowerBI-Signature");
+		if (!signatureHeader) {
+			return false;
+		}
+
+		const powerBIWebhookSecret = process.env.POWER_BI_WEBHOOK_SECRET;
+		if (!powerBIWebhookSecret) {
+			console.error("POWER_BI_WEBHOOK_SECRET is not configured");
+			return false;
+		}
+
+		// Get the raw body
+		const rawBody = await req.text();
+
+		// Calculate the signature
+		const calculatedSignature = crypto
+			.createHmac("sha256", powerBIWebhookSecret)
+			.update(rawBody, "utf8")
+			.digest("hex");
+
+		// Compare the calculated signature with the one from the header
+		return signatureHeader === calculatedSignature;
+	} catch (error) {
+		console.error("Error verifying Power BI webhook:", error);
+		return false;
+	}
+}
+
+/**
+ * Verifies that a webhook request is from IoT platform
+ */
+export async function verifyIoTWebhook(req: NextRequest): Promise<boolean> {
+	try {
+		const signatureHeader = req.headers.get("X-IoT-Signature");
+		if (!signatureHeader) {
+			return false;
+		}
+
+		const iotWebhookSecret = process.env.IOT_WEBHOOK_SECRET;
+		if (!iotWebhookSecret) {
+			console.error("IOT_WEBHOOK_SECRET is not configured");
+			return false;
+		}
+
+		// Get the raw body
+		const rawBody = await req.text();
+
+		// Calculate the signature
+		const calculatedSignature = crypto
+			.createHmac("sha256", iotWebhookSecret)
+			.update(rawBody, "utf8")
+			.digest("hex");
+
+		// Compare the calculated signature with the one from the header
+		return signatureHeader === calculatedSignature;
+	} catch (error) {
+		console.error("Error verifying IoT webhook:", error);
+		return false;
+	}
 }
