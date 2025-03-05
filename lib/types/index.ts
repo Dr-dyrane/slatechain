@@ -748,4 +748,8 @@ export interface NotificationState {
 	unreadCount: number;
 	loading: boolean;
 	error: string | null;
+	pendingActions: {
+		markAsRead: string[];
+		delete: string[];
+	};
 }

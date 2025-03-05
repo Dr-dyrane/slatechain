@@ -5,9 +5,9 @@ import { useState } from "react"
 import type { Notification, NotificationType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, Package, Activity, Users, X, Check, Warehouse, ShoppingBag, Truck, Blocks } from "lucide-react"
-import { useDispatch } from "react-redux"
-import type { AppDispatch } from "@/lib/store"
+import { Bell, Package, Activity, Users, X, Check, Warehouse, ShoppingBag, Truck, Blocks, Loader2 } from "lucide-react"
+import { useDispatch, useSelector } from "react-redux"
+import type { AppDispatch, RootState } from "@/lib/store"
 import { markNotificationAsRead, deleteNotification } from "@/lib/slices/notificationSlice"
 import { Button } from "@/components/ui/button"
 
@@ -32,23 +32,38 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
     const [expanded, setExpanded] = useState(false)
     const dispatch = useDispatch<AppDispatch>()
 
+    // Get loading states from Redux store - safely access with optional chaining
+    const { pendingActions = { markAsRead: [], delete: [] } } = useSelector(
+        (state: RootState) => state.notifications || { pendingActions: { markAsRead: [], delete: [] } },
+    )
+
+    // Check if this specific notification is being processed - with null checks
+    const isMarkingAsRead = pendingActions?.markAsRead?.includes(notification._id as string) || false
+    const isDeleting = pendingActions?.delete?.includes(notification._id as string) || false
+    const isLoading = isMarkingAsRead || isDeleting
+
     const handleClick = () => {
+        // Don't toggle if we're in a loading state
+        if (isLoading) return
+
         setExpanded((prev) => !prev)
 
         // Mark as read if not already read
-        if (!notification.read) {
+        if (!notification.read && !isMarkingAsRead) {
             dispatch(markNotificationAsRead(notification._id as string))
         }
     }
 
     const handleDelete = (e: React.MouseEvent) => {
         e.stopPropagation() // Prevent card click
-        dispatch(deleteNotification(notification._id as string))
+        if (!isDeleting) {
+            dispatch(deleteNotification(notification._id as string))
+        }
     }
 
     const handleMarkAsRead = (e: React.MouseEvent) => {
         e.stopPropagation() // Prevent card click
-        if (!notification.read) {
+        if (!notification.read && !isMarkingAsRead) {
             dispatch(markNotificationAsRead(notification._id as string))
         }
     }
@@ -57,10 +72,18 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
         <Card
             onClick={handleClick}
             className={cn(
-                "relative border-none max-w-md overflow-x-auto flex-wrap flex items-start w-full p-4 rounded-xl shadow-sm transition-all duration-300 bg-muted/25 backdrop-blur-sm hover:bg-muted/45 cursor-pointer",
+                "relative border-none max-w-md overflow-x-auto flex-wrap flex items-start w-full p-4 rounded-xl shadow-sm transition-all duration-300 bg-muted/25 backdrop-blur-sm hover:bg-muted/45",
                 notification.read ? "opacity-70" : "opacity-100",
+                isLoading ? "cursor-wait" : "cursor-pointer",
+                isDeleting && "animate-pulse opacity-50",
             )}
         >
+            {isLoading && (
+                <div className="absolute inset-0 bg-background/50 backdrop-blur-sm flex items-center justify-center rounded-xl z-10">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+            )}
+
             <CardContent className="flex flex-col items-center w-full gap-2 p-0 py-2">
                 <div className="flex flex-row items-start justify-between w-full">
                     <div className="flex flex-row w-auto items-center gap-2 justify-center">
@@ -105,8 +128,18 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
                 {expanded && (
                     <div className="flex justify-end w-full mt-2 gap-2">
                         {!notification.read && (
-                            <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={handleMarkAsRead}>
-                                <Check className="h-3.5 w-3.5 mr-1" />
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 px-2 text-xs"
+                                onClick={handleMarkAsRead}
+                                disabled={isMarkingAsRead}
+                            >
+                                {isMarkingAsRead ? (
+                                    <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                ) : (
+                                    <Check className="h-3.5 w-3.5 mr-1" />
+                                )}
                                 Mark as read
                             </Button>
                         )}
@@ -115,8 +148,9 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
                             size="sm"
                             className="h-8 px-2 text-xs text-destructive hover:text-destructive"
                             onClick={handleDelete}
+                            disabled={isDeleting}
                         >
-                            <X className="h-3.5 w-3.5 mr-1" />
+                            {isDeleting ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <X className="h-3.5 w-3.5 mr-1" />}
                             Delete
                         </Button>
                     </div>
