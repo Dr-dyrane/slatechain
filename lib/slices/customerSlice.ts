@@ -74,10 +74,11 @@ const initialState: CustomerState = {
 export const fetchMarketTrends = createAsyncThunk(
 	"customer/fetchMarketTrends",
 	async (params: { category?: string; months?: number } = {}, thunkAPI) => {
+		const { category, months } = await params;
 		try {
 			const queryParams = new URLSearchParams();
-			if (params.category) queryParams.append("category", params.category);
-			if (params.months) queryParams.append("months", params.months.toString());
+			if (category) queryParams.append("category", category);
+			if (months) queryParams.append("months", months.toString());
 
 			const response = await apiClient.get<MarketTrends>(
 				`/customer/market-trends?${queryParams.toString()}`

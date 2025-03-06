@@ -14,11 +14,11 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { category: string } }
 ) {
+	const { category } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate category
-			const category = params.category as IntegrationCategory;
 			if (!["ecommerce", "erp_crm", "iot", "bi_tools"].includes(category)) {
 				return NextResponse.json(
 					{
@@ -64,11 +64,12 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { category: string } }
 ) {
+	const { category } = await params;
+
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate category
-			const category = params.category as IntegrationCategory;
 			if (!["ecommerce", "erp_crm", "iot", "bi_tools"].includes(category)) {
 				return NextResponse.json(
 					{
@@ -142,7 +143,7 @@ export async function PUT(
 			if (user.integrations[category].enabled) {
 				const activationResult = await handleIntegrationActivation(
 					userId,
-					category,
+					category as IntegrationCategory,
 					updates.service,
 					true,
 					updates.apiKey || "",
