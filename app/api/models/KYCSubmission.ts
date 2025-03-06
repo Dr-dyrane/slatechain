@@ -1,10 +1,11 @@
 // app/api/models/KYCSubmission.ts
 
 import { mongoose } from "..";
-import { KYCDocument, UserRole } from "@/lib/types";
+import { type KYCDocument, UserRole } from "@/lib/types";
+import { addIdSupport } from "@/lib/utils";
 
 export interface IKYCSubmission {
-	id?: string
+	id?: string;
 	userId: string;
 	referenceId: string;
 	fullName: string;
@@ -60,6 +61,9 @@ const kycSubmissionSchema = new mongoose.Schema<IKYCSubmission>(
 		timestamps: true,
 	}
 );
+
+// Add ID support to KYC submission schema
+addIdSupport(kycSubmissionSchema);
 
 kycSubmissionSchema.index({ userId: 1 });
 kycSubmissionSchema.index({ referenceId: 1 });

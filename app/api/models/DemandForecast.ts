@@ -1,6 +1,7 @@
 // app/api/models/DemandForecast.ts
 
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
 
 const forecastParameterSchema = new mongoose.Schema({
 	name: {
@@ -13,6 +14,9 @@ const forecastParameterSchema = new mongoose.Schema({
 	},
 	description: String,
 });
+
+// Add ID support to forecast parameter schema
+addIdSupport(forecastParameterSchema);
 
 const demandForecastSchema = new mongoose.Schema(
 	{
@@ -70,6 +74,9 @@ const demandForecastSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to demand forecast schema
+addIdSupport(demandForecastSchema);
 
 // Create indexes for common queries
 demandForecastSchema.index({ forecastDate: 1, inventoryItemId: 1 });

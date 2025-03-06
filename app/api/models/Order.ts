@@ -1,5 +1,6 @@
 // app/api/models/Order.ts
 
+import { addIdSupport } from "@/lib/utils";
 import { mongoose } from "..";
 import type { Order } from "@/lib/types";
 
@@ -19,6 +20,9 @@ const orderItemSchema = new mongoose.Schema({
 		min: 0,
 	},
 });
+
+// Add ID support to order item schema
+addIdSupport(orderItemSchema);
 
 const orderSchema = new mongoose.Schema(
 	{
@@ -59,6 +63,9 @@ const orderSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to order schema
+addIdSupport(orderSchema);
 
 // Create indexes for common queries
 orderSchema.index({ createdAt: -1 });

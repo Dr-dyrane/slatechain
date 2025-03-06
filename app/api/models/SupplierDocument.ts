@@ -1,5 +1,6 @@
 // app/api/models/SupplierDocument.ts
 
+import { addIdSupport } from "@/lib/utils";
 import mongoose from "mongoose";
 
 const supplierDocumentSchema = new mongoose.Schema(
@@ -38,6 +39,9 @@ const supplierDocumentSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to supplier document schema
+addIdSupport(supplierDocumentSchema);
 
 // Create indexes for common queries
 supplierDocumentSchema.index({ supplierId: 1, type: 1 });

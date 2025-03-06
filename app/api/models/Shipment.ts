@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import { createNotification } from "@/app/actions/notifications";
+import { addIdSupport } from "@/lib/utils";
 
 const shipmentSchema = new mongoose.Schema(
 	{
@@ -61,6 +62,9 @@ const shipmentSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to shipment schema
+addIdSupport(shipmentSchema);
 
 // Create indexes for common queries
 shipmentSchema.index({ status: 1, estimatedDeliveryDate: 1 });

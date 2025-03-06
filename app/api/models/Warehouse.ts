@@ -1,7 +1,9 @@
 // app/api/models/Warehouse.ts
 
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
 
+// Schema for warehouse zones
 const warehouseZoneSchema = new mongoose.Schema({
 	name: {
 		type: String,
@@ -28,6 +30,10 @@ const warehouseZoneSchema = new mongoose.Schema({
 	restrictions: [String],
 });
 
+// Add ID support to zone schema
+addIdSupport(warehouseZoneSchema);
+
+// Main warehouse schema
 const warehouseSchema = new mongoose.Schema(
 	{
 		name: {
@@ -63,6 +69,9 @@ const warehouseSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to warehouse schema
+addIdSupport(warehouseSchema);
 
 // Create indexes
 warehouseSchema.index({ location: 1 });

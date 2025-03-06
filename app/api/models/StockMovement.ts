@@ -1,5 +1,6 @@
 // app/api/models/StockMovement.ts
 
+import { addIdSupport } from "@/lib/utils";
 import mongoose from "mongoose";
 
 const stockMovementItemSchema = new mongoose.Schema({
@@ -52,6 +53,9 @@ const stockMovementSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to stock movement schema
+addIdSupport(stockMovementSchema);
 
 // Create indexes
 stockMovementSchema.index({ type: 1, status: 1 });

@@ -1,6 +1,7 @@
-// ap/api/models/Inventory.ts
+// app/api/models/Inventory.ts
 
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
 
 const inventorySchema = new mongoose.Schema(
 	{
@@ -73,6 +74,9 @@ const inventorySchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to inventory schema
+addIdSupport(inventorySchema);
 
 // Create compound indexes
 inventorySchema.index({ warehouseId: 1, zoneId: 1 });

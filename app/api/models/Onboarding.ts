@@ -2,10 +2,9 @@
 
 import mongoose, { Document, Schema } from "mongoose";
 import { OnboardingStatus, OnboardingStepStatus, UserRole } from "@/lib/types";
-import {
-	MAX_STEPS,
-} from "@/lib/constants/onboarding-steps";
+import { MAX_STEPS } from "@/lib/constants/onboarding-steps";
 import User from "./User";
+import { addIdSupport } from "@/lib/utils";
 
 // Define the interface for your document (without redefining toJSON)
 export interface OnboardingDoc extends Document {
@@ -55,6 +54,9 @@ const OnboardingStepSchema = new mongoose.Schema({
 	},
 });
 
+// Add ID support to onboarding step schema
+addIdSupport(OnboardingStepSchema);
+
 // Define OnboardingStepSchemaType
 export interface OnboardingStepSchemaType {
 	stepId: number;
@@ -100,9 +102,11 @@ const OnboardingSchema = new Schema<OnboardingDoc>(
 	},
 	{
 		timestamps: true,
-		toJSON: { virtuals: true }, // Enable virtuals in toJSON
 	}
 );
+
+// Add ID support to onboarding schema
+addIdSupport(OnboardingSchema);
 
 // Override toJSON in the schema instead of the interface
 OnboardingSchema.methods.toJSON = function () {
@@ -122,10 +126,14 @@ OnboardingSchema.methods.toJSON = function () {
 };
 
 // Add method to validate step data based on role
-OnboardingSchema.methods.validateStepData = (stepId: number, data: Record<string, any>, role: UserRole): boolean => {
+OnboardingSchema.methods.validateStepData = (
+	stepId: number,
+	data: Record<string, any>,
+	role: UserRole
+): boolean => {
 	// Always return true to bypass validation
-	return true
-  }
+	return true;
+};
 
 export default mongoose.models.Onboarding ||
 	mongoose.model<OnboardingDoc>("Onboarding", OnboardingSchema);

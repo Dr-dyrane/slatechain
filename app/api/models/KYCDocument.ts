@@ -1,6 +1,7 @@
 // app/api/models/KYCDocument.ts
 
 import { mongoose } from "..";
+import { addIdSupport } from "@/lib/utils";
 
 export interface IKYCDocument {
 	userId: string;
@@ -41,6 +42,9 @@ const kycDocumentSchema = new mongoose.Schema<IKYCDocument>(
 		timestamps: true,
 	}
 );
+
+// Add ID support to KYC document schema
+addIdSupport(kycDocumentSchema);
 
 kycDocumentSchema.index({ userId: 1 });
 kycDocumentSchema.index({ submissionId: 1 });

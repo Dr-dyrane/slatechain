@@ -42,14 +42,14 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id } = await params;
+	const { id ,documentId} = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
 				!mongoose.Types.ObjectId.isValid(id) ||
-				!mongoose.Types.ObjectId.isValid(params.documentId)
+				!mongoose.Types.ObjectId.isValid(documentId)
 			) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid ID format" },
@@ -71,7 +71,7 @@ export async function GET(
 
 			// Find document
 			const document = await SupplierDocument.findOne({
-				_id: params.documentId,
+				_id: documentId,
 				supplierId: id,
 			});
 
@@ -94,14 +94,14 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id } = await params;
+	const { id, documentId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
 				!mongoose.Types.ObjectId.isValid(id) ||
-				!mongoose.Types.ObjectId.isValid(params.documentId)
+				!mongoose.Types.ObjectId.isValid(documentId)
 			) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid ID format" },
@@ -125,7 +125,7 @@ export async function PUT(
 
 			// Find document
 			const document = await SupplierDocument.findOne({
-				_id: params.documentId,
+				_id: documentId,
 				supplierId: id,
 			});
 
@@ -141,7 +141,7 @@ export async function PUT(
 
 			// Update document
 			const updatedDocument = await SupplierDocument.findByIdAndUpdate(
-				params.documentId,
+				documentId,
 				updates,
 				{ new: true }
 			);
@@ -158,14 +158,14 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id } = await params;
+	const { id, documentId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
 			// Validate IDs
 			if (
 				!mongoose.Types.ObjectId.isValid(id) ||
-				!mongoose.Types.ObjectId.isValid(params.documentId)
+				!mongoose.Types.ObjectId.isValid(documentId)
 			) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid ID format" },
@@ -187,7 +187,7 @@ export async function DELETE(
 
 			// Find document
 			const document = await SupplierDocument.findOne({
-				_id: params.documentId,
+				_id: documentId,
 				supplierId: id,
 			});
 

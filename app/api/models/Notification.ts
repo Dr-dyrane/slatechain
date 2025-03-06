@@ -1,5 +1,6 @@
 // app/api/models/Notification.ts
 
+import { addIdSupport } from "@/lib/utils";
 import { mongoose } from "..";
 
 // Define the notification schema
@@ -51,6 +52,9 @@ const notificationSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to notification schema
+addIdSupport(notificationSchema);
 
 // Create indexes for common queries
 notificationSchema.index({ createdAt: -1 });

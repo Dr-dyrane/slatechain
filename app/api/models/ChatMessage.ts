@@ -1,5 +1,6 @@
 // app/api/models/ChatMessage.ts
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
 
 const chatMessageSchema = new mongoose.Schema(
 	{
@@ -28,6 +29,9 @@ const chatMessageSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to chat message schema
+addIdSupport(chatMessageSchema);
 
 // Create indexes for common queries
 chatMessageSchema.index({ supplierId: 1, createdAt: -1 });

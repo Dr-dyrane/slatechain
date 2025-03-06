@@ -1,5 +1,6 @@
 // app/api/models/Transport.ts
 
+import { addIdSupport } from "@/lib/utils";
 import mongoose from "mongoose";
 
 const transportSchema = new mongoose.Schema(
@@ -47,6 +48,8 @@ const transportSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+addIdSupport(transportSchema);
 
 export default mongoose.models.Transport ||
 	mongoose.model("Transport", transportSchema);

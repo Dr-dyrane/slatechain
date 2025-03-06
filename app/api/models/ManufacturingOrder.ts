@@ -1,6 +1,23 @@
 // app/api/models/ManufacturingOrder.ts
 
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
+
+// Create schema for quality parameters
+const qualityParameterSchema = new mongoose.Schema({
+	name: String,
+	expected: mongoose.Schema.Types.Mixed,
+	actual: mongoose.Schema.Types.Mixed,
+	tolerance: Number,
+	passed: Boolean,
+	type: {
+		type: String,
+		enum: ["NUMBER", "STRING", "BOOLEAN"],
+	},
+});
+
+// Add ID support to quality parameter schema
+addIdSupport(qualityParameterSchema);
 
 const qualityCheckSchema = new mongoose.Schema({
 	type: {
@@ -14,21 +31,23 @@ const qualityCheckSchema = new mongoose.Schema({
 	},
 	checkedBy: String,
 	checkedAt: Date,
-	parameters: [
-		{
-			name: String,
-			expected: mongoose.Schema.Types.Mixed,
-			actual: mongoose.Schema.Types.Mixed,
-			tolerance: Number,
-			passed: Boolean,
-			type: {
-				type: String,
-				enum: ["NUMBER", "STRING", "BOOLEAN"],
-			},
-		},
-	],
+	parameters: [qualityParameterSchema],
 	notes: String,
 });
+
+// Add ID support to quality check schema
+addIdSupport(qualityCheckSchema);
+
+// Create schema for bill of materials items
+const bomItemSchema = new mongoose.Schema({
+	materialId: String,
+	quantity: Number,
+	unit: String,
+	wastageAllowance: Number,
+});
+
+// Add ID support to BOM item schema
+addIdSupport(bomItemSchema);
 
 const manufacturingOrderSchema = new mongoose.Schema(
 	{
@@ -74,14 +93,7 @@ const manufacturingOrderSchema = new mongoose.Schema(
 		},
 		qualityChecks: [qualityCheckSchema],
 		billOfMaterials: {
-			materials: [
-				{
-					materialId: String,
-					quantity: Number,
-					unit: String,
-					wastageAllowance: Number,
-				},
-			],
+			materials: [bomItemSchema],
 			laborHours: Number,
 			machineHours: Number,
 			instructions: String,
@@ -92,6 +104,9 @@ const manufacturingOrderSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to manufacturing order schema
+addIdSupport(manufacturingOrderSchema);
 
 // Create indexes
 manufacturingOrderSchema.index({ status: 1 });

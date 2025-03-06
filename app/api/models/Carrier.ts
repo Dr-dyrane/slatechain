@@ -1,6 +1,7 @@
 // app/api/models/Carrier.ts
 
 import mongoose from "mongoose";
+import { addIdSupport } from "@/lib/utils";
 
 const carrierSchema = new mongoose.Schema(
 	{
@@ -44,6 +45,9 @@ const carrierSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to carrier schema
+addIdSupport(carrierSchema);
 
 export default mongoose.models.Carrier ||
 	mongoose.model("Carrier", carrierSchema);

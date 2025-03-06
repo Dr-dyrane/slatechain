@@ -2,6 +2,7 @@
 
 import mongoose from "mongoose";
 import { RouteStatus, RouteType } from "@/lib/types";
+import { addIdSupport } from "@/lib/utils";
 
 const waypointSchema = new mongoose.Schema({
 	type: {
@@ -153,6 +154,9 @@ const routeSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to route schema
+addIdSupport(routeSchema);
 
 // Create indexes for common queries
 routeSchema.index({ startLocation: 1, endLocation: 1 });

@@ -1,7 +1,31 @@
-// app/api/models/Freigh.ts
+// app/api/models/Freight.ts
 
 import mongoose from "mongoose";
 import { FreightStatus } from "@/lib/types";
+import { addIdSupport } from "@/lib/utils";
+
+// Create schema for stops
+const stopSchema = new mongoose.Schema({
+	location: String,
+	scheduledTime: Date,
+	actualTime: Date,
+	type: String,
+	notes: String,
+});
+
+// Add ID support to stop schema
+addIdSupport(stopSchema);
+
+// Create schema for documents
+const freightDocumentSchema = new mongoose.Schema({
+	type: String,
+	number: String,
+	url: String,
+	issuedAt: Date,
+});
+
+// Add ID support to freight document schema
+addIdSupport(freightDocumentSchema);
 
 const freightSchema = new mongoose.Schema(
 	{
@@ -68,15 +92,7 @@ const freightSchema = new mongoose.Schema(
 			},
 			actualDeparture: Date,
 			actualArrival: Date,
-			stops: [
-				{
-					location: String,
-					scheduledTime: Date,
-					actualTime: Date,
-					type: String,
-					notes: String,
-				},
-			],
+			stops: [stopSchema],
 		},
 		cargo: {
 			totalWeight: Number,
@@ -90,14 +106,7 @@ const freightSchema = new mongoose.Schema(
 				unit: String,
 			},
 		},
-		documents: [
-			{
-				type: String,
-				number: String,
-				url: String,
-				issuedAt: Date,
-			},
-		],
+		documents: [freightDocumentSchema],
 		cost: {
 			baseRate: Number,
 			fuelSurcharge: Number,
@@ -123,6 +132,9 @@ const freightSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 );
+
+// Add ID support to freight schema
+addIdSupport(freightSchema);
 
 // Create indexes for common queries
 freightSchema.index({ createdAt: -1 });
