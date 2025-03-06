@@ -16,6 +16,7 @@ export function Integrations() {
   const [selectedCategory, setSelectedCategory] = useState<IntegrationCategory | null>(null)
   const dispatch = useDispatch<AppDispatch>()
   const { user } = useSelector((state: RootState) => state.auth)
+  const [refreshKey, setRefreshKey] = useState(0)
 
 
   const handleSaveIntegration = (service: string, apiKey: string, url?: string) => {
@@ -42,8 +43,8 @@ export function Integrations() {
         }),
       )
     }
-    setSelectedCategory(null)
-    setSelectedCategory(selectedCategory)
+    // Force a re-render by incrementing the refresh key
+    setRefreshKey((prev) => prev + 1)
   }
 
   const handleToggleIntegration = (enabled: boolean) => {
@@ -66,6 +67,8 @@ export function Integrations() {
           enabled,
         })
       )
+      // Force a re-render by incrementing the refresh key
+      setRefreshKey((prev) => prev + 1)
     }
   }
 
@@ -82,7 +85,7 @@ export function Integrations() {
         <AnimatePresence mode="wait">
           {selectedCategory ? (
             <ServiceSelector
-              key="service-selector"
+              key={`service-selector-${refreshKey}`}
               category={selectedCategory}
               onBack={() => setSelectedCategory(null)}
               integration={user?.integrations[selectedCategory]}
