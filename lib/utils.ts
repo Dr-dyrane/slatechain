@@ -4,6 +4,7 @@ import type { RootState } from "@/lib/store";
 import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import crypto from "crypto";
+import type mongoose from "mongoose";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -408,5 +409,53 @@ export async function verifyIoTWebhook(req: NextRequest): Promise<boolean> {
 	} catch (error) {
 		console.error("Error verifying IoT webhook:", error);
 		return false;
+	}
+}
+
+/**
+ * Adds ID handling to a mongoose schema
+ * @param schema The mongoose schema to modify
+ */
+export function addIdSupport(schema: mongoose.Schema) {
+	// Configure schema options
+	schema.set("toJSON", {
+		virtuals: true,
+		transform: (doc, ret) => {
+			if (ret._id) {
+				ret.id = ret._id.toString();
+			}
+			return ret;
+		},
+	});
+
+	// Add id virtual
+	schema.virtual("id").get(function () {
+		// This approach avoids TypeScript errors by checking if _id exists and is an object
+		if (this._id && typeof this._id === "object" && this._id.toString) {
+			return this._id.toString();
+		}
+		return null;
+	});
+
+	// Add toJSON method to handle nested documents
+	if (!schema.methods.toJSON) {
+		schema.methods.toJSON = function () {
+			const obj = this.toObject({ virtuals: true });
+			obj.id = obj._id.toString();
+
+			// Handle arrays with _id fields
+			Object.keys(obj).forEach((key) => {
+				if (Array.isArray(obj[key])) {
+					obj[key] = obj[key].map((item: any) => {
+						if (item && typeof item === "object" && item._id) {
+							item.id = item._id.toString();
+						}
+						return item;
+					});
+				}
+			});
+
+			return obj;
+		};
 	}
 }
