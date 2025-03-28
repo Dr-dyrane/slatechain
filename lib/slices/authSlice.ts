@@ -202,6 +202,9 @@ const authSlice = createSlice({
 		clearError: (state) => {
 			state.error = null;
 		},
+		setLoading: (state, action: PayloadAction<boolean>) => {
+			state.loading = action.payload;
+		},
 		resetAuthState: (state) => {
 			state.user = null;
 			state.accessToken = null;
@@ -393,6 +396,7 @@ const authSlice = createSlice({
 export const {
 	clearError,
 	setUser,
+	setLoading,
 	setKYCStatus,
 	setOnboardingStatus,
 	resetLoading,

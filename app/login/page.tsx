@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AppDispatch, RootState } from '@/lib/store';
-import { login, googleLogin, resetLoading, appleLogin } from '@/lib/slices/authSlice';
+import { login, googleLogin, resetLoading, appleLogin, setLoading } from '@/lib/slices/authSlice';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide-react';
@@ -39,6 +39,7 @@ export default function LoginPage() {
   useEffect(() => {
     return () => {
       dispatch(resetLoading());
+      dispatch(setLoading(false));
     };
   }, [dispatch]);
 

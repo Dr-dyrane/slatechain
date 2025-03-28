@@ -23,10 +23,10 @@ export default function AuthCallback() {
 
      // Fetch user data
      dispatch(fetchUser())
-     .unwrap() // Ensure proper error handling
-     .then(() => {
-       router.push("/dashboard")
-     })
+    //  .unwrap() // Ensure proper error handling
+    //  .then(() => {
+    //    router.push("/dashboard")
+    //  })
      .catch(() => {
        router.replace("/login?error=fetch_failed")
      })
