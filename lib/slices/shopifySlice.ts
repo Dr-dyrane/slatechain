@@ -9,13 +9,13 @@ import type { ShopifyOrder, ShopifyState, ShopifyShop } from "@/lib/types"; // C
 import { apiClient } from "../api/apiClient/[...live]";
 
 // Define API response interfaces
-interface ShopifyOrdersResponse {
+export interface ShopifyOrdersResponse {
 	success: boolean;
 	orders: ShopifyOrder[];
 	message?: string;
 }
 
-interface ShopifyShopResponse {
+export interface ShopifyShopResponse {
 	success: boolean;
 	shop: ShopifyShop;
 	message?: string;

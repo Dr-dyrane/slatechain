@@ -44,7 +44,6 @@ export default function InventoryPage() {
         dispatch(setLoading(true));
         Promise.all([dispatch(fetchInventory()), dispatch(fetchWarehouses()), dispatch(fetchManufacturingOrders())])
             .finally(() => dispatch(setLoading(false)));
-        console.log(formattedInventory)
     }, [dispatch]);
 
     // Memoized KPI cards based on active tab
