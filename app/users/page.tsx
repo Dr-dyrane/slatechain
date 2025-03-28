@@ -123,7 +123,7 @@ export default function UsersPage() {
         <ErrorState
           title="User Error"
           description="We encountered an issue while loading user data."
-          message="There was an error fetching user data"
+          message={error}
           onRetry={() => {
             dispatch(fetchUsers())
           }}

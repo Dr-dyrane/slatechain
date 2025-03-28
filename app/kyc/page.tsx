@@ -150,7 +150,7 @@ export default function KYCPage() {
         <ErrorState
           title="KYC Error"
           description="We encountered an issue while loading your KYC data."
-          message="There was an error loading your KYC, please try again later"
+          message={kycError}
           onRetry={() => router.refresh()}
           onCancel={() => router.push("/dashboard")}
         />

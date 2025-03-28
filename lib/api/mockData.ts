@@ -41,6 +41,22 @@ const mockGeoLocation: GeoLocation = {
 	longitude: -118.2437,
 };
 
+// Helper function to generate mock users
+const generateMockUsers = (count: number, startIndex = 0) => {
+	return Array.from({ length: count }, (_, i) => ({
+		id: `user-${startIndex + i + 1}`,
+		name: `User ${startIndex + i + 1}`,
+		email: `user${startIndex + i + 1}@example.com`,
+		role: i % 5 === 0 ? "admin" : "user",
+		createdAt: new Date(Date.now() - i * 86400000).toISOString(),
+		avatar: `/placeholder.svg?height=40&width=40&text=${startIndex + i + 1}`,
+		status: i % 3 === 0 ? "active" : i % 3 === 1 ? "inactive" : "pending",
+	}));
+};
+
+// Total number of mock users in our "database"
+const TOTAL_USERS = 10;
+
 const mockOrders: Order[] = [
 	{
 		id: 1,
@@ -1212,7 +1228,32 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/routes": (): Route[] => mockRoutes,
 		"/freights": (): Freight[] => mockFreights,
 		"/transports": (): Transport[] => mockTransports,
-		"/users": (): User[] => mockUsers,
+		// Special handler for paginated users endpoint
+		"/users": (params: any) => {
+			// Parse pagination parameters
+			const page = Number.parseInt(params?.page) || 1;
+			const limit = Number.parseInt(params?.limit) || 10;
+			const startIndex = (page - 1) * limit;
+
+			// Calculate actual number of users to return (handle edge case at the end)
+			const actualLimit = Math.min(limit, TOTAL_USERS - startIndex);
+
+			// Generate mock users for this page
+			const users =
+				startIndex < TOTAL_USERS
+					? generateMockUsers(actualLimit, startIndex)
+					: [];
+
+			return {
+				users,
+				pagination: {
+					total: TOTAL_USERS,
+					page,
+					limit,
+					pages: Math.ceil(TOTAL_USERS / limit),
+				},
+			};
+		},
 		"/kpis": () => ({
 			cardData: [
 				{

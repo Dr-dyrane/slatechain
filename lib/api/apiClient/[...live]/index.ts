@@ -259,23 +259,92 @@ class ApiClient {
 		}
 	}
 
-	private mockRequest<T>(method: string, url: string, data?: any): Promise<T> {
-		return new Promise((resolve, reject) => {
-			setTimeout(() => {
-				const mockMethod = mockApiResponses[method.toLowerCase()];
-				const mockResponse = mockMethod?.[url];
-				if (mockResponse) {
-					if (typeof mockResponse === "function") {
-						resolve(mockResponse(data) as T);
-					} else {
-						resolve(mockResponse as T);
-					}
-				} else {
-					reject(new Error(`No mock data for ${method} ${url}`));
-				}
-			}, 500);
-		});
-	}
+  // Add mockRequest method to handle mock responses
+  private mockRequest<T>(method: string, url: string, data?: any): Promise<T> {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        try {
+          // Parse the URL to separate the path from query parameters
+          const [basePath, queryString] = url.split("?")
+
+          // Parse query parameters into an object
+          const queryParams: Record<string, string> = {}
+          if (queryString) {
+            queryString.split("&").forEach((param) => {
+              const [key, value] = param.split("=")
+              if (key && value) {
+                queryParams[key] = decodeURIComponent(value)
+              }
+            })
+          }
+
+          // Get the mock data for this method
+          const mockMethod = mockApiResponses[method.toLowerCase()]
+          if (!mockMethod) {
+            return reject(new Error(`No mock data for ${method} method`))
+          }
+
+          // Check for exact URL match first
+          if (mockMethod[url]) {
+            const mockResponse = mockMethod[url]
+            if (typeof mockResponse === "function") {
+              resolve(mockResponse(data) as T)
+            } else {
+              resolve(mockResponse as T)
+            }
+            return
+          }
+
+          // Check for base path match (without query parameters)
+          if (mockMethod[basePath]) {
+            const mockResponse = mockMethod[basePath]
+            if (typeof mockResponse === "function") {
+              // Pass query parameters to the function
+              resolve(mockResponse(queryParams) as T)
+            } else {
+              resolve(mockResponse as T)
+            }
+            return
+          }
+
+          // Check for path pattern matches (for routes with parameters like /users/:id)
+          for (const pattern in mockMethod) {
+            if (pattern.includes(":")) {
+              const regexPattern = pattern.replace(/:[^/]+/g, "([^/]+)")
+              const regex = new RegExp(`^${regexPattern}$`)
+              const match = basePath.match(regex)
+
+              if (match) {
+                const mockResponse = mockMethod[pattern]
+
+                // Extract path parameters
+                const paramNames = pattern.match(/:[^/]+/g) || []
+                const params: Record<string, string> = { ...queryParams }
+
+                paramNames.forEach((param, index) => {
+                  const paramName = param.substring(1) // Remove the leading ':'
+                  params[paramName] = match[index + 1]
+                })
+
+                if (typeof mockResponse === "function") {
+                  resolve(mockResponse(params) as T)
+                } else {
+                  resolve(mockResponse as T)
+                }
+                return
+              }
+            }
+          }
+
+          // If we get here, no mock data was found
+          reject(new Error(`No mock data for ${method} ${url}`))
+        } catch (error) {
+          console.error("Error in mock request:", error)
+          reject(new Error(`Mock request error: ${error instanceof Error ? error.message : String(error)}`))
+        }
+      }, 500) // Simulate network delay
+    })
+  }
 
 	async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
 		return this.request<T>("GET", url, undefined, config);
