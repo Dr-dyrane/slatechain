@@ -22,6 +22,7 @@ export const fetchSuppliers = createAsyncThunk(
 	"supplier/fetchSuppliers",
 	async (_, thunkAPI) => {
 		try {
+			// This API now returns users with supplier role
 			const response = await apiClient.get<Supplier[]>("/suppliers");
 			return response ?? [];
 		} catch (error: any) {
@@ -39,6 +40,7 @@ export const addSupplier = createAsyncThunk(
 		thunkAPI
 	) => {
 		try {
+			// This now creates a user with supplier role or updates an existing user
 			const response = await apiClient.post<Supplier>("/suppliers", supplier);
 			return response;
 		} catch (error: any) {
@@ -53,6 +55,7 @@ export const updateSupplier = createAsyncThunk(
 	"supplier/updateSupplier",
 	async (supplier: Supplier, thunkAPI) => {
 		try {
+			// This now updates a user with supplier role
 			const response = await apiClient.put<Supplier>(
 				`/suppliers/${supplier.id}`,
 				supplier
@@ -70,6 +73,7 @@ export const deleteSupplier = createAsyncThunk(
 	"supplier/deleteSupplier",
 	async (id: string, thunkAPI) => {
 		try {
+			// This now changes a user's role from supplier to customer
 			await apiClient.delete(`/suppliers/${id}`);
 			return id;
 		} catch (error: any) {
@@ -80,6 +84,8 @@ export const deleteSupplier = createAsyncThunk(
 	}
 );
 
+// The rest of the slice remains the same since the API endpoints
+// maintain the same structure and response format
 export const fetchSupplierDocuments = createAsyncThunk(
 	"supplier/fetchSupplierDocuments",
 	async (supplierId: string, thunkAPI) => {

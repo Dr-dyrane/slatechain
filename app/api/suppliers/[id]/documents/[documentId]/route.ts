@@ -1,10 +1,9 @@
-// app/api/[id]/documents/[documentId]/route.ts
+// app/api/suppliers/[id]/documents/[documentId]/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../../../../models/Supplier";
-import SupplierDocument from "../../../../models/SupplierDocument";
 import User from "../../../../models/User";
+import SupplierDocument from "../../../../models/SupplierDocument";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
 
@@ -19,19 +18,16 @@ async function hasAccessToSupplier(userId: string, supplierId: string) {
 	if (user.role === UserRole.ADMIN) return true;
 
 	if (user.role === UserRole.MANAGER) {
-		const supplier = await Supplier.findOne({
+		const supplier = await User.findOne({
 			_id: supplierId,
-			assignedManagers: userId,
+			role: UserRole.SUPPLIER,
+			assignedManagers: { $in: [userId] },
 		});
 		return !!supplier;
 	}
 
 	if (user.role === UserRole.SUPPLIER) {
-		const supplier = await Supplier.findOne({
-			_id: supplierId,
-			userId,
-		});
-		return !!supplier;
+		return userId === supplierId;
 	}
 
 	return false;
@@ -42,7 +38,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id ,documentId} = await params;
+	const { id, documentId } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -94,7 +90,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id, documentId } = await params;
+	const { id, documentId } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -158,7 +154,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id, documentId } = await params;
+	const { id, documentId } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {

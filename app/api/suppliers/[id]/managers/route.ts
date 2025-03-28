@@ -2,7 +2,6 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../../../models/Supplier";
 import User from "../../../models/User";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
@@ -10,12 +9,35 @@ import mongoose from "mongoose";
 const LIST_RATE_LIMIT = 30;
 const UPDATE_RATE_LIMIT = 10;
 
+// Helper function to check if user has access to supplier
+async function hasAccessToSupplier(userId: string, supplierId: string) {
+	const user = await User.findById(userId);
+	if (!user) return false;
+
+	if (user.role === UserRole.ADMIN) return true;
+
+	if (user.role === UserRole.MANAGER) {
+		const supplier = await User.findOne({
+			_id: supplierId,
+			role: UserRole.SUPPLIER,
+			assignedManagers: { $in: [userId] },
+		});
+		return !!supplier;
+	}
+
+	if (user.role === UserRole.SUPPLIER) {
+		return userId === supplierId;
+	}
+
+	return false;
+}
+
 // GET /api/suppliers/[id]/managers - Get managers assigned to a supplier
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -36,26 +58,24 @@ export async function GET(
 				);
 			}
 
-			// Only admins and managers assigned to this supplier can view managers
-			if (user.role !== UserRole.ADMIN) {
-				const hasAccess = await Supplier.findOne({
-					_id: id,
-					assignedManagers: userId,
-				});
-
-				if (!hasAccess) {
-					return NextResponse.json(
-						{
-							code: "UNAUTHORIZED",
-							message: "Not authorized to view managers for this supplier",
-						},
-						{ status: 403 }
-					);
-				}
+			// Check access
+			const hasAccess = await hasAccessToSupplier(userId, id);
+			if (!hasAccess) {
+				return NextResponse.json(
+					{
+						code: "UNAUTHORIZED",
+						message: "Not authorized to view managers for this supplier",
+					},
+					{ status: 403 }
+				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -81,7 +101,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -113,8 +133,12 @@ export async function PUT(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -164,13 +188,22 @@ export async function PUT(
 			}
 
 			// Update supplier's assigned managers
-			const updatedSupplier = await Supplier.findByIdAndUpdate(
-				id,
-				{ assignedManagers: managerIds },
-				{ new: true }
-			);
+			supplier.assignedManagers = managerIds;
+			await supplier.save();
 
-			return NextResponse.json(updatedSupplier);
+			// Format response to match expected supplier format
+			const formattedSupplier = {
+				id: supplier._id,
+				name: `${supplier.firstName} ${supplier.lastName}`,
+				contactPerson: `${supplier.firstName} ${supplier.lastName}`,
+				email: supplier.email,
+				phoneNumber: supplier.phoneNumber || "",
+				avatarUrl: supplier.avatarUrl || "",
+				userId: supplier._id,
+				assignedManagers: supplier.assignedManagers,
+			};
+
+			return NextResponse.json(formattedSupplier);
 		},
 		"supplier_managers_update",
 		UPDATE_RATE_LIMIT

@@ -2,9 +2,8 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../../../models/Supplier";
-import ChatMessage from "../../../models/ChatMessage";
 import User from "../../../models/User";
+import ChatMessage from "../../../models/ChatMessage";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
 
@@ -19,19 +18,16 @@ async function hasAccessToSupplier(userId: string, supplierId: string) {
 	if (user.role === UserRole.ADMIN) return true;
 
 	if (user.role === UserRole.MANAGER) {
-		const supplier = await Supplier.findOne({
+		const supplier = await User.findOne({
 			_id: supplierId,
-			assignedManagers: userId,
+			role: UserRole.SUPPLIER,
+			assignedManagers: { $in: [userId] },
 		});
 		return !!supplier;
 	}
 
 	if (user.role === UserRole.SUPPLIER) {
-		const supplier = await Supplier.findOne({
-			_id: supplierId,
-			userId,
-		});
-		return !!supplier;
+		return userId === supplierId;
 	}
 
 	return false;
@@ -42,7 +38,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -66,8 +62,12 @@ export async function GET(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -92,7 +92,7 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -116,8 +116,12 @@ export async function POST(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },

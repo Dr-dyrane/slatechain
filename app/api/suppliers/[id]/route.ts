@@ -2,7 +2,6 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../../models/Supplier";
 import User from "../../models/User";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
@@ -18,19 +17,16 @@ async function hasAccessToSupplier(userId: string, supplierId: string) {
 	if (user.role === UserRole.ADMIN) return true;
 
 	if (user.role === UserRole.MANAGER) {
-		const supplier = await Supplier.findOne({
+		const supplier = await User.findOne({
 			_id: supplierId,
-			assignedManagers: userId,
+			role: UserRole.SUPPLIER,
+			assignedManagers: { $in: [userId] },
 		});
 		return !!supplier;
 	}
 
 	if (user.role === UserRole.SUPPLIER) {
-		const supplier = await Supplier.findOne({
-			_id: supplierId,
-			userId,
-		});
-		return !!supplier;
+		return userId === supplierId;
 	}
 
 	return false;
@@ -41,7 +37,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -65,8 +61,12 @@ export async function GET(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -74,7 +74,19 @@ export async function GET(
 				);
 			}
 
-			return NextResponse.json(supplier);
+			// Format response to match expected supplier format
+			const formattedSupplier = {
+				id: supplier._id,
+				name: `${supplier.firstName} ${supplier.lastName}`,
+				contactPerson: `${supplier.firstName} ${supplier.lastName}`,
+				email: supplier.email,
+				phoneNumber: supplier.phoneNumber || "",
+				avatarUrl: supplier.avatarUrl || "",
+				userId: supplier._id,
+				assignedManagers: supplier.assignedManagers || [],
+			};
+
+			return NextResponse.json(formattedSupplier);
 		},
 		"supplier_get",
 		UPDATE_RATE_LIMIT
@@ -86,7 +98,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -112,8 +124,12 @@ export async function PUT(
 
 			const updates = await req.json();
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -121,24 +137,49 @@ export async function PUT(
 				);
 			}
 
-			// Update supplier
-			const updatedSupplier = await Supplier.findByIdAndUpdate(id, updates, {
-				new: true,
-			});
+			// Only update allowed fields
+			const allowedUpdates = [
+				"firstName",
+				"lastName",
+				"email",
+				"phoneNumber",
+				"avatarUrl",
+			];
 
-			return NextResponse.json(updatedSupplier);
+			for (const field of allowedUpdates) {
+				if (updates[field] !== undefined) {
+					supplier[field] = updates[field];
+				}
+			}
+
+			// Save updated supplier
+			await supplier.save();
+
+			// Format response to match expected supplier format
+			const formattedSupplier = {
+				id: supplier._id,
+				name: `${supplier.firstName} ${supplier.lastName}`,
+				contactPerson: `${supplier.firstName} ${supplier.lastName}`,
+				email: supplier.email,
+				phoneNumber: supplier.phoneNumber || "",
+				avatarUrl: supplier.avatarUrl || "",
+				userId: supplier._id,
+				assignedManagers: supplier.assignedManagers || [],
+			};
+
+			return NextResponse.json(formattedSupplier);
 		},
 		"supplier_update",
 		UPDATE_RATE_LIMIT
 	);
 }
 
-// DELETE /api/suppliers/[id] - Delete a supplier
+// DELETE /api/suppliers/[id] - Delete a supplier (or just remove supplier role)
 export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -167,8 +208,12 @@ export async function DELETE(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -176,8 +221,12 @@ export async function DELETE(
 				);
 			}
 
-			// Delete supplier
-			await supplier.deleteOne();
+			// Option 1: Change role to customer instead of deleting
+			supplier.role = UserRole.CUSTOMER;
+			await supplier.save();
+
+			// Option 2: Delete the user entirely (uncomment if you want this behavior)
+			// await supplier.deleteOne();
 
 			return NextResponse.json({ success: true });
 		},

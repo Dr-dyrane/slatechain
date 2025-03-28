@@ -2,7 +2,6 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../models/Supplier";
 import User from "../models/User";
 import { UserRole } from "@/lib/types";
 
@@ -24,7 +23,7 @@ export async function GET(req: NextRequest) {
 			}
 
 			// Build query based on user role
-			let query = {};
+			let query: Record<string, any> = { role: UserRole.SUPPLIER };
 
 			switch (user.role) {
 				case UserRole.ADMIN:
@@ -32,11 +31,18 @@ export async function GET(req: NextRequest) {
 					break;
 				case UserRole.MANAGER:
 					// Managers can only see suppliers assigned to them
-					query = { assignedManagers: userId };
+					// Note: We'll need to add an assignedManagers field to the User model
+					query = {
+						...query,
+						assignedManagers: userId,
+					};
 					break;
 				case UserRole.SUPPLIER:
 					// Suppliers can only see themselves
-					query = { userId };
+					query = {
+						...query,
+						_id: userId,
+					};
 					break;
 				default:
 					return NextResponse.json(
@@ -48,18 +54,31 @@ export async function GET(req: NextRequest) {
 					);
 			}
 
-			// Find suppliers based on role-specific query
-			const suppliers = await Supplier.find(query).sort({ name: 1 });
+			// Find users with supplier role based on role-specific query
+			const suppliers = await User.find(query)
+				.select("_id firstName lastName email phoneNumber avatarUrl")
+				.sort({ firstName: 1, lastName: 1 });
 
-			// Return raw suppliers array
-			return NextResponse.json(suppliers);
+			// Transform to match expected supplier format
+			const formattedSuppliers = suppliers.map((supplier) => ({
+				id: supplier._id,
+				name: `${supplier.firstName} ${supplier.lastName}`,
+				contactPerson: `${supplier.firstName} ${supplier.lastName}`,
+				email: supplier.email,
+				phoneNumber: supplier.phoneNumber || "",
+				avatarUrl: supplier.avatarUrl || "",
+				userId: supplier._id, // Same as ID since user is the supplier
+			}));
+
+			// Return suppliers array
+			return NextResponse.json(formattedSuppliers);
 		},
 		"suppliers_list",
 		LIST_RATE_LIMIT
 	);
 }
 
-// POST /api/suppliers - Create a new supplier
+// POST /api/suppliers - Create a new supplier (or convert existing user to supplier)
 export async function POST(req: NextRequest) {
 	return handleRequest(
 		req,
@@ -86,47 +105,100 @@ export async function POST(req: NextRequest) {
 
 			const supplierData = await req.json();
 
-			// Validate required fields
-			if (
-				!supplierData.name ||
-				!supplierData.contactPerson ||
-				!supplierData.email ||
-				!supplierData.phoneNumber ||
-				!supplierData.address
-			) {
-				return NextResponse.json(
-					{
-						code: "INVALID_INPUT",
-						message:
-							"Name, contact person, email, phone number, and address are required",
-					},
-					{ status: 400 }
-				);
+			// Check if we're updating an existing user or creating a new one
+			if (supplierData.userId) {
+				// Update existing user to be a supplier
+				const existingUser = await User.findById(supplierData.userId);
+				if (!existingUser) {
+					return NextResponse.json(
+						{ code: "USER_NOT_FOUND", message: "User not found" },
+						{ status: 404 }
+					);
+				}
+
+				// Update user to have supplier role
+				existingUser.role = UserRole.SUPPLIER;
+
+				// If manager is creating, automatically assign themselves
+				if (user.role === UserRole.MANAGER) {
+					if (!existingUser.assignedManagers) {
+						existingUser.assignedManagers = [];
+					}
+					if (!existingUser.assignedManagers.includes(userId)) {
+						existingUser.assignedManagers.push(userId);
+					}
+				}
+
+				await existingUser.save();
+
+				// Return formatted supplier
+				return NextResponse.json({
+					id: existingUser._id,
+					name: `${existingUser.firstName} ${existingUser.lastName}`,
+					contactPerson: `${existingUser.firstName} ${existingUser.lastName}`,
+					email: existingUser.email,
+					phoneNumber: existingUser.phoneNumber || "",
+					avatarUrl: existingUser.avatarUrl || "",
+					userId: existingUser._id,
+				});
+			} else {
+				// Creating a new user with supplier role
+				// Validate required fields
+				if (
+					!supplierData.firstName ||
+					!supplierData.lastName ||
+					!supplierData.email ||
+					!supplierData.password
+				) {
+					return NextResponse.json(
+						{
+							code: "INVALID_INPUT",
+							message:
+								"First name, last name, email, and password are required",
+						},
+						{ status: 400 }
+					);
+				}
+
+				// Check if user with this email already exists
+				const existingUser = await User.findOne({
+					email: supplierData.email,
+				});
+				if (existingUser) {
+					return NextResponse.json(
+						{
+							code: "DUPLICATE_EMAIL",
+							message: "A user with this email already exists",
+						},
+						{ status: 400 }
+					);
+				}
+
+				// Prepare user data
+				const userData = {
+					firstName: supplierData.firstName,
+					lastName: supplierData.lastName,
+					email: supplierData.email,
+					password: supplierData.password,
+					phoneNumber: supplierData.phoneNumber,
+					role: UserRole.SUPPLIER,
+					assignedManagers: user.role === UserRole.MANAGER ? [userId] : [],
+				};
+
+				// Create user with supplier role
+				const newUser = await User.create(userData);
+
+				// Return formatted supplier
+				return NextResponse.json({
+					id: newUser._id,
+					name: `${newUser.firstName} ${newUser.lastName}`,
+					contactPerson: `${newUser.firstName} ${newUser.lastName}`,
+					email: newUser.email,
+					phoneNumber: newUser.phoneNumber || "",
+					avatarUrl: newUser.avatarUrl || "",
+					userId: newUser._id,
+				});
 			}
-
-			// Check if supplier with this email already exists
-			const existingSupplier = await Supplier.findOne({
-				email: supplierData.email,
-			});
-			if (existingSupplier) {
-				return NextResponse.json(
-					{
-						code: "DUPLICATE_EMAIL",
-						message: "A supplier with this email already exists",
-					},
-					{ status: 400 }
-				);
-			}
-
-			// If manager is creating, automatically assign themselves
-			if (user.role === UserRole.MANAGER) {
-				supplierData.assignedManagers = [userId];
-			}
-
-			// Create supplier
-			const supplier = await Supplier.create(supplierData);
-
-			return NextResponse.json(supplier);
 		},
 		"supplier_create",
 		CREATE_RATE_LIMIT

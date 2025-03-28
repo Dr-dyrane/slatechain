@@ -2,10 +2,9 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import Supplier from "../../../models/Supplier";
+import User from "../../../models/User";
 import SupplierDocument from "../../../models/SupplierDocument";
 import KYCDocument from "../../../models/KYCDocument";
-import User from "../../../models/User";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
 
@@ -20,19 +19,16 @@ async function hasAccessToSupplier(userId: string, supplierId: string) {
 	if (user.role === UserRole.ADMIN) return true;
 
 	if (user.role === UserRole.MANAGER) {
-		const supplier = await Supplier.findOne({
+		const supplier = await User.findOne({
 			_id: supplierId,
-			assignedManagers: userId,
+			role: UserRole.SUPPLIER,
+			assignedManagers: { $in: [userId] },
 		});
 		return !!supplier;
 	}
 
 	if (user.role === UserRole.SUPPLIER) {
-		const supplier = await Supplier.findOne({
-			_id: supplierId,
-			userId,
-		});
-		return !!supplier;
+		return userId === supplierId;
 	}
 
 	return false;
@@ -43,7 +39,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -67,8 +63,12 @@ export async function GET(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -79,37 +79,32 @@ export async function GET(
 			// Get supplier documents
 			const documents = await SupplierDocument.find({ supplierId: id });
 
-			// If supplier is also a user, check for KYC documents
-			if (supplier.userId) {
-				// Get KYC documents that aren't already linked to supplier documents
-				const linkedKycDocIds = documents
-					.filter((doc) => doc.kycDocumentId)
-					.map((doc) => doc.kycDocumentId);
+			// Get KYC documents that aren't already linked to supplier documents
+			const linkedKycDocIds = documents
+				.filter((doc) => doc.kycDocumentId)
+				.map((doc) => doc.kycDocumentId);
 
-				const kycDocuments = await KYCDocument.find({
-					userId: supplier.userId,
-					_id: { $nin: linkedKycDocIds },
-				});
+			const kycDocuments = await KYCDocument.find({
+				userId: id, // Now the supplier ID is the user ID
+				_id: { $nin: linkedKycDocIds },
+			});
 
-				// Convert KYC documents to supplier document format
-				const kycAsSupplierDocs = kycDocuments.map((kycDoc) => ({
-					id: kycDoc._id,
-					supplierId: id,
-					name: kycDoc.originalFilename || `${kycDoc.type} Document`,
-					type: "KYC",
-					url: kycDoc.url,
-					kycDocumentId: kycDoc._id,
-					uploadedAt: kycDoc.createdAt,
-					fileSize: kycDoc.fileSize,
-					mimeType: kycDoc.mimeType,
-					originalFilename: kycDoc.originalFilename,
-				}));
+			// Convert KYC documents to supplier document format
+			const kycAsSupplierDocs = kycDocuments.map((kycDoc) => ({
+				id: kycDoc._id,
+				supplierId: id,
+				name: kycDoc.originalFilename || `${kycDoc.type} Document`,
+				type: "KYC",
+				url: kycDoc.url,
+				kycDocumentId: kycDoc._id,
+				uploadedAt: kycDoc.createdAt,
+				fileSize: kycDoc.fileSize,
+				mimeType: kycDoc.mimeType,
+				originalFilename: kycDoc.originalFilename,
+			}));
 
-				// Combine both document types
-				return NextResponse.json([...documents, ...kycAsSupplierDocs]);
-			}
-
-			return NextResponse.json(documents);
+			// Combine both document types
+			return NextResponse.json([...documents, ...kycAsSupplierDocs]);
 		},
 		"supplier_documents_list",
 		LIST_RATE_LIMIT
@@ -121,7 +116,7 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -145,8 +140,12 @@ export async function POST(
 				);
 			}
 
-			// Find supplier
-			const supplier = await Supplier.findById(id);
+			// Find supplier (user with supplier role)
+			const supplier = await User.findOne({
+				_id: id,
+				role: UserRole.SUPPLIER,
+			});
+
 			if (!supplier) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Supplier not found" },
@@ -178,7 +177,7 @@ export async function POST(
 				// Verify the KYC document exists and belongs to this supplier
 				const kycDoc = await KYCDocument.findOne({
 					_id: documentData.kycDocumentId,
-					userId: supplier.userId,
+					userId: id, // Now the supplier ID is the user ID
 				});
 
 				if (!kycDoc) {

@@ -22,6 +22,7 @@ export interface IUser {
 	avatarUrl?: string;
 	integrations: UserIntegrations;
 	refreshToken?: string;
+	assignedManagers?: string[]; // Added for supplier management
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -56,6 +57,7 @@ const userSchema = new mongoose.Schema<IUser>(
 			default: {},
 		},
 		refreshToken: String,
+		assignedManagers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Added for supplier management
 	},
 	{
 		timestamps: true,
@@ -77,7 +79,7 @@ userSchema.methods.comparePassword = async function (
 	return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Method to generate auth tokens
+// Method to generate auth JSON
 userSchema.methods.toAuthJSON = function () {
 	return {
 		id: this._id,
@@ -93,6 +95,7 @@ userSchema.methods.toAuthJSON = function () {
 		onboardingStatus: this.onboardingStatus,
 		avatarUrl: this.avatarUrl,
 		integrations: this.integrations,
+		assignedManagers: this.assignedManagers || [],
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,
 	};
