@@ -5,6 +5,7 @@ import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import crypto from "crypto";
 import type mongoose from "mongoose";
+import { UserRole } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -458,4 +459,36 @@ export function addIdSupport(schema: mongoose.Schema) {
 			return obj;
 		};
 	}
+}
+
+/**
+ * Prepares supplier data for API submission
+ */
+export function prepareSupplierData(data: any) {
+	// Create a full name from first and last name if available
+	const fullName =
+		data.firstName && data.lastName
+			? `${data.firstName} ${data.lastName}`.trim()
+			: data.name || "";
+
+	// Create a supplier object that matches the expected format
+	return {
+		// User fields
+		firstName: data.firstName || fullName.split(" ")[0] || "",
+		lastName: data.lastName || fullName.split(" ").slice(1).join(" ") || "",
+		email: data.email,
+		password: data.password,
+		phoneNumber: data.phoneNumber || "",
+		role: "supplier" as UserRole,
+
+		// Supplier-specific fields
+		name: fullName || `${data.firstName} ${data.lastName}`,
+		contactPerson: data.contactPerson || fullName,
+		address: data.address || "",
+		rating: data.rating || 3,
+		status: data.status || "ACTIVE",
+
+		// If updating an existing user
+		userId: data.userId || null,
+	};
 }

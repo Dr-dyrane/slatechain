@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
-import type { Supplier, UserRole } from "@/lib/types"
+import type { Supplier } from "@/lib/types"
 import {
   AlertDialog,
   AlertDialogContent,
@@ -17,8 +17,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { X } from "lucide-react"
+import { X, Search, EyeOff, Eye } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { prepareSupplierData } from "@/lib/utils"
+import { useDispatch, useSelector } from "react-redux"
+import type { AppDispatch, RootState } from "@/lib/store"
+import { fetchUsers } from "@/lib/slices/user/user"
 
 const addSupplierSchema = z.object({
   // User fields
@@ -34,7 +39,15 @@ const addSupplierSchema = z.object({
   status: z.enum(["ACTIVE", "INACTIVE"]),
 })
 
+const existingUserSchema = z.object({
+  userId: z.string().min(1, "User is required"),
+  address: z.string().min(1, "Address is required"),
+  rating: z.number().min(0).max(5),
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+})
+
 type AddSupplierFormValues = z.infer<typeof addSupplierSchema>
+type ExistingUserFormValues = z.infer<typeof existingUserSchema>
 
 interface AddSupplierModalProps {
   open: boolean
@@ -45,12 +58,37 @@ interface AddSupplierModalProps {
 export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps) {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("new")
+  const dispatch = useDispatch<AppDispatch>()
+  const users = useSelector((state: RootState) => state.user.items)
+  const [searchTerm, setSearchTerm] = useState("")
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handlePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // Filter users to only show non-suppliers
+  const filteredUsers = users.filter(
+    (user) =>
+      user.role !== "supplier" &&
+      (searchTerm === "" ||
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase())),
+  )
+
+  // Fetch users when the modal opens
+  useEffect(() => {
+    if (open && activeTab === "existing") {
+      dispatch(fetchUsers())
+    }
+  }, [open, activeTab, dispatch])
 
   const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
+    register: registerNew,
+    handleSubmit: handleSubmitNew,
+    reset: resetNew,
+    formState: { errors: errorsNew },
   } = useForm<AddSupplierFormValues>({
     resolver: zodResolver(addSupplierSchema),
     defaultValues: {
@@ -59,35 +97,68 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
     },
   })
 
-  const onSubmit = async (data: AddSupplierFormValues) => {
+  const {
+    register: registerExisting,
+    handleSubmit: handleSubmitExisting,
+    reset: resetExisting,
+    formState: { errors: errorsExisting },
+    setValue,
+  } = useForm<ExistingUserFormValues>({
+    resolver: zodResolver(existingUserSchema),
+    defaultValues: {
+      rating: 3,
+      status: "ACTIVE",
+    },
+  })
+
+  const onSubmitNew = async (data: AddSupplierFormValues) => {
     setLoading(true)
     try {
-      // Create a full name from first and last name
-      const fullName = `${data.firstName} ${data.lastName}`.trim()
-
-      // Create a supplier object that matches the expected format
-      const supplierData = {
-        name: fullName,
-        contactPerson: fullName,
-        email: data.email,
-        phoneNumber: data.phoneNumber,
-        address: data.address,
-        rating: data.rating,
-        status: data.status,
-        // Add user-specific fields
-        firstName: data.firstName,
-        lastName: data.lastName,
-        password: data.password,
-        role: "supplier" as UserRole,
-      }
-
+      const supplierData = prepareSupplierData(data)
       await onAdd(supplierData)
-      reset()
+      resetNew()
       onClose()
     } catch (error) {
       console.error("Error adding supplier:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const onSubmitExisting = async (data: ExistingUserFormValues) => {
+    setLoading(true)
+    try {
+      // Find the selected user
+      const selectedUser = users.find((user) => user.id === data.userId)
+      if (!selectedUser) {
+        throw new Error("Selected user not found")
+      }
+
+      // Prepare data for API
+      const supplierData = prepareSupplierData({
+        ...selectedUser,
+        ...data,
+        // No need to set password for existing user
+        password: undefined,
+      })
+
+      await onAdd(supplierData)
+      resetExisting()
+      onClose()
+    } catch (error) {
+      console.error("Error converting user to supplier:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUserSelect = (userId: string) => {
+    setValue("userId", userId)
+
+    // Find the selected user to pre-fill form fields if needed
+    const selectedUser = users.find((user) => user.id === userId)
+    if (selectedUser && selectedUser.phoneNumber) {
+      // You could pre-fill other fields here if needed
     }
   }
 
@@ -118,42 +189,51 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
           </TabsList>
 
           <TabsContent value="new">
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={handleSubmitNew(onSubmitNew)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input id="firstName" {...register("firstName")} className="input-focus input-hover" />
-                  {errors.firstName && <p className="text-sm text-red-500">{errors.firstName.message}</p>}
+                  <Input id="firstName" {...registerNew("firstName")} className="input-focus input-hover" />
+                  {errorsNew.firstName && <p className="text-sm text-red-500">{errorsNew.firstName.message}</p>}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input id="lastName" {...register("lastName")} className="input-focus input-hover" />
-                  {errors.lastName && <p className="text-sm text-red-500">{errors.lastName.message}</p>}
+                  <Input id="lastName" {...registerNew("lastName")} className="input-focus input-hover" />
+                  {errorsNew.lastName && <p className="text-sm text-red-500">{errorsNew.lastName.message}</p>}
                 </div>
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" {...register("email")} className="input-focus input-hover" />
-                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                <Input id="email" type="email" {...registerNew("email")} className="input-focus input-hover" />
+                {errorsNew.email && <p className="text-sm text-red-500">{errorsNew.email.message}</p>}
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" {...register("password")} className="input-focus input-hover" />
-                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                <Input id="password" type={showPassword ? 'text' : 'password'} {...registerNew("password")} className="input-focus input-hover" />
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={handlePasswordVisibility}
+                  size="icon"
+                  className="absolute right-2 top-[60%] -translate-y-1/2"
+                >
+                  {showPassword ? <EyeOff size={16} className='text-muted-foreground' /> : <Eye size={16} className='text-muted-foreground' />}
+                </Button>
+                {errorsNew.password && <p className="text-sm text-red-500">{errorsNew.password.message}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input id="phoneNumber" {...register("phoneNumber")} className="input-focus input-hover" />
-                {errors.phoneNumber && <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>}
+                <Input id="phoneNumber" {...registerNew("phoneNumber")} className="input-focus input-hover" />
+                {errorsNew.phoneNumber && <p className="text-sm text-red-500">{errorsNew.phoneNumber.message}</p>}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input id="address" {...register("address")} className="input-focus input-hover" />
-                {errors.address && <p className="text-sm text-red-500">{errors.address.message}</p>}
+                <Input id="address" {...registerNew("address")} className="input-focus input-hover" />
+                {errorsNew.address && <p className="text-sm text-red-500">{errorsNew.address.message}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -165,19 +245,19 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
                     step="0.1"
                     min="0"
                     max="5"
-                    {...register("rating", { valueAsNumber: true })}
+                    {...registerNew("rating", { valueAsNumber: true })}
                     className="input-focus input-hover"
                   />
-                  {errors.rating && <p className="text-sm text-red-500">{errors.rating.message}</p>}
+                  {errorsNew.rating && <p className="text-sm text-red-500">{errorsNew.rating.message}</p>}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
-                  <select id="status" {...register("status")} className="w-full p-2 border rounded">
+                  <select id="status" {...registerNew("status")} className="w-full p-2 border rounded">
                     <option value="ACTIVE">Active</option>
                     <option value="INACTIVE">Inactive</option>
                   </select>
-                  {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+                  {errorsNew.status && <p className="text-sm text-red-500">{errorsNew.status.message}</p>}
                 </div>
               </div>
 
@@ -191,11 +271,77 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
           </TabsContent>
 
           <TabsContent value="existing">
-            <div className="p-4 text-center">
-              <p className="text-muted-foreground">
-                This feature will be implemented soon. It will allow you to convert an existing user to a supplier.
-              </p>
-            </div>
+            <form onSubmit={handleSubmitExisting(onSubmitExisting)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="userSearch">Search Users</Label>
+                <div className="relative">
+                  <Input
+                    id="userSearch"
+                    placeholder="Search by name or email"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="input-focus input-hover pl-10"
+                  />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="userId">Select User</Label>
+                <Select onValueChange={handleUserSelect}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a user" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredUsers.map((user) => (
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name} ({user.email})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input type="hidden" {...registerExisting("userId")} />
+                {errorsExisting.userId && <p className="text-sm text-red-500">{errorsExisting.userId.message}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input id="address" {...registerExisting("address")} className="input-focus input-hover" />
+                {errorsExisting.address && <p className="text-sm text-red-500">{errorsExisting.address.message}</p>}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="rating">Rating (0-5)</Label>
+                  <Input
+                    id="rating"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    {...registerExisting("rating", { valueAsNumber: true })}
+                    className="input-focus input-hover"
+                  />
+                  {errorsExisting.rating && <p className="text-sm text-red-500">{errorsExisting.rating.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <select id="status" {...registerExisting("status")} className="w-full p-2 border rounded">
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                  </select>
+                  {errorsExisting.status && <p className="text-sm text-red-500">{errorsExisting.status.message}</p>}
+                </div>
+              </div>
+
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Converting..." : "Convert to Supplier"}
+                </Button>
+              </AlertDialogFooter>
+            </form>
           </TabsContent>
         </Tabs>
       </AlertDialogContent>

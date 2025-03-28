@@ -79,7 +79,11 @@ const userSchema = new mongoose.Schema<IUser>(
 					default: "ACTIVE",
 				},
 			},
-			default: {},
+			default: () => ({
+				address: "",
+				rating: 3,
+				status: "ACTIVE",
+			}),
 		},
 	},
 	{
@@ -119,7 +123,11 @@ userSchema.methods.toAuthJSON = function () {
 		avatarUrl: this.avatarUrl,
 		integrations: this.integrations,
 		assignedManagers: this.assignedManagers || [],
-		supplierMetadata: this.supplierMetadata || {},
+		supplierMetadata: this.supplierMetadata || {
+			address: "",
+			rating: 3,
+			status: "ACTIVE",
+		},
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,
 	};
