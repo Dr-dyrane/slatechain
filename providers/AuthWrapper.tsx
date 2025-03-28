@@ -26,6 +26,26 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         }
     }, [isAuthenticated]);
 
+    // Preload all pages on first load
+    useEffect(() => {
+        const pages = [
+            "/",           // Home
+            "/dashboard",  // Dashboard
+            "/inventory",  // Inventory
+            "/orders",     // Orders
+            "/logistics",  // Logistics
+            "/suppliers",  // Suppliers
+            "/users",      // Users
+            "/profile",    // Profile
+            "/settings",   // Settings
+            "/apps",       // apps
+        ];
+
+        pages.forEach((page) => {
+            fetch(page)
+        });
+    }, []);
+
     useEffect(() => {
         const handleRouting = () => {
             setIsChecking(true);
