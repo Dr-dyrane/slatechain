@@ -272,7 +272,7 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
 
           <TabsContent value="existing">
             <form onSubmit={handleSubmitExisting(onSubmitExisting)} className="space-y-4">
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="userSearch">Search Users</Label>
                 <div className="relative">
                   <Input
@@ -284,7 +284,7 @@ export function AddSupplierModal({ open, onClose, onAdd }: AddSupplierModalProps
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 </div>
-              </div>
+              </div> */}
 
               <div className="space-y-2">
                 <Label htmlFor="userId">Select User</Label>
