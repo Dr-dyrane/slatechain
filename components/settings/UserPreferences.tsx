@@ -23,6 +23,7 @@ export function UserPreferences() {
     const newState = !isDemo;
     setIsDemo(newState);
     localStorage.setItem("isLive", (!newState).toString());
+    window.location.reload();
   };
 
   return (

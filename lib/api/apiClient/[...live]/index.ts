@@ -7,6 +7,7 @@ import axios, {
 	AxiosRequestConfig,
 } from "axios";
 import { toast } from "sonner";
+import { mockApiResponses } from "../../mockData";
 
 const BASE_URL = "/api"; // Calls will be directed to /app/api
 
@@ -65,9 +66,12 @@ const ERROR_MESSAGES: Record<string, string> = {
 class ApiClient {
 	private axiosInstance: AxiosInstance;
 	private isLive: boolean;
+	private storageListener: ((this: Window, ev: StorageEvent) => any) | null =
+		null;
 
 	constructor() {
-		this.isLive = true;
+		// Initialize isLive from localStorage if available (client-side)
+		this.isLive = this.getIsLiveFromStorage();
 
 		this.axiosInstance = axios.create({
 			baseURL: BASE_URL,
@@ -78,6 +82,38 @@ class ApiClient {
 		});
 
 		this.setupInterceptors();
+		this.setupStorageListener();
+	}
+
+	// Get isLive value from localStorage, defaulting to true if not available
+	private getIsLiveFromStorage(): boolean {
+		if (typeof window !== "undefined") {
+			const storedValue = localStorage.getItem("isLive");
+			return storedValue === null ? true : storedValue === "true";
+		}
+		return true; // Default to true on server-side
+	}
+
+	// Set up listener for localStorage changes
+	private setupStorageListener(): void {
+		if (typeof window !== "undefined") {
+			// Remove any existing listener
+			if (this.storageListener) {
+				window.removeEventListener("storage", this.storageListener);
+			}
+
+			// Create and add new listener
+			this.storageListener = (event: StorageEvent) => {
+				if (event.key === "isLive") {
+					this.isLive = event.newValue === "true";
+					console.log(
+						`API Client mode updated: ${this.isLive ? "Live" : "Mock"}`
+					);
+				}
+			};
+
+			window.addEventListener("storage", this.storageListener);
+		}
 	}
 
 	private getErrorMessage(error: AxiosError): string {
@@ -203,6 +239,10 @@ class ApiClient {
 		data?: any,
 		config?: AxiosRequestConfig
 	): Promise<T> {
+		if (!this.isLive) {
+			return this.mockRequest<T>(method, url, data);
+		}
+
 		try {
 			const response = await this.axiosInstance.request<T>({
 				method,
@@ -217,6 +257,24 @@ class ApiClient {
 			}
 			throw error;
 		}
+	}
+
+	private mockRequest<T>(method: string, url: string, data?: any): Promise<T> {
+		return new Promise((resolve, reject) => {
+			setTimeout(() => {
+				const mockMethod = mockApiResponses[method.toLowerCase()];
+				const mockResponse = mockMethod?.[url];
+				if (mockResponse) {
+					if (typeof mockResponse === "function") {
+						resolve(mockResponse(data) as T);
+					} else {
+						resolve(mockResponse as T);
+					}
+				} else {
+					reject(new Error(`No mock data for ${method} ${url}`));
+				}
+			}, 500);
+		});
 	}
 
 	async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
