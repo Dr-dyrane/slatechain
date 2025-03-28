@@ -88,6 +88,25 @@ export function Layout({ children }: LayoutProps) {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Preload all pages on first load
+  React.useEffect(() => {
+    const pages = [
+      "/",           // Home
+      "/dashboard",  // Dashboard
+      "/inventory",  // Inventory
+      "/orders",     // Orders
+      "/logistics",  // Logistics
+      "/suppliers",  // Suppliers
+      "/users",      // Users
+      "/profile",    // Profile
+      "/settings",   // Settings
+    ];
+
+    pages.forEach((page) => {
+      fetch(page).catch((err) => console.error(`Failed to preload ${page}`, err));
+    });
+  }, []);
+
   return (
     <div className="flex h-screen overflow-hidden flex-col relative">
       {layoutRequired && <Navbar setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen} notifications={notifications as Notification[]} />}
@@ -110,13 +129,9 @@ export function Layout({ children }: LayoutProps) {
             {children}
           </main>
         </div>
-        {/* Conditionally render the RightBar */}
         {layoutRequired && showRightBar && <RightBar notifications={notifications} />}
       </div>
-      {/* Bottom Bar Navigation for Small Screens */}
       {layoutRequired && <BottomNav items={baseNavItems} />}
-
-      {/* Mobile Notification Drawer */}
       <NotificationDrawer
         open={isMobileNotificationDrawerOpen}
         onOpenChange={setIsMobileNotificationDrawerOpen}
@@ -125,4 +140,4 @@ export function Layout({ children }: LayoutProps) {
       {layoutRequired && <Footer />}
     </div>
   );
-}
+};
