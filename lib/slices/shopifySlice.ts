@@ -28,9 +28,8 @@ export const fetchShopifyOrders = createAsyncThunk<
 	{ rejectValue: string } // Typescript config
 >("shopify/fetchShopifyOrders", async (_, thunkAPI) => {
 	try {
-		const response = await apiClient.get<ShopifyOrdersResponse>(
-			"/shopify/orders"
-		);
+		const response =
+			await apiClient.get<ShopifyOrdersResponse>("/shopify/orders");
 		return response.orders;
 	} catch (error: any) {
 		return thunkAPI.rejectWithValue(
@@ -46,8 +45,7 @@ export const fetchShopifyShop = createAsyncThunk<
 	{ rejectValue: string } // Typescript config
 >("shopify/fetchShopifyShop", async (_, thunkAPI) => {
 	try {
-		const response =
-			await apiClient.get<ShopifyShopResponse>("/shopify/shop");
+		const response = await apiClient.get<ShopifyShopResponse>("/shopify/shop");
 		return response.shop;
 	} catch (error: any) {
 		return thunkAPI.rejectWithValue(
@@ -91,12 +89,14 @@ const shopifySlice = createSlice({
 			})
 			.addCase(fetchShopifyOrders.fulfilled, (state, action) => {
 				state.loading = false;
-				state.orders = action.payload;
+				state.orders = action.payload || [];
 				// Calculate total revenue here instead of in the component
-				state.totalRevenue = action.payload.reduce((total, order) => {
-					const price = Number.parseFloat(order.total_price); // Ensure parsing as float
-					return total + (isNaN(price) ? 0 : price); // Safely add to total
-				}, 0);
+				state.totalRevenue = Array.isArray(action.payload)
+					? action.payload.reduce((total, order) => {
+							const price = Number.parseFloat(order.total_price); // Ensure parsing as float
+							return total + (isNaN(price) ? 0 : price); // Safely add to total
+						}, 0)
+					: 0;
 			})
 			.addCase(fetchShopifyOrders.rejected, (state, action) => {
 				state.loading = false;
