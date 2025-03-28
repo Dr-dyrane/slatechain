@@ -5,7 +5,7 @@ import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import crypto from "crypto";
 import type mongoose from "mongoose";
-import { UserRole } from "./types";
+import { Supplier, UserRole } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -491,4 +491,31 @@ export function prepareSupplierData(data: any) {
 		// If updating an existing user
 		userId: data.userId || null,
 	};
+}
+
+/**
+ * Extracts first and last name from a supplier object
+ */
+export function extractNameParts(supplier: Supplier): {
+	firstName: string;
+	lastName: string;
+} {
+	const nameParts = supplier.name.split(" ");
+	return {
+		firstName: nameParts[0] || "",
+		lastName: nameParts.slice(1).join(" ") || "",
+	};
+}
+
+// Define an extended supplier interface for internal use
+export interface SupplierFormData
+	extends Omit<Supplier, "id" | "createdAt" | "updatedAt"> {
+	id?: string;
+	firstName?: string;
+	lastName?: string;
+	password?: string;
+	userId?: string;
+	role?: UserRole;
+	createdAt?: string;
+	updatedAt?: string;
 }

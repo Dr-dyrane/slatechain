@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { X } from "lucide-react"
+import { prepareSupplierData, extractNameParts, type SupplierFormData } from "@/lib/utils"
 
 const editSupplierSchema = z.object({
   id: z.string().min(1, "ID is required"),
@@ -28,6 +29,8 @@ const editSupplierSchema = z.object({
   address: z.string().min(1, "Address is required"),
   rating: z.number().min(0).max(5),
   status: z.enum(["ACTIVE", "INACTIVE"]),
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
 })
 
 type EditSupplierFormValues = z.infer<typeof editSupplierSchema>
@@ -53,14 +56,34 @@ export function EditSupplierModal({ open, onClose, onSave, supplier }: EditSuppl
 
   useEffect(() => {
     if (supplier) {
-      reset(supplier)
+      // Extract first and last name from the supplier name
+      const { firstName, lastName } = extractNameParts(supplier)
+
+      reset({
+        ...supplier,
+        firstName,
+        lastName,
+      })
     }
   }, [supplier, reset])
 
   const onSubmit = async (data: EditSupplierFormValues) => {
     setLoading(true)
     try {
-      await onSave(data as Supplier)
+      // Create a supplier data object with the form values
+      const supplierData: SupplierFormData = {
+        ...data,
+        // Ensure we keep the ID and timestamps
+        userId: supplier?.id,
+        createdAt: supplier?.createdAt,
+        updatedAt: new Date().toISOString(),
+      }
+
+      // Convert to proper Supplier type
+      const formattedSupplier = prepareSupplierData(supplierData)
+      const thunkData = { ...formattedSupplier, id: supplier?.id }
+
+      await onSave(thunkData as any)
       onClose()
     } catch (error) {
       console.error("Error updating supplier:", error)
@@ -84,54 +107,69 @@ export function EditSupplierModal({ open, onClose, onSave, supplier }: EditSuppl
               <X className="w-5 h-5 " />
             </button>
           </div>
-          <AlertDialogDescription>Update the supplier's information below.</AlertDialogDescription>
+          <AlertDialogDescription>Update the supplier's information below. <br />
+            <span className="italic text-xs">{supplier.id}</span>
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <input type="hidden" {...register("id")} />
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" {...register("name")} className="input-focus input-hover" />
-            {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input id="firstName" {...register("firstName")} className="input-focus input-hover" />
+              {errors.firstName && <p className="text-sm text-red-500">{errors.firstName.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input id="lastName" {...register("lastName")} className="input-focus input-hover" />
+              {errors.lastName && <p className="text-sm text-red-500">{errors.lastName.message}</p>}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="contactPerson">Contact Person</Label>
-            <Input id="contactPerson" {...register("contactPerson")} className="input-focus input-hover" />
-            {errors.contactPerson && <p className="text-sm text-red-500">{errors.contactPerson.message}</p>}
-          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" {...register("email")} className="input-focus input-hover" />
             {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>
             <Input id="phoneNumber" {...register("phoneNumber")} className="input-focus input-hover" />
             {errors.phoneNumber && <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>}
           </div>
+
           <div className="space-y-2">
             <Label htmlFor="address">Address</Label>
             <Input id="address" {...register("address")} className="input-focus input-hover" />
             {errors.address && <p className="text-sm text-red-500">{errors.address.message}</p>}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="rating">Rating</Label>
-            <Input
-              id="rating"
-              type="number"
-              step="0.1"
-              {...register("rating", { valueAsNumber: true })}
-              className="input-focus input-hover"
-            />
-            {errors.rating && <p className="text-sm text-red-500">{errors.rating.message}</p>}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="rating">Rating</Label>
+              <Input
+                id="rating"
+                type="number"
+                step="0.1"
+                min="0"
+                max="5"
+                {...register("rating", { valueAsNumber: true })}
+                className="input-focus input-hover"
+              />
+              {errors.rating && <p className="text-sm text-red-500">{errors.rating.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <select id="status" {...register("status")} className="w-full p-2 border rounded">
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+              {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <select id="status" {...register("status")} className="w-full p-2 border rounded">
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
-            {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
-          </div>
+
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit" disabled={loading}>
