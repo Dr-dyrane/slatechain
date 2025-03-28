@@ -22,12 +22,14 @@ import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { X } from "lucide-react"
+import { Eye, EyeOff, X } from "lucide-react"
+
 
 const addUserSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
   phoneNumber: z.string().min(7, "Phone number is invalid"),
   role: z.nativeEnum(UserRole),
 })
@@ -43,6 +45,14 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const [loading, setLoading] = useState(false)
 
+
+  const [showPassword, setShowPassword] = useState(false);
+
+  const handlePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+
   const {
     register,
     handleSubmit,
@@ -51,6 +61,9 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
     formState: { errors },
   } = useForm<AddUserFormValues>({
     resolver: zodResolver(addUserSchema),
+    defaultValues: {
+      role: UserRole.CUSTOMER,
+    },
   })
 
   const onSubmit = async (data: AddUserFormValues) => {
@@ -73,13 +86,11 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
       onClose()
       reset()
     } catch (error: any) {
-      toast.error("There was an error creating the user")
+      toast.error(error.message || "There was an error creating the user")
     } finally {
       setLoading(false)
     }
   }
-
-
 
   return (
     <AlertDialog open={open} onOpenChange={onClose}>
@@ -87,7 +98,10 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
         <AlertDialogHeader>
           <div className="flex justify-center items-center relative">
             <AlertDialogTitle>Add New User</AlertDialogTitle>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full">
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full"
+            >
               <X className="w-5 h-5 " />
             </button>
           </div>
@@ -124,6 +138,26 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
               className="input-focus input-hover"
             />
             {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+          </div>
+          <div className="space-y-2 relative">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Password"
+              {...register("password")}
+              className="input-focus input-hover"
+            />
+            <Button
+              variant="ghost"
+              type="button"
+              onClick={handlePasswordVisibility}
+              size="icon"
+              className="absolute right-2 top-[60%] -translate-y-1/2"
+            >
+              {showPassword ? <EyeOff size={16} className='text-muted-foreground' /> : <Eye size={16} className='text-muted-foreground' />}
+            </Button>
+            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="phoneNumber">Phone Number</Label>

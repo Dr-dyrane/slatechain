@@ -126,7 +126,15 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json()
-    const { email, password, ...userData } = body
+    const { email, password, firstName, lastName, role, ...userData } = body
+
+    // Validate required fields
+    if (!email || !password || !firstName || !lastName) {
+      return NextResponse.json(
+        { code: "INVALID_INPUT", message: "Email, password, first name, and last name are required" },
+        { status: 400, headers },
+      )
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email })
@@ -137,19 +145,36 @@ export async function POST(req: Request) {
       )
     }
 
-    // Create new user
-    const user = new User({
+    // Prepare user data with default values for new fields
+    const userDataWithDefaults = {
       email,
+      firstName,
+      lastName,
       password: await bcrypt.hash(password, 10),
+      role: role || UserRole.CUSTOMER,
+      assignedManagers: [], // Initialize with empty array
       ...userData,
-    })
+    }
+
+    // Create new user
+    const user = new User(userDataWithDefaults)
 
     await user.save()
 
     return NextResponse.json({ user: user.toAuthJSON() }, { headers })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Create User Error:", error)
-    return NextResponse.json({ code: "SERVER_ERROR", message: "Failed to create user" }, { status: 500, headers })
+
+    // Provide more detailed error message for debugging
+    const errorMessage = error.message || "Failed to create user"
+    return NextResponse.json(
+      {
+        code: "SERVER_ERROR",
+        message: "Failed to create user",
+        details: errorMessage,
+      },
+      { status: 500, headers },
+    )
   }
 }
 

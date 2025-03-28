@@ -8,6 +8,13 @@ import {
 import bcrypt from "bcryptjs";
 import { mongoose } from "..";
 
+// Add supplier metadata interface
+interface SupplierMetadata {
+	address?: string;
+	rating?: number;
+	status?: string;
+}
+
 export interface IUser {
 	firstName: string;
 	lastName: string;
@@ -23,6 +30,7 @@ export interface IUser {
 	integrations: UserIntegrations;
 	refreshToken?: string;
 	assignedManagers?: string[]; // Added for supplier management
+	supplierMetadata?: SupplierMetadata; // Added for supplier-specific data
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -57,7 +65,22 @@ const userSchema = new mongoose.Schema<IUser>(
 			default: {},
 		},
 		refreshToken: String,
-		assignedManagers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Added for supplier management
+		assignedManagers: {
+			type: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+			default: [],
+		},
+		supplierMetadata: {
+			type: {
+				address: { type: String, default: "" },
+				rating: { type: Number, default: 3, min: 0, max: 5 },
+				status: {
+					type: String,
+					enum: ["ACTIVE", "INACTIVE"],
+					default: "ACTIVE",
+				},
+			},
+			default: {},
+		},
 	},
 	{
 		timestamps: true,
@@ -96,6 +119,7 @@ userSchema.methods.toAuthJSON = function () {
 		avatarUrl: this.avatarUrl,
 		integrations: this.integrations,
 		assignedManagers: this.assignedManagers || [],
+		supplierMetadata: this.supplierMetadata || {},
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,
 	};

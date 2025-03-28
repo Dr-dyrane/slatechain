@@ -74,6 +74,13 @@ export async function GET(
 				);
 			}
 
+			// Get supplier metadata
+			const supplierMetadata = supplier.supplierMetadata || {
+				address: "",
+				rating: 3,
+				status: "ACTIVE",
+			};
+
 			// Format response to match expected supplier format
 			const formattedSupplier = {
 				id: supplier._id,
@@ -84,6 +91,9 @@ export async function GET(
 				avatarUrl: supplier.avatarUrl || "",
 				userId: supplier._id,
 				assignedManagers: supplier.assignedManagers || [],
+				address: supplierMetadata.address || "",
+				rating: supplierMetadata.rating || 3,
+				status: supplierMetadata.status || "ACTIVE",
 			};
 
 			return NextResponse.json(formattedSupplier);
@@ -137,19 +147,34 @@ export async function PUT(
 				);
 			}
 
-			// Only update allowed fields
-			const allowedUpdates = [
+			// Update user fields
+			const userFields = [
 				"firstName",
 				"lastName",
 				"email",
 				"phoneNumber",
 				"avatarUrl",
 			];
-
-			for (const field of allowedUpdates) {
+			for (const field of userFields) {
 				if (updates[field] !== undefined) {
 					supplier[field] = updates[field];
 				}
+			}
+
+			// Update supplier metadata
+			if (!supplier.supplierMetadata) {
+				supplier.supplierMetadata = {};
+			}
+
+			// Update supplier-specific fields
+			if (updates.address !== undefined) {
+				supplier.supplierMetadata.address = updates.address;
+			}
+			if (updates.rating !== undefined) {
+				supplier.supplierMetadata.rating = updates.rating;
+			}
+			if (updates.status !== undefined) {
+				supplier.supplierMetadata.status = updates.status;
 			}
 
 			// Save updated supplier
@@ -165,6 +190,9 @@ export async function PUT(
 				avatarUrl: supplier.avatarUrl || "",
 				userId: supplier._id,
 				assignedManagers: supplier.assignedManagers || [],
+				address: supplier.supplierMetadata?.address || "",
+				rating: supplier.supplierMetadata?.rating || 3,
+				status: supplier.supplierMetadata?.status || "ACTIVE",
 			};
 
 			return NextResponse.json(formattedSupplier);

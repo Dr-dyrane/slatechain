@@ -9,7 +9,7 @@ const tiers = [
     {
         name: "Starter",
         description: "Perfect for small businesses getting started with supply chain management.",
-        price: "$29",
+        price: "$199",
         duration: "per month",
         features: [
             "Up to 100 inventory items",
@@ -22,7 +22,7 @@ const tiers = [
     {
         name: "Professional",
         description: "Ideal for growing businesses with complex supply chain needs.",
-        price: "$99",
+        price: "$499",
         duration: "per month",
         featured: true,
         features: [

@@ -31,10 +31,9 @@ export async function GET(req: NextRequest) {
 					break;
 				case UserRole.MANAGER:
 					// Managers can only see suppliers assigned to them
-					// Note: We'll need to add an assignedManagers field to the User model
 					query = {
 						...query,
-						assignedManagers: userId,
+						assignedManagers: { $in: [userId] },
 					};
 					break;
 				case UserRole.SUPPLIER:
@@ -60,15 +59,27 @@ export async function GET(req: NextRequest) {
 				.sort({ firstName: 1, lastName: 1 });
 
 			// Transform to match expected supplier format
-			const formattedSuppliers = suppliers.map((supplier) => ({
-				id: supplier._id,
-				name: `${supplier.firstName} ${supplier.lastName}`,
-				contactPerson: `${supplier.firstName} ${supplier.lastName}`,
-				email: supplier.email,
-				phoneNumber: supplier.phoneNumber || "",
-				avatarUrl: supplier.avatarUrl || "",
-				userId: supplier._id, // Same as ID since user is the supplier
-			}));
+			const formattedSuppliers = suppliers.map((supplier) => {
+				// Get supplier metadata from the user document
+				const supplierMetadata = supplier.supplierMetadata || {
+					address: "",
+					rating: 3,
+					status: "ACTIVE",
+				};
+
+				return {
+					id: supplier._id,
+					name: `${supplier.firstName} ${supplier.lastName}`,
+					contactPerson: `${supplier.firstName} ${supplier.lastName}`,
+					email: supplier.email,
+					phoneNumber: supplier.phoneNumber || "",
+					avatarUrl: supplier.avatarUrl || "",
+					userId: supplier._id, // Same as ID since user is the supplier
+					address: supplierMetadata.address || "",
+					rating: supplierMetadata.rating || 3,
+					status: supplierMetadata.status || "ACTIVE",
+				};
+			});
 
 			// Return suppliers array
 			return NextResponse.json(formattedSuppliers);
@@ -105,6 +116,21 @@ export async function POST(req: NextRequest) {
 
 			const supplierData = await req.json();
 
+			// Extract user fields and supplier-specific fields
+			const {
+				firstName,
+				lastName,
+				email,
+				password,
+				phoneNumber,
+				role,
+				// Supplier-specific fields
+				address,
+				rating,
+				status,
+				...otherData
+			} = supplierData;
+
 			// Check if we're updating an existing user or creating a new one
 			if (supplierData.userId) {
 				// Update existing user to be a supplier
@@ -118,6 +144,13 @@ export async function POST(req: NextRequest) {
 
 				// Update user to have supplier role
 				existingUser.role = UserRole.SUPPLIER;
+
+				// Store supplier-specific metadata
+				existingUser.supplierMetadata = {
+					address: address || "",
+					rating: rating || 3,
+					status: status || "ACTIVE",
+				};
 
 				// If manager is creating, automatically assign themselves
 				if (user.role === UserRole.MANAGER) {
@@ -140,16 +173,14 @@ export async function POST(req: NextRequest) {
 					phoneNumber: existingUser.phoneNumber || "",
 					avatarUrl: existingUser.avatarUrl || "",
 					userId: existingUser._id,
+					address: existingUser.supplierMetadata?.address || "",
+					rating: existingUser.supplierMetadata?.rating || 3,
+					status: existingUser.supplierMetadata?.status || "ACTIVE",
 				});
 			} else {
 				// Creating a new user with supplier role
 				// Validate required fields
-				if (
-					!supplierData.firstName ||
-					!supplierData.lastName ||
-					!supplierData.email ||
-					!supplierData.password
-				) {
+				if (!firstName || !lastName || !email || !password) {
 					return NextResponse.json(
 						{
 							code: "INVALID_INPUT",
@@ -162,7 +193,7 @@ export async function POST(req: NextRequest) {
 
 				// Check if user with this email already exists
 				const existingUser = await User.findOne({
-					email: supplierData.email,
+					email: email,
 				});
 				if (existingUser) {
 					return NextResponse.json(
@@ -176,13 +207,18 @@ export async function POST(req: NextRequest) {
 
 				// Prepare user data
 				const userData = {
-					firstName: supplierData.firstName,
-					lastName: supplierData.lastName,
-					email: supplierData.email,
-					password: supplierData.password,
-					phoneNumber: supplierData.phoneNumber,
+					firstName,
+					lastName,
+					email,
+					password,
+					phoneNumber: phoneNumber || "",
 					role: UserRole.SUPPLIER,
 					assignedManagers: user.role === UserRole.MANAGER ? [userId] : [],
+					supplierMetadata: {
+						address: address || "",
+						rating: rating || 3,
+						status: status || "ACTIVE",
+					},
 				};
 
 				// Create user with supplier role
@@ -197,6 +233,9 @@ export async function POST(req: NextRequest) {
 					phoneNumber: newUser.phoneNumber || "",
 					avatarUrl: newUser.avatarUrl || "",
 					userId: newUser._id,
+					address: newUser.supplierMetadata?.address || "",
+					rating: newUser.supplierMetadata?.rating || 3,
+					status: newUser.supplierMetadata?.status || "ACTIVE",
 				});
 			}
 		},
