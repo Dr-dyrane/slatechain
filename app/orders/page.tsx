@@ -157,6 +157,17 @@ export default function OrdersPage() {
     setDeleteModalOpen(true)
   }
 
+  const handleAddModalClose = () => {
+    setAddModalOpen(false)
+    dispatch(fetchOrders())
+  }
+
+  const handleEditModalClose = () => {
+    setSelectedOrder(null)
+    setEditModalOpen(false)
+    dispatch(fetchOrders())
+  }
+
   const filteredOrders = useMemo(() => {
     return filterStatus ? orders.filter((order) => order.status === filterStatus) : orders
   }, [orders, filterStatus])
@@ -251,8 +262,10 @@ export default function OrdersPage() {
         onDelete={handleDeleteModalOpen}
       />
 
-      <AddOrderModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
-      <EditOrderModal open={editModalOpen} onClose={() => setEditModalOpen(false)} order={selectedOrder} />
+      <AddOrderModal open={addModalOpen} onClose={handleAddModalClose} />
+
+      {/* Update the EditOrderModal component */}
+      <EditOrderModal open={editModalOpen} onClose={handleEditModalClose} order={selectedOrder} />
       <DeleteOrderModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} order={orderToDelete} />
     </div>
   )

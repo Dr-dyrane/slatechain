@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { updateOrder } from "@/lib/slices/orderSlice"
+import { resetPaymentState, updateOrder } from "@/lib/slices/orderSlice"
 import type { Order, OrderItem } from "@/lib/types"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { toast } from "sonner"
@@ -83,6 +83,10 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
         status: paymentResult ? "PROCESSING" : prevOrder!.status,
       }))
       setShowPaymentModal(false)
+
+      // Reset payment state in Redux
+      dispatch(resetPaymentState())
+
       if (paymentResult) {
         toast.success("Payment processed successfully")
       }

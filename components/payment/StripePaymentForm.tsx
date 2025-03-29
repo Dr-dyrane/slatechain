@@ -36,7 +36,8 @@ export function StripePaymentForm({ amount, orderId, onSuccess, onError }: Strip
             const response: PaymentIntentResponse = await createPaymentIntent(amount, orderId) as PaymentIntentResponse;
             setClientSecret(response.clientSecret)
         } catch (error) {
-            onError("Failed to initialize payment. Please try again.")
+            console.error("Payment intent creation error:", error)
+            onError(error instanceof Error ? error.message : "Failed to initialize payment. Please try again.")
         } finally {
             setLoading(false)
         }
@@ -77,13 +78,18 @@ export function StripePaymentForm({ amount, orderId, onSuccess, onError }: Strip
 
                 if (paymentIntent.status === "succeeded") {
                     onSuccess(paymentIntent.id)
+                } else if (paymentIntent.status === "requires_action") {
+                    // Handle 3D Secure authentication if needed
+                    throw new Error("This payment requires additional authentication steps")
                 } else {
                     throw new Error(`Payment status: ${paymentIntent.status}`)
                 }
             } else {
                 // In mock mode, just simulate a successful payment
                 // The client secret is the payment intent ID in our mock implementation
-                onSuccess(clientSecret)
+                setTimeout(() => {
+                    onSuccess(clientSecret.split("_secret_")[0])
+                }, 1000) // Add a small delay to simulate processing
             }
         } catch (error) {
             onError(error instanceof Error ? error.message : "Payment processing failed")

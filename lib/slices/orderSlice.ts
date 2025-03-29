@@ -100,8 +100,7 @@ export const markOrderAsPaidAsync = createAsyncThunk(
 		thunkAPI
 	) => {
 		try {
-			// The actual API call is now handled by the processPayment function
-			// This thunk is now primarily for updating the Redux state
+			// Use the processPayment function to handle the API call
 			const response = await processPayment(
 				id,
 				method as any,
@@ -113,6 +112,7 @@ export const markOrderAsPaidAsync = createAsyncThunk(
 				response ?? thunkAPI.rejectWithValue("Invalid response from server")
 			);
 		} catch (error: any) {
+			console.error("Payment processing error:", error);
 			return thunkAPI.rejectWithValue(
 				error?.message || "Payment processing failed"
 			);
@@ -132,6 +132,11 @@ const orderSlice = createSlice({
 			if (index !== -1) {
 				state.items[index] = action.payload;
 			}
+		},
+		// Reset payment loading and error states
+		resetPaymentState: (state) => {
+			state.paymentLoading = false;
+			state.error = null;
 		},
 	},
 	extraReducers: (builder) => {
@@ -193,7 +198,8 @@ const orderSlice = createSlice({
 					state.items[index].paid = true;
 					state.items[index].status = "PROCESSING"; // Move to processing
 					state.items[index].paymentMethod = action.payload.order.paymentMethod;
-					state.items[index].paymentDetails = action.payload.order.paymentDetails;
+					state.items[index].paymentDetails =
+						action.payload.order.paymentDetails;
 				}
 			})
 			.addCase(markOrderAsPaidAsync.rejected, (state, action) => {
@@ -203,5 +209,5 @@ const orderSlice = createSlice({
 	},
 });
 
-export const { updateOrderState } = orderSlice.actions;
+export const { updateOrderState, resetPaymentState } = orderSlice.actions;
 export default orderSlice.reducer;

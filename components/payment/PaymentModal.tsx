@@ -59,6 +59,16 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
       setWalletAddress(mockWalletData.wallet.address)
       setBlockchainStep("pay")
     }
+
+    // Cleanup function to reset state when component unmounts
+    return () => {
+      setError(null)
+      setPaymentSuccess(false)
+      setActiveTab("stripe")
+      setBlockchainStep("connect")
+      setWalletAddress("")
+      setTransactionHash("")
+    }
   }, [activeTab, blockchainStep])
 
   // Handle successful Stripe payment
@@ -186,6 +196,10 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
     if (!paymentLoading) {
       setError(null)
       setPaymentSuccess(false)
+      setActiveTab("stripe")
+      setBlockchainStep("connect")
+      setWalletAddress("")
+      setTransactionHash("")
       onClose()
     }
   }
