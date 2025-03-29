@@ -23,6 +23,12 @@ import {
 } from "@/lib/api/auth";
 import { tokenManager } from "../helpers/tokenManager";
 import { toast } from "sonner";
+import {
+	connectWallet,
+	signMessage,
+	type WalletInfo,
+} from "../blockchain/web3Provider";
+import { authContract } from "../blockchain/authContract";
 
 const initialState: AuthState = {
 	user: null,
@@ -33,7 +39,153 @@ const initialState: AuthState = {
 	error: null,
 	kycStatus: KYCStatus.NOT_STARTED,
 	onboardingStatus: OnboardingStatus.NOT_STARTED,
+	wallet: null,
+	isWalletConnecting: false,
 };
+
+export const connectBlockchainWallet = createAsyncThunk<
+	WalletInfo,
+	void,
+	{ rejectValue: AuthError }
+>("auth/connectBlockchainWallet", async (_, { rejectWithValue }) => {
+	try {
+		const wallet = await connectWallet();
+		if (!wallet) {
+			throw new Error("Failed to connect wallet");
+		}
+		return wallet;
+	} catch (error: any) {
+		return rejectWithValue({
+			code: "WALLET_CONNECTION_ERROR",
+			message: error.message || "Failed to connect wallet",
+		});
+	}
+});
+
+export const loginWithWallet = createAsyncThunk<
+	AuthResponse,
+	void,
+	{ rejectValue: AuthError; state: { auth: AuthState } }
+>(
+	"auth/loginWithWallet",
+	async (_, { getState, dispatch, rejectWithValue }) => {
+		try {
+			const { wallet } = getState().auth;
+
+			if (!wallet || !wallet.address) {
+				throw new Error("Wallet not connected");
+			}
+
+			// Check if user exists on the blockchain
+			const userExists = await authContract.userExists(wallet.address);
+
+			if (!userExists) {
+				throw new Error("Wallet not registered. Please register first.");
+			}
+
+			// Generate a nonce for the user to sign
+			const nonce = Math.floor(Math.random() * 1000000).toString();
+			const message = `Sign this message to authenticate with SlateChain: ${nonce}`;
+
+			// Ask user to sign the message
+			const signature = await signMessage(message);
+
+			if (!signature) {
+				throw new Error("Failed to sign authentication message");
+			}
+
+			// Send the signature to the backend for verification
+			const response = await fetch("/auth/wallet/login", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					address: wallet.address,
+					message,
+					signature,
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Authentication failed");
+			}
+
+			const authResponse = await response.json();
+			return authResponse;
+		} catch (error: any) {
+			return rejectWithValue({
+				code: "WALLET_LOGIN_ERROR",
+				message: error.message || "Failed to authenticate with wallet",
+			});
+		}
+	}
+);
+
+export const registerWithWallet = createAsyncThunk<
+	AuthResponse,
+	{ email: string; firstName: string; lastName: string },
+	{ rejectValue: AuthError; state: { auth: AuthState } }
+>(
+	"auth/registerWithWallet",
+	async (userData, { getState, rejectWithValue }) => {
+		try {
+			const { wallet } = getState().auth;
+
+			if (!wallet || !wallet.address) {
+				throw new Error("Wallet not connected");
+			}
+
+			// Check if wallet is already registered
+			const userExists = await authContract.userExists(wallet.address);
+
+			if (userExists) {
+				throw new Error("Wallet already registered. Please login instead.");
+			}
+
+			// Generate a nonce for the user to sign
+			const nonce = Math.floor(Math.random() * 1000000).toString();
+			const message = `Sign this message to register with SlateChain: ${nonce}`;
+
+			// Ask user to sign the message
+			const signature = await signMessage(message);
+
+			if (!signature) {
+				throw new Error("Failed to sign registration message");
+			}
+
+			// Send the registration data to the backend
+			const response = await fetch("/auth/wallet/register", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					address: wallet.address,
+					message,
+					signature,
+					email: userData.email,
+					firstName: userData.firstName,
+					lastName: userData.lastName,
+				}),
+			});
+
+			if (!response.ok) {
+				const errorData = await response.json();
+				throw new Error(errorData.message || "Registration failed");
+			}
+
+			const authResponse = await response.json();
+			return authResponse;
+		} catch (error: any) {
+			return rejectWithValue({
+				code: "WALLET_REGISTRATION_ERROR",
+				message: error.message || "Failed to register with wallet",
+			});
+		}
+	}
+);
 
 export const fetchUser = createAsyncThunk<
 	AuthResponse,
@@ -255,6 +407,13 @@ const authSlice = createSlice({
 			}
 			state.onboardingStatus = action.payload;
 		},
+		// wallet
+		disconnectWallet: (state) => {
+			state.wallet = null;
+		},
+		setWallet: (state, action: PayloadAction<WalletInfo>) => {
+			state.wallet = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -383,11 +542,65 @@ const authSlice = createSlice({
 				state.loading = false;
 				tokenManager.clearTokens();
 			})
-
 			.addCase(logout.rejected, (state, action) => {
 				state.error = action.payload || {
 					code: "LOGOUT_ERROR",
 					message: "An error occurred during logout",
+				};
+			})
+			.addCase(connectBlockchainWallet.pending, (state) => {
+				state.isWalletConnecting = true;
+				state.error = null;
+			})
+			.addCase(connectBlockchainWallet.fulfilled, (state, action) => {
+				state.wallet = action.payload;
+				state.isWalletConnecting = false;
+			})
+			.addCase(connectBlockchainWallet.rejected, (state, action) => {
+				state.isWalletConnecting = false;
+				state.error = action.payload || {
+					code: "WALLET_CONNECTION_ERROR",
+					message: "Failed to connect wallet",
+				};
+			})
+			.addCase(loginWithWallet.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(loginWithWallet.fulfilled, (state, action) => {
+				state.user = action.payload.user;
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+				state.isAuthenticated = true;
+				state.loading = false;
+				state.kycStatus = action.payload.user.kycStatus;
+				state.onboardingStatus = action.payload.user.onboardingStatus;
+			})
+			.addCase(loginWithWallet.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "WALLET_LOGIN_ERROR",
+					message: "Failed to authenticate with wallet",
+				};
+			})
+			.addCase(registerWithWallet.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(registerWithWallet.fulfilled, (state, action) => {
+				state.user = action.payload.user;
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+				state.isAuthenticated = true;
+				state.loading = false;
+				state.kycStatus = action.payload.user.kycStatus;
+				state.onboardingStatus = action.payload.user.onboardingStatus;
+			})
+			.addCase(registerWithWallet.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "WALLET_REGISTRATION_ERROR",
+					message: "Failed to register with wallet",
 				};
 			});
 	},
@@ -402,5 +615,7 @@ export const {
 	resetLoading,
 	setTokens,
 	updateOnboardingStatus,
+	disconnectWallet,
+	setWallet,
 } = authSlice.actions;
 export default authSlice.reducer;

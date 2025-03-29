@@ -33,6 +33,10 @@ export interface IUser {
 	supplierMetadata?: SupplierMetadata; // Added for supplier-specific data
 	createdAt: Date;
 	updatedAt: Date;
+	blockchain?: {
+		walletAddress?: string;
+		registeredAt?: Date;
+	};
 }
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -85,6 +89,10 @@ const userSchema = new mongoose.Schema<IUser>(
 				status: "ACTIVE",
 			}),
 		},
+		blockchain: {
+			walletAddress: { type: String, sparse: true, unique: true },
+			registeredAt: Date,
+		},
 	},
 	{
 		timestamps: true,
@@ -130,6 +138,7 @@ userSchema.methods.toAuthJSON = function () {
 		},
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,
+		blockchain: this.blockchain || null,
 	};
 };
 

@@ -1,3 +1,5 @@
+import { WalletInfo } from "../blockchain/web3Provider";
+
 // User Roles
 export enum UserRole {
 	ADMIN = "admin",
@@ -140,6 +142,8 @@ export interface AuthState {
 	error: AuthError | null;
 	kycStatus: KYCStatus;
 	onboardingStatus: OnboardingStatus;
+	wallet: WalletInfo | null
+	isWalletConnecting: boolean
 }
 
 export interface AuthError {
