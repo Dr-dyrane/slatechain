@@ -21,6 +21,13 @@ const orderItemSchema = new mongoose.Schema({
 	},
 });
 
+// Define payment method types
+export enum PaymentMethod {
+	STRIPE = "stripe",
+	BLOCKCHAIN = "blockchain",
+	MANUAL = "manual",
+}
+
 // Add ID support to order item schema
 addIdSupport(orderItemSchema);
 
@@ -53,6 +60,55 @@ const orderSchema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 			index: true,
+		},
+		paymentMethod: {
+			type: String,
+			enum: Object.values(PaymentMethod),
+			default: PaymentMethod.STRIPE,
+			required: false,
+		},
+		paymentDetails: {
+			provider: { type: String, required: false, default: "stripe" },
+			transactionId: {
+				type: String,
+				required: false,
+				default: null,
+			},
+			transactionHash: {
+				type: String,
+				required: false,
+				default: null,
+			},
+			walletAddress: {
+				type: String,
+				required: false,
+				default: null,
+			},
+			status: {
+				type: String,
+				required: false,
+				default: null,
+			},
+			amount: Number,
+			cardDetails: {
+				last4: {
+					type: String,
+					default: "4242",
+				},
+				brand: {
+					type: String,
+					default: "visa",
+				},
+				expMonth: {
+					type: String,
+					default: "12",
+				},
+				expYear: {
+					type: String,
+					default: "2025",
+				},
+			},
+			processedAt: Date,
 		},
 		createdBy: {
 			type: String,

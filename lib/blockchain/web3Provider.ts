@@ -291,6 +291,11 @@ export const fetchTokenBalances = async (
 	}
 };
 
+// Check if we're in live mode or demo mode
+export const isLive = () => {
+	return apiClient.getLiveMode();
+  }
+
 // Get complete blockchain data
 export const getBlockchainData = async (
 	walletInfo: WalletInfo
@@ -385,3 +390,49 @@ export const verifyWalletOwnership = async (
 		return false;
 	}
 };
+
+// Verify a blockchain transaction
+export const verifyTransaction = async (txHash: string, expectedAmount: number, expectedRecipient: string) => {
+	try {
+	  const provider = getProvider()
+  
+	  // Get transaction details
+	  if (!provider) {
+		throw new Error("Provider not available")
+	  }
+	  const tx = await provider.getTransaction(txHash)
+	  if (!tx) {
+		throw new Error("Transaction not found")
+	  }
+  
+	  // Wait for transaction to be confirmed
+	  const receipt = await tx.wait()
+	  if (!receipt || receipt.status !== 1) {
+		throw new Error("Transaction failed or was reverted")
+	  }
+  
+	  // Verify amount (convert from ETH to Wei for comparison)
+	  const amountInWei = ethers.parseEther(expectedAmount.toString())
+	  if (tx.value < amountInWei) {
+		throw new Error("Insufficient payment amount")
+	  }
+  
+	  // Verify recipient
+	  if (tx.to?.toLowerCase() !== expectedRecipient.toLowerCase()) {
+		throw new Error("Invalid recipient address")
+	  }
+  
+	  return {
+		success: true,
+		transaction: tx,
+		receipt: receipt,
+	  }
+	} catch (error) {
+	  console.error("Transaction verification error:", error)
+	  return {
+		success: false,
+		error: error instanceof Error ? error.message : "Unknown error",
+	  }
+	}
+  }
+  

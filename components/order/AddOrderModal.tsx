@@ -21,7 +21,7 @@ import { Separator } from "@/components/ui/separator"
 import { Loader2, X } from "lucide-react"
 import { OrderDetailsForm } from "./OrderDetailsForm"
 import { OrderItemsForm } from "./OrderItemsForm"
-import { PaymentModal } from "./PaymentModal"
+import { EnhancedPaymentModal } from "../payment/PaymentModal"
 
 interface AddOrderModalProps {
   open: boolean
@@ -151,11 +151,12 @@ export function AddOrderModal({ open, onClose }: AddOrderModalProps) {
         </div>
       </AlertDialogContent>
 
-      <PaymentModal
+      <EnhancedPaymentModal
         open={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onPaymentComplete={handlePaymentProcess}
         amount={newOrder.totalAmount || 0}
+        orderId={newOrder.id?.toLocaleString() || ""}
       />
     </AlertDialog>
   )

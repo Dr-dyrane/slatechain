@@ -91,10 +91,18 @@ export const removeOrder = createAsyncThunk(
 // Process payment
 export const markOrderAsPaidAsync = createAsyncThunk(
 	"order/markOrderAsPaid",
-	async ({ id, method }: { id: string; method: string }, thunkAPI) => {
+	async (
+		{
+			id,
+			method,
+			paymentDetails,
+		}: { id: string; method: string; paymentDetails?: any },
+		thunkAPI
+	) => {
 		try {
 			const response = await apiClient.post<Order>(`/orders/${id}/payment`, {
 				method,
+				paymentDetails,
 			});
 			return (
 				response ?? thunkAPI.rejectWithValue("Invalid response from server")
@@ -179,6 +187,8 @@ const orderSlice = createSlice({
 				if (index !== -1) {
 					state.items[index].paid = true;
 					state.items[index].status = "PROCESSING"; // Move to processing
+					state.items[index].paymentMethod = action.payload.paymentMethod;
+					state.items[index].paymentDetails = action.payload.paymentDetails;
 				}
 			})
 			.addCase(markOrderAsPaidAsync.rejected, (state, action) => {

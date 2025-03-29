@@ -466,6 +466,8 @@ export interface Order {
 	paid: boolean;
 	createdAt: string;
 	updatedAt: string;
+	paymentMethod?: string;
+	paymentDetails?: Record<string, any>;
 }
 
 export interface OrderItem {
