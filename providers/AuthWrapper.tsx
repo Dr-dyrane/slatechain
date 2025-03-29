@@ -28,6 +28,11 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     // Preload all pages on first load
     useEffect(() => {
+        const settingsSubpages = [
+            "help-support",
+            "help-support/schedule",
+        ];
+
         const pages = [
             "/",           // Home
             "/dashboard",  // Dashboard
@@ -37,13 +42,14 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             "/suppliers",  // Suppliers
             "/users",      // Users
             "/profile",    // Profile
-            "/settings",   // Settings
-            "/settings/help-support",   // help and support
-            "/apps",       // apps
+            "/settings",   // Settings root
+            "/apps",       // Apps
+            // Dynamically include all settings subpages
+            ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
         ];
 
-        pages.forEach((page) => {
-            fetch(page)
+        Promise.all(pages.map((page) => fetch(page))).catch((err) => {
+            console.error("Page prefetching failed", err);
         });
     }, []);
 
