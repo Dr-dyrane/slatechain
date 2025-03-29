@@ -69,7 +69,7 @@ export default function HelpSupportPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
                 <Input
                     placeholder="Search for help topics..."
-                    className="pl-10 py-6 text-sm rounded-xl"
+                    className="pl-10 py-4 text-sm rounded-xl w-full md:max-w-xl"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                 />
