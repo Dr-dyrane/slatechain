@@ -2,11 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { createPaymentIntent } from "@/lib/api/payment"
+import { apiClient } from "@/lib/api/apiClient/[...live]"
 
 interface StripePaymentFormProps {
     amount: number
@@ -24,6 +25,7 @@ export function StripePaymentForm({ amount, orderId, onSuccess, onError }: Strip
     const elements = useElements()
     const [loading, setLoading] = useState(false)
     const [clientSecret, setClientSecret] = useState<string | null>(null)
+    const isLive = apiClient.getLiveMode()
 
     // Step 1: Create a payment intent when the component mounts
     const handleCreatePaymentIntent = async () => {
@@ -52,29 +54,36 @@ export function StripePaymentForm({ amount, orderId, onSuccess, onError }: Strip
         setLoading(true)
 
         try {
-            const cardElement = elements.getElement(CardElement)
+            if (isLive) {
+                // In live mode, use Stripe.js to confirm the payment
+                const cardElement = elements.getElement(CardElement)
 
-            if (!cardElement) {
-                throw new Error("Card element not found")
-            }
+                if (!cardElement) {
+                    throw new Error("Card element not found")
+                }
 
-            const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-                payment_method: {
-                    card: cardElement,
-                    billing_details: {
-                        // You can add billing details here if needed
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardElement,
+                        billing_details: {
+                            // You can add billing details here if needed
+                        },
                     },
-                },
-            })
+                })
 
-            if (error) {
-                throw new Error(error.message || "Payment failed")
-            }
+                if (error) {
+                    throw new Error(error.message || "Payment failed")
+                }
 
-            if (paymentIntent.status === "succeeded") {
-                onSuccess(paymentIntent.id)
+                if (paymentIntent.status === "succeeded") {
+                    onSuccess(paymentIntent.id)
+                } else {
+                    throw new Error(`Payment status: ${paymentIntent.status}`)
+                }
             } else {
-                throw new Error(`Payment status: ${paymentIntent.status}`)
+                // In mock mode, just simulate a successful payment
+                // The client secret is the payment intent ID in our mock implementation
+                onSuccess(clientSecret)
             }
         } catch (error) {
             onError(error instanceof Error ? error.message : "Payment processing failed")
@@ -84,9 +93,9 @@ export function StripePaymentForm({ amount, orderId, onSuccess, onError }: Strip
     }
 
     // Create payment intent when component mounts
-    useState(() => {
+    useEffect(() => {
         handleCreatePaymentIntent()
-    })
+    }, [])
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
