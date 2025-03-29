@@ -1,19 +1,31 @@
 // app/api/orders/[id]/payment/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
-import { handleRequest } from "@/app/api";
-import Order from "../../../models/Order";
-import { createNotification } from "@/app/actions/notifications";
+import { handleRequest } from "@/app/api"; // Assuming this is your rate limiting/auth middleware
+import Order from "../../../models/Order"; // Assuming this is your Mongoose model
+import { createNotification } from "@/app/actions/notifications"; // Assuming this is your notification function
 import mongoose from "mongoose";
 import Stripe from "stripe";
-import { isLive, verifyTransaction } from "@/lib/blockchain/web3Provider";
+import { isLive, verifyTransaction } from "@/lib/blockchain/web3Provider"; // Assuming this handles blockchain verification
 
-// Simulated keys - replace these with your actual keys in .env.local
-const STRIPE_SECRET_KEY =
-	process.env.STRIPE_SECRET_KEY || "sk_test_simulated_key";
+// --- STRIPE CONFIGURATION ---
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || ""; // MUST be in .env.local for security
+const NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
+	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
 
-// Initialize Stripe
-const stripe = new Stripe(STRIPE_SECRET_KEY);
+if (!STRIPE_SECRET_KEY) {
+	console.warn("Stripe secret key is missing. Payments will fail.");
+}
+
+if (!NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
+	console.warn(
+		"Stripe publishable key is missing. Stripe functionality will be limited on the client."
+	);
+}
+
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+	apiVersion: "2025-02-24.acacia", // or the latest version
+});
 
 const PAYMENT_RATE_LIMIT = 10;
 
@@ -22,7 +34,11 @@ type PaymentMethod = "stripe" | "blockchain" | "manual";
 
 interface PaymentData {
 	method: PaymentMethod;
+	//Only used for demo mode
 	paymentDetails?: any;
+
+	//Used for stripe payment to pass client secret to backend to get payment status
+	clientSecret?: string;
 }
 
 // POST /api/orders/[id]/payment - Process payment for an order
@@ -159,32 +175,35 @@ async function processStripePayment(order: any, paymentData: PaymentData) {
 
 	// This is a simplified mock implementation for demo purposes
 	if (isLive()) {
+		if (!paymentData.clientSecret) {
+			return {
+				success: false,
+				message: "Client Secret is required for Stripe Payments",
+			};
+		}
 		// In live mode, you would process a real Stripe payment
 		// using the Stripe SDK
 		try {
-			// Create a payment intent
-			const paymentIntent = await stripe.paymentIntents.create({
-				amount: Math.round(order.totalAmount * 100), // Stripe requires amount in cents
-				currency: "usd",
-				description: `Payment for Order #${order.orderNumber}`,
-				metadata: {
-					orderId: order._id.toString(),
-					orderNumber: order.orderNumber,
-					customerId: order.customerId._id.toString(),
-				},
-				// In a real implementation, you would use the token or payment method ID
-				payment_method_types: ["card"],
-			});
+			const paymentIntent = await stripe.paymentIntents.retrieve(
+				paymentData.clientSecret
+			);
 
-			return {
-				success: true,
-				details: {
-					provider: "stripe",
-					transactionId: paymentIntent.id,
-					status: paymentIntent.status,
-					amount: order.totalAmount,
-				},
-			};
+			if (paymentIntent.status === "succeeded") {
+				return {
+					success: true,
+					details: {
+						provider: "stripe",
+						transactionId: paymentIntent.id,
+						status: paymentIntent.status,
+						amount: order.totalAmount,
+					},
+				};
+			} else {
+				return {
+					success: false,
+					message: `Stripe payment failed with status: ${paymentIntent.status}`,
+				};
+			}
 		} catch (error) {
 			console.error("Stripe payment error:", error);
 			return {
