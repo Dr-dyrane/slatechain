@@ -95,7 +95,7 @@ export const loginWithWallet = createAsyncThunk<
 			}
 
 			// Send the signature to the backend for verification
-			const response = await fetch("/auth/wallet/login", {
+			const response = await fetch("/api/auth/wallet/login", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -156,7 +156,7 @@ export const registerWithWallet = createAsyncThunk<
 			}
 
 			// Send the registration data to the backend
-			const response = await fetch("/auth/wallet/register", {
+			const response = await fetch("/api/auth/wallet/register", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

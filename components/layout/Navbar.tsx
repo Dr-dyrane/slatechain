@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation"
 import type { Notification, User } from "@/lib/types"
 import { ProfileSheet } from "./MobileSideBar"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
 
 interface Props {
   setIsMobileNotificationDrawerOpen: (open: boolean) => void
@@ -50,6 +51,14 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
   const handleLogout = async () => {
     await dispatch(logout())
     router.push("/login")
+  }
+
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
   }
 
   return (
@@ -108,7 +117,12 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
           {isAuthenticated ? (
             <>
               <Button className="hidden md:flex" variant="outline" onClick={() => router.push("/profile")}>
-                <CircleUserRound size={20} />
+                <Avatar className="h-6 w-6">
+                  {user?.avatarUrl ? <AvatarImage src={user?.avatarUrl} />
+                    :
+                    <AvatarFallback>{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
+                  }
+                </Avatar>
                 <span className="hidden md:block ml-1">{user?.name}</span>
               </Button>
               <Button className="hidden md:flex" variant="outline" onClick={() => router.push("/settings")}>
