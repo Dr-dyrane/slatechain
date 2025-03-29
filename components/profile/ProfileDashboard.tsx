@@ -88,7 +88,7 @@ export default function ProfileDashboard({ user }: ProfileDashboardProps) {
                     </div>
                     <div className="flex items-center space-x-2">
                         <Image
-                            src="/icons/etherium.svg"
+                            src="/icons/ethereum.svg"
                             alt="Ethereum"
                             width={16}
                             height={16}

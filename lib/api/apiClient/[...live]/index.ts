@@ -3,8 +3,8 @@
 import { tokenManager } from "@/lib/helpers/tokenManager";
 import axios, {
 	type AxiosError,
-	AxiosInstance,
-	AxiosRequestConfig,
+	type AxiosInstance,
+	type AxiosRequestConfig,
 } from "axios";
 import { toast } from "sonner";
 import { mockApiResponses } from "../../mockData";
@@ -61,6 +61,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 	NOTIFICATION_NOT_FOUND: "Notification not found",
 	FORBIDDEN_NOTIFICATION:
 		"You don't have permission to access this notification",
+	WALLET_NOT_REGISTERED: "Wallet not registered. Please register first.",
+	WALLET_EXISTS: "This wallet address is already registered",
+	INVALID_SIGNATURE: "Invalid signature",
 };
 
 class ApiClient {
@@ -134,6 +137,11 @@ class ApiClient {
 	private setupInterceptors() {
 		this.axiosInstance.interceptors.request.use(
 			(config) => {
+				// Check localStorage again on each request to ensure we have the latest value
+				if (typeof window !== "undefined") {
+					this.isLive = this.getIsLiveFromStorage();
+				}
+
 				const token = tokenManager.getAccessToken();
 				if (token) {
 					config.headers["Authorization"] = `Bearer ${token}`;
@@ -147,6 +155,17 @@ class ApiClient {
 			(response) => response,
 			async (error) => {
 				const originalRequest = error.config as CustomAxiosRequestConfig;
+
+				// If not in live mode, use mock data instead of handling the error
+				if (!this.isLive) {
+					return this.mockRequest(
+						originalRequest.method || "get",
+						originalRequest.url || "",
+						originalRequest.data
+					).then((data) => {
+						return { data };
+					});
+				}
 
 				// Check if error is 401 (Unauthorized) before attempting refresh
 				if (error.response?.status === 401) {
@@ -229,34 +248,21 @@ class ApiClient {
 		);
 	}
 
+	// This method is still available but will now update localStorage as well
 	setLiveMode(value: boolean) {
 		this.isLive = value;
+		if (typeof window !== "undefined") {
+			localStorage.setItem("isLive", value.toString());
+		}
 	}
 
-	async request<T>(
-		method: string,
-		url: string,
-		data?: any,
-		config?: AxiosRequestConfig
-	): Promise<T> {
-		if (!this.isLive) {
-			return this.mockRequest<T>(method, url, data);
+	// Get current mode
+	getLiveMode(): boolean {
+		// Always check localStorage to ensure we have the latest value
+		if (typeof window !== "undefined") {
+			return this.getIsLiveFromStorage();
 		}
-
-		try {
-			const response = await this.axiosInstance.request<T>({
-				method,
-				url,
-				data,
-				...config,
-			});
-			return response.data;
-		} catch (error) {
-			if (axios.isAxiosError(error)) {
-				throw new ApiError(this.getErrorMessage(error), error.response?.status);
-			}
-			throw error;
-		}
+		return this.isLive;
 	}
 
 	// Add mockRequest method to handle mock responses
@@ -348,6 +354,38 @@ class ApiClient {
 				}
 			}, 500); // Simulate network delay
 		});
+	}
+
+	async request<T>(
+		method: string,
+		url: string,
+		data?: any,
+		config?: AxiosRequestConfig
+	): Promise<T> {
+		// Check localStorage again to ensure we have the latest value
+		if (typeof window !== "undefined") {
+			this.isLive = this.getIsLiveFromStorage();
+		}
+
+		// If not in live mode, use mock data
+		if (!this.isLive) {
+			return this.mockRequest<T>(method, url, data);
+		}
+
+		try {
+			const response = await this.axiosInstance.request<T>({
+				method,
+				url,
+				data,
+				...config,
+			});
+			return response.data;
+		} catch (error) {
+			if (axios.isAxiosError(error)) {
+				throw new ApiError(this.getErrorMessage(error), error.response?.status);
+			}
+			throw error;
+		}
 	}
 
 	async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

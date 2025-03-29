@@ -35,7 +35,11 @@ import {
 	OnboardingStep,
 	BillOfMaterials,
 } from "@/lib/types";
-import { ShopifyOrdersResponse, ShopifyShopResponse } from "../slices/shopifySlice";
+import {
+	ShopifyOrdersResponse,
+	ShopifyShopResponse,
+} from "../slices/shopifySlice";
+import { mockBlockchainApiResponses } from "../blockchain/mockApiResponses";
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -1418,6 +1422,8 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			shop: mockShops[0],
 		}),
 		"/notifications": (): Notification[] => mockNotifications,
+		"/blockchain/wallet-data": (params: any) =>
+			mockBlockchainApiResponses["/blockchain/wallet-data"](params),
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -1641,5 +1647,13 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				id: Math.random().toString(),
 			};
 		},
+		"/blockchain/register-wallet": (data: any) =>
+			mockBlockchainApiResponses["/blockchain/register-wallet"](data),
+		"/blockchain/verify-wallet": (data: any) =>
+			mockBlockchainApiResponses["/blockchain/verify-wallet"](data),
+		"/auth/wallet/login": (data: any) =>
+			mockBlockchainApiResponses["/auth/wallet/login"](data),
+		"/auth/wallet/register": (data: any) =>
+			mockBlockchainApiResponses["/auth/wallet/register"](data),
 	},
 };

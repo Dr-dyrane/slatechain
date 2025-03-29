@@ -21,7 +21,7 @@ const BlockchainSignInButton = forwardRef<HTMLButtonElement, BlockchainSignInBut
         {...props}
       >
         <Image
-          src="/icons/etherium.svg"
+          src="/icons/ethereum.svg"
           alt="Ethereum"
           width={16}
           height={16}

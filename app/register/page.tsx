@@ -451,7 +451,7 @@ export default function RegisterPage() {
             disabled={isSubmitting || loading}
             className="w-full gap-2"
           >
-            Sign in with Etherium
+            Sign in with Ethereum
           </BlockchainSignInButton>
           <div className="text-sm text-center">
             Already have an account?{" "}

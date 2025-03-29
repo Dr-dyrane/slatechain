@@ -18,6 +18,8 @@ import {
     RefreshCw,
     ShieldCheck,
     ExternalLink,
+    Coins,
+    History,
 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -35,6 +37,8 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Image from "next/image"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getBlockchainData, type MockBlockchainData } from "@/lib/blockchain/web3Provider"
 
 const registerSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -49,10 +53,9 @@ export default function WalletConnection() {
     const { wallet, isWalletConnecting, error, user } = useSelector((state: RootState) => state.auth)
     const [copied, setCopied] = useState(false)
     const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false)
-    const [walletBalance, setWalletBalance] = useState<string | null>(null)
-    const [isLoadingBalance, setIsLoadingBalance] = useState(false)
-    const [transactionHistory, setTransactionHistory] = useState<any[]>([])
-    const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+    const [blockchainData, setBlockchainData] = useState<MockBlockchainData | null>(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [activeTab, setActiveTab] = useState("overview")
 
     const form = useForm<RegisterFormValues>({
         resolver: zodResolver(registerSchema),
@@ -65,57 +68,22 @@ export default function WalletConnection() {
 
     useEffect(() => {
         if (wallet?.address) {
-            fetchWalletBalance()
-            fetchTransactionHistory()
+            loadBlockchainData()
         }
     }, [wallet?.address])
 
-    const fetchWalletBalance = async () => {
+    const loadBlockchainData = async () => {
         if (!wallet?.address) return
 
-        setIsLoadingBalance(true)
+        setIsLoading(true)
         try {
-            // This would be replaced with actual blockchain API call
-            // For demo purposes, we're simulating a balance fetch
-            setTimeout(() => {
-                setWalletBalance("0.0425 ETH")
-                setIsLoadingBalance(false)
-            }, 1000)
+            const data = await getBlockchainData(wallet)
+            setBlockchainData(data)
         } catch (error) {
-            console.error("Error fetching wallet balance:", error)
-            setIsLoadingBalance(false)
-        }
-    }
-
-    const fetchTransactionHistory = async () => {
-        if (!wallet?.address) return
-
-        setIsLoadingHistory(true)
-        try {
-            // This would be replaced with actual blockchain API call
-            // For demo purposes, we're simulating transaction history
-            setTimeout(() => {
-                setTransactionHistory([
-                    {
-                        id: "0x1a2b3c...",
-                        type: "Transfer",
-                        amount: "0.01 ETH",
-                        date: "2023-03-15",
-                        status: "Confirmed",
-                    },
-                    {
-                        id: "0x4d5e6f...",
-                        type: "Contract Interaction",
-                        amount: "0.005 ETH",
-                        date: "2023-03-10",
-                        status: "Confirmed",
-                    },
-                ])
-                setIsLoadingHistory(false)
-            }, 1500)
-        } catch (error) {
-            console.error("Error fetching transaction history:", error)
-            setIsLoadingHistory(false)
+            console.error("Error loading blockchain data:", error)
+            toast.error("Failed to load blockchain data")
+        } finally {
+            setIsLoading(false)
         }
     }
 
@@ -130,6 +98,7 @@ export default function WalletConnection() {
 
     const handleDisconnectWallet = () => {
         dispatch(disconnectWallet())
+        setBlockchainData(null)
         toast.success("Wallet disconnected")
     }
 
@@ -168,16 +137,39 @@ export default function WalletConnection() {
     }
 
     const refreshData = () => {
-        fetchWalletBalance()
-        fetchTransactionHistory()
+        loadBlockchainData()
         toast.success("Refreshing blockchain data")
     }
 
     const viewOnExplorer = () => {
         if (!wallet?.address) return
 
-        // This would be replaced with actual blockchain explorer URL
-        window.open(`https://etherscan.io/address/${wallet.address}`, "_blank")
+        // This would be replaced with actual blockchain explorer URL based on the chain
+        const explorerUrl =
+            wallet.chainId === 1
+                ? `https://etherscan.io/address/${wallet.address}`
+                : wallet.chainId === 137
+                    ? `https://polygonscan.com/address/${wallet.address}`
+                    : `https://etherscan.io/address/${wallet.address}`
+
+        window.open(explorerUrl, "_blank")
+    }
+
+    const getChainName = (chainId: number) => {
+        switch (chainId) {
+            case 1:
+                return "Ethereum Mainnet"
+            case 5:
+                return "Goerli Testnet"
+            case 11155111:
+                return "Sepolia Testnet"
+            case 137:
+                return "Polygon Mainnet"
+            case 80001:
+                return "Mumbai Testnet"
+            default:
+                return `Chain ID: ${chainId}`
+        }
     }
 
     return (
@@ -192,13 +184,8 @@ export default function WalletConnection() {
                             </CardDescription>
                         </div>
                         {wallet && (
-                            <Button
-                                variant="outline"
-                                size="icon"
-                                onClick={refreshData}
-                                disabled={isLoadingBalance || isLoadingHistory}
-                            >
-                                <RefreshCw className={`h-4 w-4 ${isLoadingBalance || isLoadingHistory ? "animate-spin" : ""}`} />
+                            <Button variant="outline" size="icon" onClick={refreshData} disabled={isLoading}>
+                                <RefreshCw className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
                             </Button>
                         )}
                     </div>
@@ -215,13 +202,7 @@ export default function WalletConnection() {
                     {!wallet ? (
                         <div className="flex flex-col items-center justify-center py-8 space-y-4">
                             <div className="bg-muted p-6 rounded-full">
-                                <Image
-                                    src="/icons/etherium.svg"
-                                    alt="Ethereum"
-                                    width={48}
-                                    height={48}
-                                    className="h-12 w-12"
-                                />
+                                <Image src="/icons/ethereum.svg" alt="Ethereum" width={48} height={48} className="h-12 w-12" />
                             </div>
                             <div className="text-center space-y-2">
                                 <h3 className="text-lg font-medium">No Wallet Connected</h3>
@@ -237,6 +218,7 @@ export default function WalletConnection() {
                                     </>
                                 ) : (
                                     <>
+                                        <Wallet className="mr-2 h-4 w-4" />
                                         Connect Wallet
                                     </>
                                 )}
@@ -279,69 +261,200 @@ export default function WalletConnection() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="bg-muted/50 p-4 rounded-lg">
                                     <h3 className="text-sm font-medium mb-2">Wallet Balance</h3>
-                                    {isLoadingBalance ? (
+                                    {isLoading ? (
                                         <Skeleton className="h-8 w-24" />
                                     ) : (
-                                        <p className="text-2xl font-bold">{walletBalance || "0.00 ETH"}</p>
+                                        <p className="text-2xl font-bold">{blockchainData?.balance || "0.00 ETH"}</p>
                                     )}
                                 </div>
                                 <div className="bg-muted/50 p-4 rounded-lg">
-                                    <h3 className="text-sm font-medium mb-2">Wallet Type</h3>
+                                    <h3 className="text-sm font-medium mb-2">Network</h3>
                                     <div className="flex items-center gap-2">
                                         <Badge variant="outline">{wallet.type || "MetaMask"}</Badge>
-                                        <Badge
-                                            variant="outline"
-                                            className="bg-green-500/10 text-green-500 hover:bg-green-500/20 hover:text-green-600"
-                                        >
-                                            <ShieldCheck className="mr-1 h-3 w-3" />
-                                            Verified
-                                        </Badge>
+                                        <Badge variant="outline">{getChainName(wallet.chainId)}</Badge>
                                     </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <h3 className="text-sm font-medium mb-2">Recent Transactions</h3>
-                                {isLoadingHistory ? (
-                                    <div className="space-y-2">
-                                        <Skeleton className="h-12 w-full" />
-                                        <Skeleton className="h-12 w-full" />
-                                    </div>
-                                ) : transactionHistory.length > 0 ? (
-                                    <div className="space-y-2">
-                                        {transactionHistory.map((tx, index) => (
-                                            <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                                                <div>
-                                                    <p className="text-sm font-medium">{tx.type}</p>
-                                                    <p className="text-xs text-muted-foreground">{tx.id}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-sm font-medium">{tx.amount}</p>
-                                                    <p className="text-xs text-muted-foreground">{tx.date}</p>
-                                                </div>
+                            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                                <TabsList className="grid grid-cols-3 mb-4">
+                                    <TabsTrigger value="overview">Overview</TabsTrigger>
+                                    <TabsTrigger value="tokens">Tokens</TabsTrigger>
+                                    <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="overview" className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="bg-muted/30 p-4 rounded-lg">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Coins className="h-4 w-4 text-primary" />
+                                                <h3 className="text-sm font-medium">Token Summary</h3>
                                             </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-4 bg-muted/30 rounded-lg">
-                                        <p className="text-sm text-muted-foreground">No transactions found</p>
-                                    </div>
-                                )}
-                            </div>
+                                            {isLoading ? (
+                                                <div className="space-y-2">
+                                                    <Skeleton className="h-6 w-full" />
+                                                    <Skeleton className="h-6 w-full" />
+                                                </div>
+                                            ) : blockchainData?.tokens && blockchainData.tokens.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {blockchainData.tokens.slice(0, 3).map((token, index) => (
+                                                        <div key={index} className="flex justify-between items-center">
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                                                                    <span className="text-xs font-medium">{token.symbol.charAt(0)}</span>
+                                                                </div>
+                                                                <span className="text-sm">{token.symbol}</span>
+                                                            </div>
+                                                            <span className="text-sm font-medium">{token.balance}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">No tokens found</p>
+                                            )}
+                                        </div>
 
-                            {!user?.blockchain?.walletAddress && (
-                                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                                    <h3 className="text-sm font-medium mb-2">Link Wallet to Account</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Your wallet is connected but not linked to your account. Link it now to use for authentication and
-                                        transactions.
-                                    </p>
-                                    <Button onClick={handleLoginWithWallet}>
-                                        <ShieldCheck className="mr-2 h-4 w-4" />
-                                        Link Wallet to Account
-                                    </Button>
-                                </div>
-                            )}
+                                        <div className="bg-muted/30 p-4 rounded-lg">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <History className="h-4 w-4 text-primary" />
+                                                <h3 className="text-sm font-medium">Recent Activity</h3>
+                                            </div>
+                                            {isLoading ? (
+                                                <div className="space-y-2">
+                                                    <Skeleton className="h-6 w-full" />
+                                                    <Skeleton className="h-6 w-full" />
+                                                </div>
+                                            ) : blockchainData?.transactions && blockchainData.transactions.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    {blockchainData.transactions.slice(0, 2).map((tx, index) => (
+                                                        <div key={index} className="flex justify-between items-center">
+                                                            <span className="text-sm">{tx.type}</span>
+                                                            <span className="text-sm font-medium">{tx.amount}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground">No recent activity</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {!user?.blockchain?.walletAddress && (
+                                        <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                                            <h3 className="text-sm font-medium mb-2">Link Wallet to Account</h3>
+                                            <p className="text-sm text-muted-foreground mb-4">
+                                                Your wallet is connected but not linked to your account. Link it now to use for authentication
+                                                and transactions.
+                                            </p>
+                                            <Button onClick={handleLoginWithWallet}>
+                                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                                Link Wallet to Account
+                                            </Button>
+                                        </div>
+                                    )}
+                                </TabsContent>
+
+                                <TabsContent value="tokens">
+                                    <div className="bg-muted/30 rounded-lg">
+                                        <div className="p-4 border-b border-border">
+                                            <h3 className="text-sm font-medium">Token Balances</h3>
+                                        </div>
+                                        {isLoading ? (
+                                            <div className="p-4 space-y-3">
+                                                {[1, 2, 3, 4].map((_, i) => (
+                                                    <Skeleton key={i} className="h-12 w-full" />
+                                                ))}
+                                            </div>
+                                        ) : blockchainData?.tokens && blockchainData.tokens.length > 0 ? (
+                                            <div className="divide-y divide-border">
+                                                {blockchainData.tokens.map((token, index) => (
+                                                    <div key={index} className="flex items-center justify-between p-4">
+                                                        <div className="flex items-center gap-3">
+                                                            {token.icon ? (
+                                                                <Image
+                                                                    src={token.icon || "/placeholder.svg"}
+                                                                    alt={token.name}
+                                                                    width={24}
+                                                                    height={24}
+                                                                    className="rounded-full"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+                                                                    <span className="text-xs font-medium">{token.symbol.charAt(0)}</span>
+                                                                </div>
+                                                            )}
+                                                            <div>
+                                                                <p className="text-sm font-medium">{token.name}</p>
+                                                                <p className="text-xs text-muted-foreground">{token.symbol}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-sm font-medium">{token.balance}</p>
+                                                            <p className="text-xs text-muted-foreground">{token.usdValue}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center">
+                                                <p className="text-sm text-muted-foreground">No tokens found in this wallet</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </TabsContent>
+
+                                <TabsContent value="transactions">
+                                    <div className="bg-muted/30 rounded-lg">
+                                        <div className="p-4 border-b border-border">
+                                            <h3 className="text-sm font-medium">Transaction History</h3>
+                                        </div>
+                                        {isLoading ? (
+                                            <div className="p-4 space-y-3">
+                                                {[1, 2, 3, 4].map((_, i) => (
+                                                    <Skeleton key={i} className="h-16 w-full" />
+                                                ))}
+                                            </div>
+                                        ) : blockchainData?.transactions && blockchainData.transactions.length > 0 ? (
+                                            <div className="divide-y divide-border">
+                                                {blockchainData.transactions.map((tx, index) => (
+                                                    <div key={index} className="p-4">
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <div>
+                                                                <p className="text-sm font-medium">{tx.type}</p>
+                                                                <p className="text-xs text-muted-foreground truncate max-w-[200px] sm:max-w-xs">
+                                                                    {tx.id}
+                                                                </p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="text-sm font-medium">{tx.amount}</p>
+                                                                <p className="text-xs text-muted-foreground">{tx.date}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex justify-between items-center mt-2">
+                                                            <Badge variant="outline" className="text-xs">
+                                                                {tx.status}
+                                                            </Badge>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-6 text-xs"
+                                                                onClick={() => window.open(`https://etherscan.io/tx/${tx.id}`, "_blank")}
+                                                            >
+                                                                View
+                                                                <ExternalLink className="ml-1 h-3 w-3" />
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center">
+                                                <p className="text-sm text-muted-foreground">No transactions found for this wallet</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </TabsContent>
+                            </Tabs>
                         </div>
                     )}
                 </CardContent>

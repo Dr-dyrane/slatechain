@@ -1,15 +1,19 @@
-// src/lib/slices/authSlice.ts
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+// lib/slices/authSlice.ts
 import {
-	AuthState,
-	AuthError,
-	LoginRequest,
-	RegisterRequest,
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
+import {
+	type AuthState,
+	type AuthError,
+	type LoginRequest,
+	type RegisterRequest,
 	KYCStatus,
 	OnboardingStatus,
-	AuthResponse,
-	User,
-	PasswordChangeFormData,
+	type AuthResponse,
+	type User,
+	type PasswordChangeFormData,
 } from "@/lib/types";
 import {
 	loginUser,
@@ -29,6 +33,7 @@ import {
 	type WalletInfo,
 } from "../blockchain/web3Provider";
 import { authContract } from "../blockchain/authContract";
+import { apiClient } from "@/lib/api/apiClient/[...live]";
 
 const initialState: AuthState = {
 	user: null,
@@ -94,26 +99,20 @@ export const loginWithWallet = createAsyncThunk<
 				throw new Error("Failed to sign authentication message");
 			}
 
-			// Send the signature to the backend for verification
-			const response = await fetch("/api/auth/wallet/login", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
+			// Send the signature to the backend for verification using apiClient
+			const response = await apiClient.post<AuthResponse>(
+				"/auth/wallet/login",
+				{
 					address: wallet.address,
 					message,
 					signature,
-				}),
-			});
+				}
+			);
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || "Authentication failed");
-			}
+			// Store tokens
+			tokenManager.setTokens(response.accessToken, response.refreshToken);
 
-			const authResponse = await response.json();
-			return authResponse;
+			return response;
 		} catch (error: any) {
 			return rejectWithValue({
 				code: "WALLET_LOGIN_ERROR",
@@ -155,29 +154,23 @@ export const registerWithWallet = createAsyncThunk<
 				throw new Error("Failed to sign registration message");
 			}
 
-			// Send the registration data to the backend
-			const response = await fetch("/api/auth/wallet/register", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
+			// Send the registration data to the backend using apiClient
+			const response = await apiClient.post<AuthResponse>(
+				"/auth/wallet/register",
+				{
 					address: wallet.address,
 					message,
 					signature,
 					email: userData.email,
 					firstName: userData.firstName,
 					lastName: userData.lastName,
-				}),
-			});
+				}
+			);
 
-			if (!response.ok) {
-				const errorData = await response.json();
-				throw new Error(errorData.message || "Registration failed");
-			}
+			// Store tokens
+			tokenManager.setTokens(response.accessToken, response.refreshToken);
 
-			const authResponse = await response.json();
-			return authResponse;
+			return response;
 		} catch (error: any) {
 			return rejectWithValue({
 				code: "WALLET_REGISTRATION_ERROR",
