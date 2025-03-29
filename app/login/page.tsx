@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Logo } from '@/components/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AppDispatch, RootState } from '@/lib/store';
-import { login, googleLogin, resetLoading, appleLogin, setLoading } from '@/lib/slices/authSlice';
+import { login, googleLogin, resetLoading, appleLogin, setLoading, connectBlockchainWallet } from '@/lib/slices/authSlice';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { ForgotPasswordModal } from '@/components/auth/ForgotPasswordModal';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, ArrowLeft, LogIn, X } from 'lucide-react';
@@ -19,6 +19,8 @@ import * as Tooltip from '@radix-ui/react-tooltip';
 import { toast } from 'sonner';
 import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
 import AuthLoading from './loading';
+import { BlockchainSignInButton } from '@/components/ui/blockchain-sign-in-button';
+import { BlockchainLoginModal } from '@/components/auth/BlockchainLoginModal';
 
 interface FormErrors {
   email?: string
@@ -34,7 +36,8 @@ export default function LoginPage() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [showForgotPassowrd, setShowForgotPassowrd] = useState(false);
-  const { error, loading } = useSelector((state: RootState) => state.auth);
+  const { error, loading, wallet } = useSelector((state: RootState) => state.auth);
+  const [showBlockchainModal, setShowBlockchainModal] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -99,6 +102,20 @@ export default function LoginPage() {
   const handleAppleSignIn = () => {
     dispatch(appleLogin());
   };
+
+  const handleBlockchainSignIn = async () => {
+    try {
+      // First connect the wallet
+      const walletResult = await dispatch(connectBlockchainWallet()).unwrap()
+
+      if (walletResult) {
+        // If wallet is connected, open the blockchain login modal
+        setShowBlockchainModal(true)
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to connect wallet")
+    }
+  }
 
   const handleGoBack = () => {
     router.push('/')
@@ -248,6 +265,14 @@ export default function LoginPage() {
             Sign in with Apple
           </AppleSignInButton>
 
+          <BlockchainSignInButton
+            onClick={handleBlockchainSignIn}
+            disabled={isSubmitting || loading}
+            className="w-full gap-2"
+          >
+            Sign in with Etherium
+          </BlockchainSignInButton>
+
           <div className="text-sm text-center">
             Don't have a chain?{" "}
             <Link href="/register" className="text-primary hover:underline">
@@ -257,6 +282,11 @@ export default function LoginPage() {
         </CardFooter>
       </Card>
       <ForgotPasswordModal isOpen={showForgotPassowrd} onClose={() => setShowForgotPassowrd(false)} />
+      <BlockchainLoginModal
+        isOpen={showBlockchainModal}
+        onClose={() => setShowBlockchainModal(false)}
+        wallet={wallet}
+      />
     </div>
   );
 }

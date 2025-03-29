@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { appleLogin, googleLogin, register } from '@/lib/slices/authSlice';
+import { appleLogin, connectBlockchainWallet, googleLogin, register } from '@/lib/slices/authSlice';
 import { AppDispatch, RootState } from '@/lib/store';
 import Link from 'next/link';
 import { UserRole } from '@/lib/types';
@@ -20,6 +20,9 @@ import { cn } from '@/lib/utils';
 import AuthLoading from './loading';
 import { GoogleSignInButton } from '@/components/ui/google-sign-in-button';
 import { AppleSignInButton } from '@/components/ui/apple-sign-in-button';
+import { BlockchainSignInButton } from '@/components/ui/blockchain-sign-in-button';
+import { BlockchainLoginModal } from '@/components/auth/BlockchainLoginModal';
+import { toast } from 'sonner';
 
 const steps = ['Basic Info'];
 
@@ -59,13 +62,14 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
-  const { error, loading } = useSelector((state: RootState) => state.auth);
+  const { error, loading, wallet } = useSelector((state: RootState) => state.auth);
   const router = useRouter();
 
   const [passwordStrength, setPasswordStrength] = useState<{ hasUppercase: boolean; hasLowercase: boolean; hasNumber: boolean; isLongEnough: boolean } | null>(null);
   const [passwordsMatch, setPasswordsMatch] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formErrors, setFormErrors] = useState<z.ZodError | null>(null);
+  const [showBlockchainModal, setShowBlockchainModal] = useState(false)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -148,6 +152,20 @@ export default function RegisterPage() {
   const getFieldError = (fieldName: keyof RegisterFormValues) => {
     return formErrors?.flatten().fieldErrors[fieldName]?.[0];
   };
+
+  const handleBlockchainSignIn = async () => {
+    try {
+      // First connect the wallet
+      const walletResult = await dispatch(connectBlockchainWallet()).unwrap()
+
+      if (walletResult) {
+        // If wallet is connected, open the blockchain login modal
+        setShowBlockchainModal(true)
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to connect wallet")
+    }
+  }
 
   const renderForm = () => {
     return (
@@ -361,6 +379,7 @@ export default function RegisterPage() {
     dispatch(appleLogin());
   };
 
+
   return (
     <div className="flex min-h-screen h-auto p-8 items-center justify-center bg-none">
       <Card className="w-[350px] sm:w-[400px] relative">
@@ -426,6 +445,14 @@ export default function RegisterPage() {
           <AppleSignInButton onClick={handleAppleSignIn} disabled={isSubmitting || loading} className="w-full gap-2">
             Sign up with Apple
           </AppleSignInButton>
+
+          <BlockchainSignInButton
+            onClick={handleBlockchainSignIn}
+            disabled={isSubmitting || loading}
+            className="w-full gap-2"
+          >
+            Sign in with Etherium
+          </BlockchainSignInButton>
           <div className="text-sm text-center">
             Already have an account?{" "}
             <Button variant="link" asChild className="p-0">
@@ -434,6 +461,11 @@ export default function RegisterPage() {
           </div>
         </CardFooter>
       </Card>
+      <BlockchainLoginModal
+        isOpen={showBlockchainModal}
+        onClose={() => setShowBlockchainModal(false)}
+        wallet={wallet}
+      />
     </div>
   );
 }
