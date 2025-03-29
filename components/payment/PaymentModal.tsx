@@ -46,7 +46,7 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
   const [transactionHash, setTransactionHash] = useState("")
   const [blockchainStep, setBlockchainStep] = useState<"connect" | "pay" | "verify">("connect")
   const [companyWalletAddress, setCompanyWalletAddress] = useState(
-    process.env.COMPANY_WALLET_ADDRESS || "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+    process.env.COMPANY_WALLET_ADDRESS || "",
   )
 
   // Check if we're in demo mode
