@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import type { RootState, AppDispatch } from "@/lib/store"
-import { connectBlockchainWallet, disconnectWallet, loginWithWallet, registerWithWallet } from "@/lib/slices/authSlice"
+import { connectBlockchainWallet, disconnectWallet, loginWithWallet, registerWithWallet, setWallet } from "@/lib/slices/authSlice"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -39,6 +39,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import Image from "next/image"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getBlockchainData, type MockBlockchainData } from "@/lib/blockchain/web3Provider"
+import { apiClient } from "@/lib/api/apiClient/[...live]"
+import { mockWalletData } from "@/lib/blockchain/mockBlockchainData"
 
 const registerSchema = z.object({
     email: z.string().email("Please enter a valid email address"),
@@ -65,6 +67,24 @@ export default function WalletConnection() {
             lastName: "",
         },
     })
+
+    // Check if we're in demo mode
+  useEffect(() => {
+    const isLive = apiClient.getLiveMode()
+
+    // If we're in demo mode and no wallet is connected, auto-connect a mock wallet
+    if (!isLive && !wallet) {
+      // Dispatch the setWallet action with mock wallet data
+      dispatch(
+        setWallet({
+          address: mockWalletData.wallet.address,
+          chainId: mockWalletData.wallet.chainId,
+          isConnected: true,
+          type: "MetaMask",
+        }),
+      )
+    }
+  }, [dispatch, wallet])
 
     useEffect(() => {
         if (wallet?.address) {

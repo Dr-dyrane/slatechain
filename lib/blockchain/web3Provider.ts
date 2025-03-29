@@ -161,7 +161,7 @@ export const fetchWalletBalance = async (
 				const response = await apiClient.get<{
 					success: boolean;
 					data: MockBlockchainData;
-				}>(`/api/blockchain/wallet-data?address=${walletAddress}`);
+				}>(`/blockchain/wallet-data?address=${walletAddress}`);
 				return response.data.balance;
 			} catch (error) {
 				console.error("Error fetching mock wallet balance:", error);
@@ -196,7 +196,7 @@ export const fetchTransactionHistory = async (
 				const response = await apiClient.get<{
 					success: boolean;
 					data: MockBlockchainData;
-				}>(`/api/blockchain/wallet-data?address=${walletAddress}`);
+				}>(`/blockchain/wallet-data?address=${walletAddress}`);
 				return response.data.transactions;
 			} catch (error) {
 				console.error("Error fetching mock transaction history:", error);
@@ -253,7 +253,7 @@ export const fetchTokenBalances = async (
 				const response = await apiClient.get<{
 					success: boolean;
 					data: MockBlockchainData;
-				}>(`/api/blockchain/wallet-data?address=${walletAddress}`);
+				}>(`/blockchain/wallet-data?address=${walletAddress}`);
 				return response.data.tokens;
 			} catch (error) {
 				console.error("Error fetching mock token balances:", error);
@@ -305,7 +305,7 @@ export const getBlockchainData = async (
 				const response = await apiClient.get<{
 					success: boolean;
 					data: MockBlockchainData;
-				}>(`/api/blockchain/wallet-data?address=${walletInfo.address}`);
+				}>(`/blockchain/wallet-data?address=${walletInfo.address}`);
 				return response.data;
 			} catch (error) {
 				console.error("Error fetching mock blockchain data:", error);
@@ -355,7 +355,7 @@ export const registerWalletWithBackend = async (
 ): Promise<boolean> => {
 	try {
 		const response = await apiClient.post<{ success: boolean }>(
-			"/api/blockchain/register-wallet",
+			"/blockchain/register-wallet",
 			{
 				walletAddress,
 				userId,
