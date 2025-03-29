@@ -6,12 +6,11 @@ import {
     ColumnDef,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
-import { ChevronRight, Download } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { TouchableOpacity } from "@/components/ui/touchable-opacity"
 import { Avatar } from "@/components/ui/avatar"
 import { DataDetailsModal } from "@/components/table/DataDetailsModal"
-import { Card, CardContent, CardFooter } from "../ui/card";
-import { exportToCSV } from "@/lib/utils";
+import { Card, CardContent } from "../ui/card";
 
 
 interface DataRow {
@@ -54,19 +53,6 @@ export function ListCard<TData extends DataRow, TValue>({
         return column.accessorKey ? item[column.accessorKey as string] : '';
     };
 
-    // Extract column definitions for CSV export
-    const exportColumns = columns
-        .map((col) => ({
-            accessorKey: typeof col.accessorKey === "string" ? col.accessorKey : "",
-            header: typeof col.header === "string" ? col.header : col.id || "",
-        }))
-        .filter((col) => col.accessorKey)
-
-    // Function to export all data
-    const handleExport = () => {
-        exportToCSV(data, exportColumns, "export.csv")
-    }
-
     return (
         <>
             <div className="space-y-4">
@@ -98,15 +84,8 @@ export function ListCard<TData extends DataRow, TValue>({
                             </CardContent>
                         </Card>
                     </TouchableOpacity>
+
                 ))}
-                {data.length > 0 && (
-                    <CardFooter className="pt-2 px-0">
-                        <Button variant="outline" size="sm" className="ml-auto" onClick={handleExport}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Export to CSV
-                        </Button>
-                    </CardFooter>
-                )}
             </div>
             <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name || ''} onEdit={onEdit}
                 onDelete={onDelete} />

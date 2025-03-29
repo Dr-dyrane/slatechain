@@ -3,10 +3,10 @@
 
 import * as React from "react"
 import {
-    ColumnDef,
-    ColumnFiltersState,
-    SortingState,
-    VisibilityState,
+    type ColumnDef,
+    type ColumnFiltersState,
+    type SortingState,
+    type VisibilityState,
     flexRender,
     getCoreRowModel,
     getFilteredRowModel,
@@ -14,45 +14,35 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ChevronDown, Search } from 'lucide-react'
 
-import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ListCard } from "./List-card"
 import { DataTablePagination } from "./DataTablePagination"
 import { DataDetailsModal } from "@/components/table/DataDetailsModal"
+import { DataTableToolbar } from "./DataTableToolbar"
+import { exportToCSV } from "@/lib/utils"
 
 interface DataRow {
-    id: string;
+    id: string
     [key: string]: any
 }
 
 interface DataTableProps<TData extends DataRow> {
     columns: ColumnDef<TData, any>[]
     data: TData[]
-    onEdit?: (item:any) => void;
-    onDelete?: (item:any) => void;
+    onEdit?: (item: any) => void
+    onDelete?: (item: any) => void
+    exportFilename?: string
+    searchKey?: string
 }
-
 
 export function DataTable<TData extends DataRow>({
     columns,
     data,
-    onEdit, onDelete
+    onEdit,
+    onDelete,
+    exportFilename = "export.csv",
+    searchKey = "name",
 }: DataTableProps<TData>) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -77,63 +67,47 @@ export function DataTable<TData extends DataRow>({
             columnVisibility,
             rowSelection,
         },
-    });
+    })
 
     const handleRowClick = (row: TData) => {
-        setSelectedRow(row);
-    };
+        setSelectedRow(row)
+    }
 
     const handleCloseModal = () => {
         setSelectedRow(null)
     }
 
+    // Extract column definitions for CSV export
+    const exportColumns = columns
+        .map((col) => ({
+            accessorKey: typeof col.accessorKey === "string" ? col.accessorKey : "",
+            header: typeof col.header === "string" ? col.header : col.id || "",
+        }))
+        .filter((col) => col.accessorKey)
+
+    // Function to export selected rows
+    const handleExportSelected = () => {
+        const selectedRows = table.getFilteredSelectedRowModel().rows.map((row) => row.original)
+        exportToCSV(selectedRows, exportColumns, exportFilename)
+    }
+
     return (
         <div className="w-full space-y-4">
-            <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center space-x-2">
-                    <Search className="h-5 w-5 text-muted-foreground" />
-                    <Input
-                        placeholder="Filter..."
-                        value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn("name")?.setFilterValue(event.target.value)
-                        }
-                        className="max-w-sm"
-                        aria-label="Filter table"
-                    />
-                </div>
-
-                <div className="hidden sm:block">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="outline" className="ml-auto">
-                                Columns <ChevronDown className="ml-2 h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            {table
-                                .getAllColumns()
-                                .filter((column) => column.getCanHide())
-                                .map((column) => {
-                                    return (
-                                        <DropdownMenuCheckboxItem
-                                            key={column.id}
-                                            className="capitalize"
-                                            checked={column.getIsVisible()}
-                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                        >
-                                            {column.id}
-                                        </DropdownMenuCheckboxItem>
-                                    )
-                                })}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
+            <DataTableToolbar
+                table={table}
+                data={data}
+                columns={exportColumns}
+                searchKey={searchKey}
+                exportFilename={exportFilename}
+            />
 
             <div className="block sm:hidden">
-                <ListCard columns={columns} data={table.getRowModel().rows.map(row => row.original)} onEdit={onEdit}
-                    onDelete={onDelete} />
+                <ListCard
+                    columns={columns}
+                    data={table.getRowModel().rows.map((row) => row.original)}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                />
             </div>
 
             <div className="rounded-md border hidden sm:block">
@@ -143,12 +117,7 @@ export function DataTable<TData extends DataRow>({
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
                                     <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
+                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                                     </TableHead>
                                 ))}
                             </TableRow>
@@ -164,9 +133,7 @@ export function DataTable<TData extends DataRow>({
                                     className="cursor-pointer"
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+                                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                     ))}
                                 </TableRow>
                             ))
@@ -181,8 +148,16 @@ export function DataTable<TData extends DataRow>({
                 </Table>
             </div>
             <DataTablePagination table={table} />
-            <DataDetailsModal open={!!selectedRow} onClose={handleCloseModal} columns={columns} data={selectedRow} title={selectedRow?.name} onEdit={onEdit}
-                onDelete={onDelete} />
+            <DataDetailsModal
+                open={!!selectedRow}
+                onClose={handleCloseModal}
+                columns={columns}
+                data={selectedRow}
+                title={selectedRow?.name}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
         </div>
     )
 }
+
