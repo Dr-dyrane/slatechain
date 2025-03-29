@@ -39,7 +39,10 @@ import {
 	ShopifyOrdersResponse,
 	ShopifyShopResponse,
 } from "../slices/shopifySlice";
-import { mockBlockchainApiResponses } from "../blockchain/mockApiResponses";
+import {
+	mockBlockchainApiResponses,
+	mockPaymentResponses,
+} from "../blockchain/mockApiResponses";
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -1712,5 +1715,9 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			mockBlockchainApiResponses["/auth/wallet/login"](data),
 		"/auth/wallet/register": (data: any) =>
 			mockBlockchainApiResponses["/auth/wallet/register"](data),
+		"/payments/create-intent": (data: any) =>
+			mockPaymentResponses["/payments/create-intent"](data),
+		"/orders/:id/payment": (data: any) =>
+			mockPaymentResponses["/orders/:id/payment"](data),
 	},
 };
