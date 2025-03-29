@@ -584,6 +584,33 @@ const generateUsers = (count: number): User[] => {
 
 		// Add blockchain data for the first user (index 0)
 		if (i === 0) {
+			// Override integrations settings for the first user
+			user.integrations = {
+				ecommerce: {
+					enabled: true,
+					service: randomBoolean() ? "shopify" : null,
+					apiKey: randomBoolean() ? `api_key_${randomId("key")}` : null,
+					storeUrl: randomBoolean()
+						? `${firstName.toLowerCase()}-store.myshopify.com`
+						: null,
+				},
+				erp_crm: {
+					enabled: true,
+					service: randomBoolean() ? "sap" : null,
+					apiKey: randomBoolean() ? `api_key_${randomId("key")}` : null,
+				},
+				iot: {
+					enabled: true,
+					service: randomBoolean() ? "iot_monitoring" : null,
+					apiKey: randomBoolean() ? `api_key_${randomId("key")}` : null,
+				},
+				bi_tools: {
+					enabled: true,
+					service: randomBoolean() ? "power_bi" : null,
+					apiKey: randomBoolean() ? `api_key_${randomId("key")}` : null,
+				},
+			};
+
 			user.blockchain = {
 				walletAddress: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F", // Use the same address as in mockWalletData
 				registeredAt: new Date(2023, 0, 1).toISOString(),
