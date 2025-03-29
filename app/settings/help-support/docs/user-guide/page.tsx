@@ -1,3 +1,5 @@
+// app/settings/help-support/docs/user-guide/page.tsx
+
 "use client"
 
 import type React from "react"

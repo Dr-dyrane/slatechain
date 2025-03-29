@@ -1,3 +1,5 @@
+// app/settings/help-support/guides/blockchain-auth/page.tsx
+
 "use client"
 
 import type React from "react"

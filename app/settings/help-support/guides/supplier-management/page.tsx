@@ -1,3 +1,5 @@
+// app/settings/help-support/guides/supplier-management/page.tsx
+
 "use client"
 
 import type React from "react"
