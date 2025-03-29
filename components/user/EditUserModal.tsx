@@ -41,9 +41,10 @@ interface EditUserModalProps {
     open: boolean
     onClose: () => void
     user: User | null
+    setRefetchUsers: (value: boolean) => void
 }
 
-export const EditUserModal = ({ open, onClose, user }: EditUserModalProps) => {
+export const EditUserModal = ({ open, onClose, user, setRefetchUsers }: EditUserModalProps) => {
     const dispatch = useDispatch<AppDispatch>()
     const [loading, setLoading] = useState(false)
 
@@ -73,6 +74,7 @@ export const EditUserModal = ({ open, onClose, user }: EditUserModalProps) => {
             toast.error("There was an issue updating the user")
         } finally {
             setLoading(false)
+            setRefetchUsers(true)
         }
     }
 

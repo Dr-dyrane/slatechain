@@ -39,9 +39,10 @@ type AddUserFormValues = z.infer<typeof addUserSchema>
 interface UserModalProps {
   open: boolean
   onClose: () => void
+  setRefetchUsers: (value: boolean) => void
 }
 
-export const UserModal = ({ open, onClose }: UserModalProps) => {
+export const UserModal = ({ open, onClose, setRefetchUsers }: UserModalProps) => {
   const dispatch = useDispatch<AppDispatch>()
   const [loading, setLoading] = useState(false)
 
@@ -89,6 +90,7 @@ export const UserModal = ({ open, onClose }: UserModalProps) => {
       toast.error(error.message || "There was an error creating the user")
     } finally {
       setLoading(false)
+      setRefetchUsers(true)
     }
   }
 

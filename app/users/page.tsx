@@ -60,6 +60,7 @@ export default function UsersPage() {
   const [viewSubmissionModalOpen, setViewSubmissionModalOpen] = useState(false)
   const [selectedDocument, setSelectedDocument] = useState<KYCDocument | null>(null)
   const [verifyKYCModalOpen, setVerifyKYCModalOpen] = useState(false)
+  const [refetchUsers, setRefetchUsers] = useState(false)
 
   useEffect(() => {
     if (currentUser?.role !== "admin") {
@@ -67,7 +68,7 @@ export default function UsersPage() {
       return
     }
     dispatch(fetchUsers())
-  }, [dispatch, router, currentUser])
+  }, [dispatch, router, currentUser, refetchUsers])
 
   const handleAddUserOpen = () => setAddModalOpen(true)
   const handleAddUserClose = () => setAddModalOpen(false)
@@ -281,9 +282,9 @@ export default function UsersPage() {
         </TabsContent>
       </Tabs>
 
-      <UserModal open={addModalOpen} onClose={handleAddUserClose} />
-      <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} />
-      <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} />
+      <UserModal open={addModalOpen} onClose={handleAddUserClose} setRefetchUsers={setRefetchUsers}/>
+      <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers}/>
+      <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers}/>
 
       {/* KYC Modals */}
       <ViewKYCSubmissionModal

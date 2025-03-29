@@ -33,9 +33,10 @@ interface DeleteUserModalProps {
     open: boolean
     onClose: () => void
     user: User | null
+    setRefetchUsers: (value: boolean) => void
 }
 
-export const DeleteUserModal = ({ open, onClose, user }: DeleteUserModalProps) => {
+export const DeleteUserModal = ({ open, onClose, user, setRefetchUsers }: DeleteUserModalProps) => {
     const dispatch = useDispatch<AppDispatch>()
     const [loading, setLoading] = useState(false)
 
@@ -64,6 +65,7 @@ export const DeleteUserModal = ({ open, onClose, user }: DeleteUserModalProps) =
             toast.error("There was an issue deleting the user. Please try again later.")
         } finally {
             setLoading(false)
+            setRefetchUsers(true)
         }
     }
 
