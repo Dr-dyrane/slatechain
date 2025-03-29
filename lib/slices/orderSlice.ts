@@ -3,7 +3,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { Order } from "@/lib/types";
 import { apiClient } from "../api/apiClient/[...live]";
-
+import { processPayment } from "../api/payment";
 
 interface OrderState {
 	items: Order[];
@@ -100,10 +100,15 @@ export const markOrderAsPaidAsync = createAsyncThunk(
 		thunkAPI
 	) => {
 		try {
-			const response = await apiClient.post<Order>(`/orders/${id}/payment`, {
-				method,
+			// The actual API call is now handled by the processPayment function
+			// This thunk is now primarily for updating the Redux state
+			const response = await processPayment(
+				id,
+				method as any,
 				paymentDetails,
-			});
+				paymentDetails?.clientSecret
+			);
+
 			return (
 				response ?? thunkAPI.rejectWithValue("Invalid response from server")
 			);
@@ -182,13 +187,13 @@ const orderSlice = createSlice({
 			.addCase(markOrderAsPaidAsync.fulfilled, (state, action) => {
 				state.paymentLoading = false;
 				const index = state.items.findIndex(
-					(order) => order.id === action.payload.id
+					(order) => order.id === action.payload.order.id
 				);
 				if (index !== -1) {
 					state.items[index].paid = true;
 					state.items[index].status = "PROCESSING"; // Move to processing
-					state.items[index].paymentMethod = action.payload.paymentMethod;
-					state.items[index].paymentDetails = action.payload.paymentDetails;
+					state.items[index].paymentMethod = action.payload.order.paymentMethod;
+					state.items[index].paymentDetails = action.payload.order.paymentDetails;
 				}
 			})
 			.addCase(markOrderAsPaidAsync.rejected, (state, action) => {

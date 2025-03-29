@@ -39,6 +39,8 @@
 		"@radix-ui/react-tooltip": "^1.1.2",
 		"@react-email/components": "^0.0.33",
 		"@reduxjs/toolkit": "latest",
+		"@stripe/react-stripe-js": "^3.5.1",
+		"@stripe/stripe-js": "^6.1.0",
 		"@tanstack/react-table": "latest",
 		"@upstash/redis": "^1.34.4",
 		"aos": "^2.3.4",

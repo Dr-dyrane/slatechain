@@ -1,8 +1,8 @@
 // app/api/orders/[id]/payment/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
-import { handleRequest } from "@/app/api"; // Assuming this is your rate limiting/auth middleware
-import Order from "../../../models/Order"; // Assuming this is your Mongoose model
+import { handleRequest } from "@/app/api";
+import Order from "../../../models/Order";
 import { createNotification } from "@/app/actions/notifications"; // Assuming this is your notification function
 import mongoose from "mongoose";
 import Stripe from "stripe";
@@ -10,19 +10,6 @@ import { isLive, verifyTransaction } from "@/lib/blockchain/web3Provider"; // As
 
 // --- STRIPE CONFIGURATION ---
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || ""; // MUST be in .env.local for security
-const NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY =
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
-
-if (!STRIPE_SECRET_KEY) {
-	console.warn("Stripe secret key is missing. Payments will fail.");
-}
-
-if (!NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-	console.warn(
-		"Stripe publishable key is missing. Stripe functionality will be limited on the client."
-	);
-}
-
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
 	apiVersion: "2025-02-24.acacia", // or the latest version
 });
@@ -37,7 +24,7 @@ interface PaymentData {
 	//Only used for demo mode
 	paymentDetails?: any;
 
-	//Used for stripe payment to pass client secret to backend to get payment status
+	//Used for stripe payment to pass client secret to get payment status
 	clientSecret?: string;
 }
 
@@ -173,7 +160,6 @@ async function processStripePayment(order: any, paymentData: PaymentData) {
 	// In a real implementation, you would use Stripe.js to collect payment details
 	// and create a payment intent on the server
 
-	// This is a simplified mock implementation for demo purposes
 	if (isLive()) {
 		if (!paymentData.clientSecret) {
 			return {
@@ -181,11 +167,17 @@ async function processStripePayment(order: any, paymentData: PaymentData) {
 				message: "Client Secret is required for Stripe Payments",
 			};
 		}
-		// In live mode, you would process a real Stripe payment
-		// using the Stripe SDK
+		// In live mode, verify the payment intent status
 		try {
-			const paymentIntent = await stripe.paymentIntents.retrieve(
-				paymentData.clientSecret
+			// Extract the payment intent ID from the client secret
+			const paymentIntentId = paymentData.clientSecret.split("_secret_")[0];
+
+			// Retrieve the payment intent with expanded charges
+			const paymentIntent: any = await stripe.paymentIntents.retrieve(
+				paymentIntentId,
+				{
+					expand: ["charges.data.payment_method_details.card"],
+				}
 			);
 
 			if (paymentIntent.status === "succeeded") {
@@ -196,6 +188,20 @@ async function processStripePayment(order: any, paymentData: PaymentData) {
 						transactionId: paymentIntent.id,
 						status: paymentIntent.status,
 						amount: order.totalAmount,
+						cardDetails: {
+							last4:
+								paymentIntent.charges?.data[0]?.payment_method_details?.card
+									?.last4 || "****",
+							brand:
+								paymentIntent.charges?.data[0]?.payment_method_details?.card
+									?.brand || "unknown",
+							expMonth:
+								paymentIntent.charges?.data[0]?.payment_method_details?.card?.exp_month?.toString() ||
+								"**",
+							expYear:
+								paymentIntent.charges?.data[0]?.payment_method_details?.card?.exp_year?.toString() ||
+								"****",
+						},
 					},
 				};
 			} else {
@@ -226,20 +232,12 @@ async function processStripePayment(order: any, paymentData: PaymentData) {
 				transactionId: `pi_${Math.random().toString(36).substring(2, 15)}`,
 				status: "succeeded",
 				amount: order.totalAmount,
-				cardDetails: paymentData.paymentDetails
-					? {
-							last4: paymentData.paymentDetails.cardNumber
-								? paymentData.paymentDetails.cardNumber.slice(-4)
-								: "4242",
-							brand: "visa",
-							expMonth: paymentData.paymentDetails.expiry
-								? paymentData.paymentDetails.expiry.split("/")[0]
-								: "12",
-							expYear: paymentData.paymentDetails.expiry
-								? paymentData.paymentDetails.expiry.split("/")[1]
-								: "2025",
-						}
-					: null,
+				cardDetails: {
+					last4: "4242",
+					brand: "visa",
+					expMonth: "12",
+					expYear: "2025",
+				},
 			},
 		};
 	}
