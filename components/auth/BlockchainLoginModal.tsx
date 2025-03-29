@@ -77,7 +77,9 @@ export function BlockchainLoginModal({ isOpen, onClose, wallet }: BlockchainLogi
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[425px] rounded-3xl">
+            <DialogContent
+                aria-describedby="blockchain-authentication"
+                className="sm:max-w-[425px] rounded-3xl">
                 <DialogHeader>
                     <DialogTitle>Blockchain Authentication</DialogTitle>
                     <DialogDescription>Login or register using your blockchain wallet</DialogDescription>
