@@ -1049,6 +1049,84 @@ const generateNotifications = (count: number): Notification[] => {
 	return notifications;
 };
 
+// Helper function to generate mock KYC submissions
+function generateMockKYCSubmissions(status: string, count: number) {
+	const submissions = [];
+
+	for (let i = 1; i <= count; i++) {
+		const userId = `user_${i}`;
+		const role = i % 3 === 0 ? UserRole.SUPPLIER : UserRole.CUSTOMER;
+
+		const submission = {
+			id: `kyc_${i}`,
+			userId,
+			fullName: `Test User ${i}`,
+			status,
+			createdAt: new Date(Date.now() - i * 86400000).toISOString(), // Different dates
+			role,
+			documents: generateMockDocuments(userId, role),
+			// Additional fields that might be needed
+			referenceId: `REF-${i}`,
+			dateOfBirth: "1990-01-01",
+			address: `${i} Test Street, Test City, Test Country`,
+			companyName: role === UserRole.SUPPLIER ? `Company ${i}` : undefined,
+			taxId: role === UserRole.SUPPLIER ? `TAX-${i}` : undefined,
+			reviewedBy: status !== "PENDING" ? "admin_user_id" : undefined,
+			reviewedAt: status !== "PENDING" ? new Date().toISOString() : undefined,
+			rejectionReason:
+				status === "REJECTED" ? "Documents not clear" : undefined,
+		};
+
+		submissions.push(submission);
+	}
+
+	return submissions;
+}
+
+// Helper function to generate mock documents for a KYC submission
+function generateMockDocuments(userId: string, role: UserRole) {
+	const documents = [
+		{
+			id: `doc_${userId}_1`,
+			userId,
+			type: "ID_FRONT",
+			fileUrl: "https://example.com/id_front.jpg",
+			status: "VERIFIED",
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: `doc_${userId}_2`,
+			userId,
+			type: "ID_BACK",
+			fileUrl: "https://example.com/id_back.jpg",
+			status: "VERIFIED",
+			createdAt: new Date().toISOString(),
+		},
+		{
+			id: `doc_${userId}_3`,
+			userId,
+			type: "SELFIE",
+			fileUrl: "https://example.com/selfie.jpg",
+			status: "VERIFIED",
+			createdAt: new Date().toISOString(),
+		},
+	];
+
+	// Add business-specific documents if the role is BUSINESS
+	if (role === UserRole.SUPPLIER) {
+		documents.push({
+			id: `doc_${userId}_4`,
+			userId,
+			type: "BUSINESS_REGISTRATION",
+			fileUrl: "https://example.com/business_reg.pdf",
+			status: "VERIFIED",
+			createdAt: new Date().toISOString(),
+		});
+	}
+
+	return documents;
+}
+
 // ==================== GENERATE ENHANCED MOCK DATA ====================
 
 const mockInventory = generateInventoryItems(50);
@@ -1484,6 +1562,30 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/notifications": (): Notification[] => mockNotifications,
 		"/blockchain/wallet-data": (params: any) =>
 			mockBlockchainApiResponses["/blockchain/wallet-data"](params),
+		// KYC list endpoint
+		"/admin/kyc/list": (params: any) => {
+			const page = Number(params?.page) || 1;
+			const limit = Number(params?.limit) || 10;
+			const status = params?.status || "PENDING";
+
+			// Generate mock KYC submissions based on the requested status
+			const mockSubmissions = generateMockKYCSubmissions(status, 25); // Total of 25 mock submissions
+
+			// Apply pagination
+			const startIndex = (page - 1) * limit;
+			const endIndex = startIndex + limit;
+			const paginatedSubmissions = mockSubmissions.slice(startIndex, endIndex);
+
+			return {
+				submissions: paginatedSubmissions,
+				pagination: {
+					total: mockSubmissions.length,
+					page,
+					limit,
+					pages: Math.ceil(mockSubmissions.length / limit),
+				},
+			};
+		},
 	},
 	put: {
 		"/users/me/profile": (data: Partial<User>): User => ({
@@ -1719,5 +1821,28 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			mockPaymentResponses["/payments/create-intent"](data),
 		"/orders/:id/payment": (data: any) =>
 			mockPaymentResponses["/orders/:id/payment"](data),
+		// KYC verification endpoint
+		"/admin/kyc/verify": (data: any) => {
+			const { submissionId, status, rejectionReason } = data;
+
+			if (!submissionId || !status) {
+				throw new Error("Submission ID and status are required");
+			}
+
+			if (status !== "APPROVED" && status !== "REJECTED") {
+				throw new Error("Status must be either APPROVED or REJECTED");
+			}
+
+			if (status === "REJECTED" && !rejectionReason) {
+				throw new Error(
+					"Rejection reason is required when rejecting a submission"
+				);
+			}
+
+			return {
+				success: true,
+				message: `KYC submission ${status.toLowerCase()} successfully`,
+			};
+		},
 	},
 };
