@@ -519,3 +519,81 @@ export interface SupplierFormData
 	createdAt?: string;
 	updatedAt?: string;
 }
+
+/**
+ * Utility functions for exporting data to CSV format
+ */
+
+/**
+ * Convert an array of objects to CSV format
+ * @param data Array of objects to convert
+ * @param columns Column definitions to use for headers and data extraction
+ * @returns CSV formatted string
+ */
+export function convertToCSV<T extends Record<string, any>>(
+	data: T[],
+	columns: { accessorKey: string; header: string }[]
+) {
+	if (!data || !data.length) return "";
+
+	// Create header row from column headers
+	const header = columns.map((column) => `"${column.header}"`).join(",");
+
+	// Create data rows
+	const rows = data.map((item) => {
+		return columns
+			.map((column) => {
+				// Get the value using accessorKey
+				const value = item[column.accessorKey];
+
+				// Handle different value types and escape quotes
+				if (value === null || value === undefined) return '""';
+				if (typeof value === "string") return `"${value.replace(/"/g, '""')}"`;
+				return `"${value}"`;
+			})
+			.join(",");
+	});
+
+	// Combine header and rows
+	return [header, ...rows].join("\n");
+}
+
+/**
+ * Download data as a CSV file
+ * @param data CSV formatted string
+ * @param filename Name of the file to download
+ */
+export function downloadCSV(data: string, filename: string) {
+	// Create a blob with the CSV data
+	const blob = new Blob([data], { type: "text/csv;charset=utf-8;" });
+
+	// Check if msSaveBlob is available (for IE 10+)
+	if (typeof navigator !== "undefined" && "msSaveBlob" in navigator) {
+		(navigator as any).msSaveBlob(blob, filename);
+	} else {
+		// Other browsers
+		const link = document.createElement("a");
+		link.href = URL.createObjectURL(blob);
+		link.setAttribute("download", filename);
+
+		// Append and trigger download
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+	}
+}
+
+/**
+ * Export data to CSV and trigger download
+ * @param data Array of objects to export
+ * @param columns Column definitions to use for headers and data extraction
+ * @param filename Name of the file to download
+ */
+export function exportToCSV<T extends Record<string, any>>(
+	data: T[],
+	columns: { accessorKey: string; header: string }[],
+	filename: string
+) {
+	const csv = convertToCSV(data, columns);
+	downloadCSV(csv, filename);
+}

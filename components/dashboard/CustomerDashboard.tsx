@@ -195,8 +195,8 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
     const newArrivals = recommendedProducts?.newArrivals || []
 
     // Get notifications
-    const recentNotifications = notifications?.slice(0, 5) || []
-    const unreadNotifications = notifications?.filter((n) => !n.read).length || 0
+    const recentNotifications = notifications && notifications.length > 0 ? notifications.slice(0, 5) : [];
+    const unreadNotifications = notifications && notifications.length > 0 ? notifications.filter((n) => !n.read).length : 0;
 
     return (
         <div className="space-y-6">
