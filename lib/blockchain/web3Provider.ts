@@ -15,6 +15,7 @@ export interface WalletInfo {
 	address: string;
 	chainId: number;
 	isConnected: boolean;
+	type?: string;
 }
 
 // Check if window.ethereum is available

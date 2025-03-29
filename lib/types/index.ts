@@ -46,9 +46,20 @@ export interface User {
 	kycStatus: KYCStatus;
 	onboardingStatus: OnboardingStatus;
 	avatarUrl?: string;
+	integrations: UserIntegrations;
+	refreshToken?: string;
+	assignedManagers?: string[];
+	supplierMetadata?: {
+		address?: string;
+		rating?: number;
+		status?: string;
+	};
+	blockchain?: {
+		walletAddress?: string;
+		registeredAt?: string;
+	};
 	createdAt: string;
 	updatedAt: string;
-	integrations: UserIntegrations;
 }
 
 // User Integrations (Only One Service Enabled Per Category)

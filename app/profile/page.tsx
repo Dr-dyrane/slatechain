@@ -16,6 +16,7 @@ import PasswordChange from "@/components/profile/PasswordChange";
 import ProfileSkeleton from "./loading";
 import { ErrorState } from "@/components/ui/error";
 import { OnboardingHistory } from "./OnboardingHistory";
+import WalletConnection from "./WalletConnection";
 
 export default function ProfilePage() {
     const user = useSelector((state: RootState) => state.auth?.user) as User;
@@ -48,6 +49,7 @@ export default function ProfilePage() {
                     <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                     <TabsTrigger value="edit">Edit Profile</TabsTrigger>
                     <TabsTrigger className="bg-muted" value="password">Password</TabsTrigger>
+                    <TabsTrigger className="bg-muted" value="wallet">Blockchain Wallet</TabsTrigger>
                     <TabsTrigger className="bg-muted" value="onboarding">Onboarding</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dashboard">
@@ -58,6 +60,9 @@ export default function ProfilePage() {
                 </TabsContent>
                 <TabsContent value="password">
                     <PasswordChange />
+                </TabsContent>
+                <TabsContent value="wallet">
+                    <WalletConnection />
                 </TabsContent>
                 <TabsContent value="onboarding">
                     <OnboardingHistory />

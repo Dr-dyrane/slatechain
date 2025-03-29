@@ -43,9 +43,9 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             "/users",      // Users
             "/profile",    // Profile
             "/settings",   // Settings root
-            "/apps",       // Apps
+            // "/apps",       // Apps
             // Dynamically include all settings subpages
-            ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
+            // ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
         ];
 
         Promise.all(pages.map((page) => fetch(page))).catch((err) => {

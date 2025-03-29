@@ -9,15 +9,19 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Phone, CircleUserRound, ChevronRight, Clock, CheckCircle } from 'lucide-react';
+import { Mail, Phone, CircleUserRound, ChevronRight, Clock, CheckCircle, Wallet } from 'lucide-react';
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import Image from "next/image";
 
 interface ProfileDashboardProps {
     user: User;
 }
 
 export default function ProfileDashboard({ user }: ProfileDashboardProps) {
+    const { wallet } = useSelector((state: RootState) => state.auth)
     const userRoleBadge = () => {
         switch (user.role) {
             case "customer":
@@ -81,6 +85,24 @@ export default function ProfileDashboard({ user }: ProfileDashboardProps) {
                     <div className="flex items-center space-x-2">
                         <CircleUserRound className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">{user.id}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                        <Image
+                            src="/icons/etherium.svg"
+                            alt="Ethereum"
+                            width={16}
+                            height={16}
+                            className="h-4 w-4"
+                        />
+                        <span className="text-sm">
+                            {wallet ? (
+                                <span>
+                                    {wallet.address.substring(0, 6)}...{wallet.address.substring(wallet.address.length - 4)}
+                                </span>
+                            ) : (
+                                <span className="text-muted-foreground">No wallet connected</span>
+                            )}
+                        </span>
                     </div>
                 </div>
             </CardContent>
