@@ -513,6 +513,7 @@ const generateShipments = (count: number): Shipment[] => {
 };
 
 // Generate more comprehensive users
+
 const generateUsers = (count: number): User[] => {
 	const users: User[] = [];
 	const roles = [
@@ -527,7 +528,8 @@ const generateUsers = (count: number): User[] => {
 		const lastName = customerNames[i % customerNames.length].split(" ")[1];
 		const role = roles[i % roles.length];
 
-		users.push({
+		// Create base user
+		const user: User = {
 			id: `user-${i + 1}`,
 			firstName: firstName,
 			lastName: lastName,
@@ -578,7 +580,35 @@ const generateUsers = (count: number): User[] => {
 					apiKey: randomBoolean() ? `api_key_${randomId("key")}` : null,
 				},
 			},
-		});
+		};
+
+		// Add blockchain data for the first user (index 0)
+		if (i === 0) {
+			user.blockchain = {
+				walletAddress: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F", // Use the same address as in mockWalletData
+				registeredAt: new Date(2023, 0, 1).toISOString(),
+			};
+		}
+
+		// Add supplier metadata for users with the supplier role
+		if (role === UserRole.SUPPLIER) {
+			user.supplierMetadata = {
+				address: `${randomNumber(100, 9999)} ${randomElement(["Main", "Oak", "Pine", "Maple", "Cedar"])} ${randomElement(["St", "Ave", "Blvd", "Dr", "Ln"])}, ${randomElement(warehouseLocations)}`,
+				rating: parseFloat((Math.random() * 2 + 3).toFixed(1)), // Rating between 3.0 and 5.0
+				status: randomBoolean() ? "ACTIVE" : "INACTIVE",
+			};
+		}
+
+		// Add assigned managers for suppliers (randomly select 1-2 managers)
+		if (role === UserRole.SUPPLIER) {
+			user.assignedManagers = [];
+			const numManagers = randomNumber(1, 2);
+			for (let j = 0; j < numManagers; j++) {
+				user.assignedManagers.push(`user-${randomNumber(1, 5)}`);
+			}
+		}
+
+		users.push(user);
 	}
 
 	return users;
