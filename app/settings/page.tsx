@@ -3,6 +3,7 @@
 import { UserPreferences } from "@/components/settings/UserPreferences";
 import { Integrations } from "@/components/settings/Integrations";
 import { AccountActions } from "@/components/settings/AccountActions";
+import { HelpSupportCard } from "@/components/settings/HelpSupportCard";
 
 export default function SettingsPage() {
   return (
@@ -14,6 +15,9 @@ export default function SettingsPage() {
         </div>
         <div className="col-span-1">
           <UserPreferences />
+        </div>
+        <div className="col-span-1">
+          <HelpSupportCard />
         </div>
         <div className="col-span-1">
           <AccountActions />

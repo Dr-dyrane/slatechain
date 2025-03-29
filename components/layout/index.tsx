@@ -67,7 +67,7 @@ export function Layout({ children }: LayoutProps) {
 
 
   // Check if the current route matches one of the sidebar item hrefs
-  const layoutRequired = navItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname === "/settings";
+  const layoutRequired = navItems.some(item => pathname.startsWith(item.href)) || pathname === "/profile" || pathname.startsWith("/settings")
 
   // Auto-collapse sidebar for tablets but keep visible
   React.useEffect(() => {

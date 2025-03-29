@@ -38,6 +38,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             "/users",      // Users
             "/profile",    // Profile
             "/settings",   // Settings
+            "/settings/help-support",   // help and support
             "/apps",       // apps
         ];
 
