@@ -44,7 +44,7 @@ import {
 	mockPaymentResponses,
 } from "../blockchain/mockApiResponses";
 
-// ==================== HELPER FUNCTIONS ====================
+// ==================== ENHANCED MOCK DATA HELPERS ====================
 
 // Generate random date within a range
 const randomDate = (start: Date, end: Date): string => {
@@ -112,6 +112,121 @@ const randomEmail = (name: string): string => {
 	];
 	return `${name.toLowerCase().replace(/\s/g, ".")}@${randomElement(domains)}`;
 };
+
+// Generate realistic addresses
+const streetNames = [
+	"Main Street",
+	"Oak Avenue",
+	"Maple Drive",
+	"Cedar Lane",
+	"Pine Road",
+	"Elm Street",
+	"Washington Avenue",
+	"Park Boulevard",
+	"Lake View Drive",
+	"River Road",
+	"Highland Avenue",
+	"Sunset Boulevard",
+	"Broadway",
+	"Market Street",
+	"5th Avenue",
+];
+
+const cities = [
+	"New York",
+	"Los Angeles",
+	"Chicago",
+	"Houston",
+	"Phoenix",
+	"Philadelphia",
+	"San Antonio",
+	"San Diego",
+	"Dallas",
+	"San Jose",
+	"Austin",
+	"Jacksonville",
+	"Fort Worth",
+	"Columbus",
+	"San Francisco",
+];
+
+const states = [
+	"NY",
+	"CA",
+	"IL",
+	"TX",
+	"AZ",
+	"PA",
+	"FL",
+	"OH",
+	"MI",
+	"GA",
+	"NC",
+	"WA",
+	"MA",
+	"CO",
+	"TN",
+	"IN",
+	"OR",
+	"NV",
+	"VA",
+	"MN",
+];
+
+// Generate realistic company names
+const companyPrefixes = [
+	"Global",
+	"Advanced",
+	"Premier",
+	"Elite",
+	"Innovative",
+	"Strategic",
+	"Dynamic",
+	"Precision",
+	"Integrated",
+	"Superior",
+	"Universal",
+	"Reliable",
+	"Quantum",
+	"Apex",
+	"Synergy",
+];
+
+const companyTypes = [
+	"Solutions",
+	"Technologies",
+	"Industries",
+	"Enterprises",
+	"Systems",
+	"Logistics",
+	"Partners",
+	"Ventures",
+	"Group",
+	"Corporation",
+	"Associates",
+	"International",
+	"Consulting",
+	"Manufacturing",
+	"Services",
+];
+
+const companyIndustries = [
+	"Tech",
+	"Finance",
+	"Healthcare",
+	"Energy",
+	"Retail",
+	"Automotive",
+	"Aerospace",
+	"Pharmaceuticals",
+	"Construction",
+	"Agriculture",
+	"Telecommunications",
+	"Media",
+	"Food",
+	"Transportation",
+	"Education",
+];
 
 // ==================== MOCK DATA CONSTANTS ====================
 
@@ -308,6 +423,38 @@ const customerNames = [
 	"Margaret King",
 	"Anthony Wright",
 	"Linda Scott",
+];
+
+// Generate realistic document types and statuses
+const idTypes = [
+	"Passport",
+	"Driver's License",
+	"National ID Card",
+	"Residence Permit",
+	"Military ID",
+];
+
+const businessDocTypes = [
+	"Certificate of Incorporation",
+	"Business License",
+	"Tax Registration",
+	"Articles of Association",
+	"Operating Agreement",
+	"Partnership Agreement",
+];
+
+// Generate realistic rejection reasons
+const rejectionReasons = [
+	"Document is not clearly visible",
+	"Document has expired",
+	"Information on document doesn't match provided details",
+	"Document appears to be altered or tampered with",
+	"Required information is missing from document",
+	"Document is not an acceptable form of identification",
+	"Selfie does not match ID photo",
+	"Business registration information is incomplete",
+	"Unable to verify business entity with provided documents",
+	"Address verification failed",
 ];
 
 // ==================== ENHANCED MOCK DATA ====================
@@ -1049,7 +1196,9 @@ const generateNotifications = (count: number): Notification[] => {
 	return notifications;
 };
 
-// Helper function to generate mock KYC submissions
+// ==================== ENHANCED MOCK KYC DATA ====================
+
+// Helper function to generate realistic mock KYC submissions
 function generateMockKYCSubmissions(status: string, count: number) {
 	const submissions = [];
 
@@ -1057,24 +1206,71 @@ function generateMockKYCSubmissions(status: string, count: number) {
 		const userId = `user_${i}`;
 		const role = i % 3 === 0 ? UserRole.SUPPLIER : UserRole.CUSTOMER;
 
+		// Generate realistic name
+		const firstName = customerNames[i % customerNames.length].split(" ")[0];
+		const lastName = customerNames[i % customerNames.length].split(" ")[1];
+		const fullName = `${firstName} ${lastName}`;
+
+		// Generate realistic dates
+		const createdAt = randomDate(new Date(2023, 0, 1), new Date());
+		let reviewedAt = null;
+		if (status !== "PENDING") {
+			// Review date should be after creation date
+			const creationDate = new Date(createdAt);
+			reviewedAt = randomDate(
+				new Date(creationDate.getTime() + 24 * 60 * 60 * 1000), // At least 1 day after creation
+				new Date(creationDate.getTime() + 7 * 24 * 60 * 60 * 1000) // At most 7 days after creation
+			);
+		}
+
+		// Generate realistic address and DOB
+		const address = generateRealisticAddress();
+		const dateOfBirth = generateRealisticDOB();
+
+		// Generate business-specific data if applicable
+		let companyName, taxId, department, teamSize;
+		if (role === UserRole.SUPPLIER) {
+			companyName = generateRealisticCompanyName();
+			taxId = generateRealisticTaxID();
+			department = randomElement([
+				"Procurement",
+				"Sales",
+				"Logistics",
+				"Operations",
+				"Finance",
+			]);
+			teamSize = randomNumber(5, 500).toString();
+		}
+
+		// Generate rejection reason if applicable
+		let rejectionReason;
+		if (status === "REJECTED") {
+			rejectionReason = randomElement(rejectionReasons);
+		}
+
 		const submission = {
 			id: `kyc_${i}`,
 			userId,
-			fullName: `Test User ${i}`,
+			fullName,
 			status,
-			createdAt: new Date(Date.now() - i * 86400000).toISOString(), // Different dates
+			createdAt,
 			role,
-			documents: generateMockDocuments(userId, role),
-			// Additional fields that might be needed
-			referenceId: `REF-${i}`,
-			dateOfBirth: "1990-01-01",
-			address: `${i} Test Street, Test City, Test Country`,
-			companyName: role === UserRole.SUPPLIER ? `Company ${i}` : undefined,
-			taxId: role === UserRole.SUPPLIER ? `TAX-${i}` : undefined,
-			reviewedBy: status !== "PENDING" ? "admin_user_id" : undefined,
-			reviewedAt: status !== "PENDING" ? new Date().toISOString() : undefined,
-			rejectionReason:
-				status === "REJECTED" ? "Documents not clear" : undefined,
+			documents: generateEnhancedMockDocuments(userId, role),
+			referenceId: `KYC-${new Date().getFullYear()}-${(10000 + i).toString()}`,
+			dateOfBirth,
+			address,
+			companyName,
+			taxId,
+			department,
+			teamSize,
+			customerType:
+				role === UserRole.CUSTOMER
+					? randomElement(["Individual", "Small Business", "Enterprise"])
+					: undefined,
+			reviewedBy:
+				status !== "PENDING" ? `admin_${randomNumber(1, 5)}` : undefined,
+			reviewedAt,
+			rejectionReason,
 		};
 
 		submissions.push(submission);
@@ -1083,49 +1279,173 @@ function generateMockKYCSubmissions(status: string, count: number) {
 	return submissions;
 }
 
-// Helper function to generate mock documents for a KYC submission
-function generateMockDocuments(userId: string, role: UserRole) {
-	const documents = [
-		{
-			id: `doc_${userId}_1`,
-			userId,
-			type: "ID_FRONT",
-			fileUrl: "https://example.com/id_front.jpg",
-			status: "VERIFIED",
-			createdAt: new Date().toISOString(),
-		},
-		{
-			id: `doc_${userId}_2`,
-			userId,
-			type: "ID_BACK",
-			fileUrl: "https://example.com/id_back.jpg",
-			status: "VERIFIED",
-			createdAt: new Date().toISOString(),
-		},
-		{
-			id: `doc_${userId}_3`,
-			userId,
-			type: "SELFIE",
-			fileUrl: "https://example.com/selfie.jpg",
-			status: "VERIFIED",
-			createdAt: new Date().toISOString(),
-		},
-	];
+// Helper function to generate enhanced mock documents for a KYC submission
+function generateEnhancedMockDocuments(userId: string, role: UserRole) {
+	const documents = [];
 
-	// Add business-specific documents if the role is BUSINESS
+	// Everyone needs to submit ID documents
+	const idType = randomElement(idTypes);
+	const verificationStatuses = ["PENDING", "VERIFIED", "REJECTED"];
+
+	// Add ID front
+	documents.push({
+		id: `doc_${userId}_1`,
+		userId,
+		type: "ID_FRONT",
+		documentName: `${idType} - Front`,
+		fileUrl: generateDocumentURL("ID_FRONT", userId),
+		status: randomElement(verificationStatuses),
+		createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+		notes: randomBoolean() ? "Clear image, all details visible" : undefined,
+	});
+
+	// Add ID back
+	documents.push({
+		id: `doc_${userId}_2`,
+		userId,
+		type: "ID_BACK",
+		documentName: `${idType} - Back`,
+		fileUrl: generateDocumentURL("ID_BACK", userId),
+		status: randomElement(verificationStatuses),
+		createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+		notes: randomBoolean() ? "Signature matches" : undefined,
+	});
+
+	// Add selfie
+	documents.push({
+		id: `doc_${userId}_3`,
+		userId,
+		type: "SELFIE",
+		documentName: "Verification Selfie",
+		fileUrl: generateDocumentURL("SELFIE", userId),
+		status: randomElement(verificationStatuses),
+		createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+		notes: randomBoolean() ? "Face clearly visible" : undefined,
+	});
+
+	// Add proof of address
+	documents.push({
+		id: `doc_${userId}_4`,
+		userId,
+		type: "PROOF_OF_ADDRESS",
+		documentName: randomElement([
+			"Utility Bill",
+			"Bank Statement",
+			"Tax Statement",
+			"Lease Agreement",
+		]),
+		fileUrl: generateDocumentURL("PROOF_OF_ADDRESS", userId),
+		status: randomElement(verificationStatuses),
+		createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+		notes: randomBoolean() ? "Address matches application" : undefined,
+	});
+
+	// Add business-specific documents if the role is BUSINESS/SUPPLIER
 	if (role === UserRole.SUPPLIER) {
+		// Add business registration
 		documents.push({
-			id: `doc_${userId}_4`,
+			id: `doc_${userId}_5`,
 			userId,
 			type: "BUSINESS_REGISTRATION",
-			fileUrl: "https://example.com/business_reg.pdf",
-			status: "VERIFIED",
-			createdAt: new Date().toISOString(),
+			documentName: randomElement(businessDocTypes),
+			fileUrl: generateDocumentURL("BUSINESS_REGISTRATION", userId),
+			status: randomElement(verificationStatuses),
+			createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+			notes: randomBoolean() ? "Business registration verified" : undefined,
 		});
+
+		// Add articles of incorporation
+		documents.push({
+			id: `doc_${userId}_6`,
+			userId,
+			type: "ARTICLES_OF_INCORPORATION",
+			documentName: "Articles of Incorporation",
+			fileUrl: generateDocumentURL("ARTICLES_OF_INCORPORATION", userId),
+			status: randomElement(verificationStatuses),
+			createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+			notes: randomBoolean() ? "Company structure confirmed" : undefined,
+		});
+
+		// Add certificate of good standing
+		if (randomBoolean()) {
+			documents.push({
+				id: `doc_${userId}_7`,
+				userId,
+				type: "CERTIFICATE_OF_GOOD_STANDING",
+				documentName: "Certificate of Good Standing",
+				fileUrl: generateDocumentURL("CERTIFICATE_OF_GOOD_STANDING", userId),
+				status: randomElement(verificationStatuses),
+				createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+				notes: randomBoolean() ? "Current as of last quarter" : undefined,
+			});
+		}
 	}
 
 	return documents;
 }
+
+// Generate a realistic address
+const generateRealisticAddress = () => {
+	const streetNumber = Math.floor(Math.random() * 9000) + 1000;
+	const street = randomElement(streetNames);
+	const city = randomElement(cities);
+	const state = randomElement(states);
+	const zip = Math.floor(Math.random() * 90000) + 10000;
+
+	return `${streetNumber} ${street}, ${city}, ${state} ${zip}`;
+};
+
+// Generate a realistic company name
+const generateRealisticCompanyName = () => {
+	const prefix = randomElement(companyPrefixes);
+	const industry = randomElement(companyIndustries);
+	const type = randomElement(companyTypes);
+
+	return `${prefix} ${industry} ${type}`;
+};
+
+// Generate a realistic date of birth (21-80 years old)
+const generateRealisticDOB = () => {
+	const today = new Date();
+	const minAge = 21;
+	const maxAge = 80;
+	const minYear = today.getFullYear() - maxAge;
+	const maxYear = today.getFullYear() - minAge;
+
+	const year = Math.floor(Math.random() * (maxYear - minYear + 1)) + minYear;
+	const month = Math.floor(Math.random() * 12) + 1;
+	const day = Math.floor(Math.random() * 28) + 1; // Avoid invalid dates
+
+	return `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}`;
+};
+
+// Generate a realistic tax ID
+const generateRealisticTaxID = () => {
+	// Format like EIN: XX-XXXXXXX
+	const firstPart = Math.floor(Math.random() * 90) + 10;
+	const secondPart = Math.floor(Math.random() * 9000000) + 1000000;
+
+	return `${firstPart}-${secondPart}`;
+};
+
+// Generate realistic document file URLs
+const generateDocumentURL = (type: string, userId: string) => {
+	const fileTypes = {
+		ID_FRONT: "jpg",
+		ID_BACK: "jpg",
+		SELFIE: "jpg",
+		BUSINESS_REGISTRATION: "pdf",
+		PROOF_OF_ADDRESS: "pdf",
+		ARTICLES_OF_INCORPORATION: "pdf",
+		OPERATING_AGREEMENT: "pdf",
+		CERTIFICATE_OF_GOOD_STANDING: "pdf",
+	};
+
+	const fileType = fileTypes[type as keyof typeof fileTypes] || "jpg";
+	const timestamp = Date.now();
+
+	return `https://storage.kyc-verification.com/documents/${userId}/${type.toLowerCase()}_${timestamp}.${fileType}`;
+};
 
 // ==================== GENERATE ENHANCED MOCK DATA ====================
 
