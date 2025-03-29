@@ -17,6 +17,7 @@ interface DataTableToolbarProps<TData> {
   columns: { accessorKey: string; header: string }[]
   searchKey?: string
   exportFilename?: string
+  onExportSelected: () => void // new selected export
 }
 
 export function DataTableToolbar<TData extends Record<string, any>>({
@@ -25,6 +26,7 @@ export function DataTableToolbar<TData extends Record<string, any>>({
   columns,
   searchKey = "name",
   exportFilename = "export.csv",
+  onExportSelected, // receive
 }: DataTableToolbarProps<TData>) {
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-4">
@@ -40,7 +42,7 @@ export function DataTableToolbar<TData extends Record<string, any>>({
       </div>
 
       <div className="flex items-center space-x-2 w-full sm:w-auto justify-between sm:justify-end">
-        <ExportButton data={data} columns={columns} filename={exportFilename} />
+        <ExportButton data={data} columns={columns} filename={exportFilename} onExportSelected={onExportSelected} />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -70,4 +72,3 @@ export function DataTableToolbar<TData extends Record<string, any>>({
     </div>
   )
 }
-

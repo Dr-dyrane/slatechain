@@ -9,6 +9,7 @@ interface ExportButtonProps<TData extends Record<string, any>> {
   columns: { accessorKey: string; header: string }[]
   filename?: string
   label?: string
+  onExportSelected?: () => void
 }
 
 export function ExportButton<TData extends Record<string, any>>({
@@ -16,13 +17,10 @@ export function ExportButton<TData extends Record<string, any>>({
   columns,
   filename = "export.csv",
   label = "Export",
+  onExportSelected
 }: ExportButtonProps<TData>) {
   const handleExportAll = () => {
     exportToCSV(data, columns, filename)
-  }
-
-  const handleExportSelected = (selectedData: TData[]) => {
-    exportToCSV(selectedData, columns, filename)
   }
 
   return (
@@ -36,9 +34,8 @@ export function ExportButton<TData extends Record<string, any>>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleExportAll}>Export all records</DropdownMenuItem>
-        {/* We'll implement selected export in the DataTable component */}
+        <DropdownMenuItem onClick={onExportSelected}>Export Selected Records</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-

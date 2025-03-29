@@ -1,4 +1,3 @@
-// src/components/DataTable.tsx
 "use client"
 
 import * as React from "react"
@@ -13,6 +12,7 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
+    type Row,
 } from "@tanstack/react-table"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -21,6 +21,7 @@ import { DataTablePagination } from "./DataTablePagination"
 import { DataDetailsModal } from "@/components/table/DataDetailsModal"
 import { DataTableToolbar } from "./DataTableToolbar"
 import { exportToCSV } from "@/lib/utils"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface DataRow {
     id: string
@@ -47,12 +48,35 @@ export function DataTable<TData extends DataRow>({
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
+    const [rowSelection, setRowSelection] = React.useState<Record<string, boolean>>({}) // change to Record<string, boolean>
     const [selectedRow, setSelectedRow] = React.useState<TData | null>(null)
 
     const table = useReactTable({
         data,
-        columns,
+        columns: [
+            {
+                id: "select",
+                header: ({ table }) => (
+                    <Checkbox
+                        className="cursor-pointer border-muted"
+                        checked={table.getIsAllPageRowsSelected()}
+                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                        aria-label="Select all"
+                    />
+                ),
+                cell: ({ row }) => (
+                    <Checkbox
+                        className="cursor-pointer border-muted-foreground"
+                        checked={row.getIsSelected()}
+                        onCheckedChange={(value) => row.toggleSelected(!!value)}
+                        aria-label="Select row"
+                    />
+                ),
+                enableSorting: false,
+                enableHiding: false,
+            },
+            ...columns,
+        ],
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -69,9 +93,13 @@ export function DataTable<TData extends DataRow>({
         },
     })
 
-    const handleRowClick = (row: TData) => {
-        setSelectedRow(row)
-    }
+    const handleRowClick = (event: React.MouseEvent<HTMLTableRowElement>, row: TData) => {
+        // Prevent modal from opening if the click originated from the "select" column
+        if ((event.target as HTMLElement).closest('[data-column-id="select"]')) {
+            return;
+        }
+        setSelectedRow(row);
+    };
 
     const handleCloseModal = () => {
         setSelectedRow(null)
@@ -99,6 +127,7 @@ export function DataTable<TData extends DataRow>({
                 columns={exportColumns}
                 searchKey={searchKey}
                 exportFilename={exportFilename}
+                onExportSelected={handleExportSelected} // Pass the export function
             />
 
             <div className="block sm:hidden">
@@ -129,11 +158,11 @@ export function DataTable<TData extends DataRow>({
                                 <TableRow
                                     key={row.id}
                                     data-state={row.getIsSelected() && "selected"}
-                                    onClick={() => handleRowClick(row.original)}
+                                    onClick={(event) => handleRowClick(event, row.original)}
                                     className="cursor-pointer"
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                        <TableCell key={cell.id} data-column-id={cell.column.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                     ))}
                                 </TableRow>
                             ))
