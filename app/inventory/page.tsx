@@ -20,6 +20,7 @@ import { WarehouseManagement } from "./WarehouseManagement";
 import { ManufacturingManagement } from "./ManufacturingManagement";
 import { fetchWarehouses, fetchManufacturingOrders } from "@/lib/slices/inventorySlice";
 import { CardData } from "@/components/supplier/SupplierKPIs";
+import { ReportModal } from "@/components/inventory/ReportModal";
 
 export const columns = [
     { accessorKey: "name", header: "Name" },
@@ -120,6 +121,7 @@ export default function InventoryPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl sm:text-3xl font-bold">Inventory Management</h1>
+                <ReportModal />
             </div>
 
             {/* KPI Cards */}
