@@ -3,12 +3,19 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { PlusIcon } from "lucide-react"
 import type { Supplier } from "@/lib/types"
+import { ColumnDef } from "@tanstack/react-table"
 
-const supplierColumns = [
+const supplierColumns: ColumnDef<Supplier>[] = [
   { accessorKey: "name", header: "Name" },
   { accessorKey: "contactPerson", header: "Contact Person" },
-  { accessorKey: "email", header: "Email" },
-  { accessorKey: "phoneNumber", header: "Phone Number" },
+  { accessorKey: "email", header: "Email", },
+  {
+    accessorKey: "phoneNumber", header: "Phone Number", cell: ({ row }) => (
+      <div className="truncate" title={row.original.phoneNumber}>
+        {row.original.phoneNumber}
+      </div>
+    ),
+  },
   { accessorKey: "rating", header: "Rating" },
   { accessorKey: "status", header: "Status" },
 ]

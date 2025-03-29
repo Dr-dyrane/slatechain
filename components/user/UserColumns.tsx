@@ -24,10 +24,20 @@ export const Columns: ColumnDef<User>[] = [
     {
         accessorKey: "email",
         header: "Email",
+        cell: ({ row }) => (
+            <div className="truncate" title={row.original.email}>
+                {row.original.email}
+            </div>
+        ),
     },
     {
         accessorKey: "phoneNumber",
         header: "Phone Number",
+        cell: ({ row }) => (
+            <div className="truncate" title={row.original.phoneNumber}>
+                {row.original.phoneNumber}
+            </div>
+        ),
     },
     {
         accessorKey: "role",
