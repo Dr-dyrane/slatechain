@@ -1,5 +1,5 @@
 // lib/api/payment.ts
-import { Order } from "../types";
+import type { Order } from "../types";
 import { apiClient } from "./apiClient/[...live]";
 
 /**
@@ -57,9 +57,9 @@ export async function processPayment(
 	}
 }
 
-interface PaymentResponse {
+export interface PaymentResponse {
 	success: boolean;
-	order: Order; // Assuming 'Order' is defined elsewhere
+	order: Order;
 	paymentDetails: {
 		provider?: string;
 		transactionId?: string;
@@ -71,6 +71,6 @@ interface PaymentResponse {
 			expMonth?: string;
 			expYear?: string;
 		};
-		processedAt?: Date;
+		processedAt?: string;
 	};
 }

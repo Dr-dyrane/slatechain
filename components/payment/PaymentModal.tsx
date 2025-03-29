@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import {
   AlertDialog,
@@ -18,10 +18,11 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, CreditCard, Wallet, Banknote, X, CheckCircle } from "lucide-react"
 import { markOrderAsPaidAsync } from "@/lib/slices/orderSlice"
 import type { AppDispatch, RootState } from "@/lib/store"
-import { isLive } from "@/lib/blockchain/web3Provider"
 import { StripeProvider } from "./StripeProvider"
 import { StripePaymentForm } from "./StripePaymentForm"
-import { processPayment } from "@/lib/api/payment"
+import { apiClient } from "@/lib/api/apiClient/[...live]"
+import { mockWalletData } from "@/lib/blockchain/mockBlockchainData"
+import { connectWallet } from "@/lib/blockchain/web3Provider"
 
 interface PaymentModalProps {
   open: boolean
@@ -44,16 +45,27 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
   const [walletAddress, setWalletAddress] = useState("")
   const [transactionHash, setTransactionHash] = useState("")
   const [blockchainStep, setBlockchainStep] = useState<"connect" | "pay" | "verify">("connect")
-  const [companyWalletAddress, setCompanyWalletAddress] = useState("0x71C7656EC7ab88b098defB751B7401B5f6d8976F")
+  const [companyWalletAddress, setCompanyWalletAddress] = useState(
+    process.env.COMPANY_WALLET_ADDRESS || "0x71C7656EC7ab88b098defB751B7401B5f6d8976F",
+  )
+
+  // Check if we're in demo mode
+  useEffect(() => {
+    const isLiveMode = apiClient.getLiveMode()
+
+    // If we're in demo mode and blockchain is selected, auto-connect a mock wallet
+    if (!isLiveMode && activeTab === "blockchain" && blockchainStep === "connect") {
+      // Auto-connect wallet in demo mode
+      setWalletAddress(mockWalletData.wallet.address)
+      setBlockchainStep("pay")
+    }
+  }, [activeTab, blockchainStep])
 
   // Handle successful Stripe payment
   const handleStripePaymentSuccess = async (paymentIntentId: string) => {
     setError(null)
     try {
-      // Process the payment on the server
-      await processPayment(orderId, "stripe", null, paymentIntentId)
-
-      // Update the order in Redux
+      // Use the Redux action to process the payment
       const resultAction = await dispatch(
         markOrderAsPaidAsync({
           id: orderId,
@@ -75,16 +87,36 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
     }
   }
 
+  const handleConnectWallet = async () => {
+    setError(null)
+
+    try {
+      if (apiClient.getLiveMode()) {
+        // In live mode, use the actual wallet connection
+        const wallet = await connectWallet()
+        if (!wallet) {
+          throw new Error("Failed to connect wallet")
+        }
+        setWalletAddress(wallet.address)
+      } else {
+        // In demo mode, use mock wallet
+        setWalletAddress(mockWalletData.wallet.address)
+      }
+
+      setBlockchainStep("pay")
+    } catch (error: any) {
+      setError(error.message || "Failed to connect wallet")
+    }
+  }
+
   const handleBlockchainPayment = async () => {
     if (blockchainStep === "connect") {
-      // Simulate wallet connection
-      setWalletAddress("0x71C7656EC7ab88b098defB751B7401B5f6d8976F")
-      setBlockchainStep("pay")
+      await handleConnectWallet()
       return
     }
 
     if (blockchainStep === "pay") {
-      if (!transactionHash && !isLive()) {
+      if (!transactionHash && !apiClient.getLiveMode()) {
         // In demo mode, generate a mock transaction hash
         const mockTxHash =
           "0x" +
@@ -102,12 +134,7 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
 
       setError(null)
       try {
-        // Process the payment on the server
-        await processPayment(orderId, "blockchain", {
-          walletAddress,
-          transactionHash,
-        })
-
+        // Use the Redux action to process the payment
         const resultAction = await dispatch(
           markOrderAsPaidAsync({
             id: orderId,
@@ -135,9 +162,7 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
   const handleManualPayment = async () => {
     setError(null)
     try {
-      // Process the payment on the server
-      await processPayment(orderId, "manual")
-
+      // Use the Redux action to process the payment
       const resultAction = await dispatch(
         markOrderAsPaidAsync({
           id: orderId,
@@ -250,7 +275,7 @@ export function EnhancedPaymentModal({ open, onClose, onPaymentComplete, amount,
                   {blockchainStep === "connect" && (
                     <div className="space-y-4">
                       <p className="text-sm">Connect your wallet to make a payment with cryptocurrency.</p>
-                      <Button onClick={handleBlockchainPayment} disabled={paymentLoading} className="w-full">
+                      <Button onClick={handleConnectWallet} disabled={paymentLoading} className="w-full">
                         {paymentLoading ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
