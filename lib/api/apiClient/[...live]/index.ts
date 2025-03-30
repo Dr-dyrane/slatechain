@@ -62,6 +62,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 	WALLET_NOT_REGISTERED: "Wallet not registered. Please register first.",
 	WALLET_EXISTS: "This wallet address is already registered",
 	INVALID_SIGNATURE: "Invalid signature",
+	ORDER_NOT_DELETABLE: "Only planned orders can be deleted",
 };
 
 class ApiClient {

@@ -185,7 +185,7 @@ export async function DELETE(
 			if (order.status !== "PLANNED") {
 				return NextResponse.json(
 					{
-						code: "INVALID_STATUS",
+						code: "ORDER_NOT_DELETABLE",
 						message: "Only planned orders can be deleted",
 					},
 					{ status: 400 }
