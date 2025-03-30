@@ -59,6 +59,7 @@ export const DeleteModal = <TData extends Record<string, any>>({
         resolver: zodResolver(deleteSchema),
         defaultValues: {
             id: data?.id ?? "",
+            confirmation: "",
         },
         mode: "onChange", // Enables dynamic validation
     });

@@ -38,6 +38,11 @@ const createPersistConfig = (userId: string | null) => ({
 		"integration",
 		"notifications",
 		"customer",
+		'shopify',
+		'supplier',
+		'inventory',
+		'orders',
+		'shipment',
 	],
 });
 
