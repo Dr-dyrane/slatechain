@@ -150,3 +150,69 @@ This document outlines the data model design, UI flows, and business rules for i
    - Performance tests to ensure scalability.  
 
 ---
+
+### User Roles and Permissions
+The system defines four user roles: Customer, Supplier, Manager, and Admin. Each role has specific permissions related to return management.
+
+#### Roles and Permissions Table
+| Role      | Can Initiate Return | Can Process/Accept Return | Can View All Returns |
+|----------|---------------------|--------------------------|----------------------|
+| Customer | ✅ Yes              | ❌ No                     | ✅ (Own Returns Only) |
+| Supplier | ❌ No                | ❌ No                     | ✅ (Related Returns)  |
+| Manager  | ❌ No                | ✅ Yes                     | ✅ (All Returns)       |
+| Admin    | ❌ No                | ✅ Yes                     | ✅ (All Returns)       |
+
+#### Explanation
+1. **Customer:** Can initiate returns for delivered orders and view their own return status.
+2. **Supplier:** Can view related returns but cannot initiate or process them.
+3. **Manager:** Can view and process all return requests, including approving or rejecting them.
+4. **Admin:** Has full control to process, approve, and resolve all return requests.
+
+---
+
+### Workflow
+#### Customer Return Process
+1. Go to the **Customer Dashboard**.
+2. Select the **Manage Returns** tab.
+3. View a table of **Delivered Orders**.
+4. Click **Return** next to an order to initiate a return.
+5. Fill in the return form with details such as:
+   - Items to return
+   - Reason for return
+   - Supporting documents (e.g., photos)
+6. Submit the return request and track the status in the **Return History** section.
+
+#### Admin/Manager Return Processing
+1. Navigate to the **Admin Dashboard**.
+2. Go to the **Returns Management** tab.
+3. View the **Return Requests Table** with details such as customer name, order number, date, reason, and status.
+4. Click **View/Resolve** to examine the return details.
+5. Approve, reject, or mark the return as resolved.
+6. Update the return status, which will be reflected in the customer’s **Return History**.
+
+---
+
+### UI/UX Structure
+#### Customer Dashboard
+- **Overview Tab:** Displays summary statistics and recent orders.
+- **Manage Returns Tab:**
+  - Delivered Orders Table with columns: Order Number, Date, Items, Total Amount, Status, Action (Return)
+  - Return History Section: Displays submitted returns and their statuses.
+
+#### Admin Dashboard
+- **Overview Tab:** Shows total returns, pending resolutions, and analytics.
+- **Returns Management Tab:**
+  - Return Requests Table: Lists all return requests with filters (e.g., date, status, customer).
+  - Detailed Return View: Shows return reason, uploaded files, and action buttons (Approve, Reject, Resolve).
+
+---
+
+### Notifications
+- Customers will receive a notification whenever their return status changes (e.g., approved, rejected, resolved).
+- Managers and admins will receive alerts for new return requests and updates.
+
+---
+
+### Conclusion
+Implementing a structured return management system enhances customer satisfaction and operational efficiency. By segregating roles and responsibilities, the system ensures secure and efficient handling of returns and resolutions.
+
