@@ -90,9 +90,10 @@ export const NotificationCard: React.FC<NotificationCardProps> = ({ notification
                         <div className={cn("p-2 rounded-full flex-shrink-0", notification.read ? "bg-muted/65" : "bg-primary/20")}>
                             <Icon className={cn("h-4 w-4", !notification.read && "text-primary")} />
                         </div>
-                        <div className="italics text-sm font-light capitalize">{notification.type.replace("_", " ")}</div>
+                        <div className="italics text-sm font-light capitalize">
+                            {notification.type ? notification.type.replace("_", " ") : ""}
+                        </div>
                     </div>
-
                     <div className="text-xs text-muted-foreground self-center whitespace-nowrap">
                         {new Date(notification.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </div>
