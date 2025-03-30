@@ -22,7 +22,7 @@ import { X } from "lucide-react";
 
 const deleteSchema = z.object({
     id: z.string().min(1, "Id is required"),
-    confirmation: z.string().min(1, "Name is required"),
+    confirmation: z.string().refine((val) => val.length > 0, "Name is required"),
 });
 
 type DeleteFormValues = z.infer<typeof deleteSchema>;
@@ -44,12 +44,6 @@ export const DeleteModal = <TData extends Record<string, any>>({
     const { loading } = useSelector((state: RootState) => state.inventory);
     const dispatch = useDispatch<AppDispatch>();
 
-    useEffect(() => {
-        if (data && typeof data === "object" && "name" in data) {
-            setDataName(data.name as string);
-        }
-    }, [data]);
-
     const {
         register,
         handleSubmit,
@@ -61,13 +55,22 @@ export const DeleteModal = <TData extends Record<string, any>>({
             id: data?.id ?? "",
             confirmation: "",
         },
-        mode: "onChange", // Enables dynamic validation
+        mode: "onSubmit", // Enables dynamic validation
     });
+
+    useEffect(() => {
+        if (data) {
+            reset({
+                id: data.id,
+                confirmation: "",
+            });
+        }
+    }, [data, reset]);
 
     const onSubmit = async (formData: DeleteFormValues) => {
         try {
             if (formData.id) {
-                await dispatch(removeInventoryItem(Number(formData.id))).unwrap();
+                await dispatch(removeInventoryItem((formData.id))).unwrap();
                 toast.success("Item deleted successfully.");
                 reset();
                 onClose();

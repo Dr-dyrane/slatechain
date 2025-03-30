@@ -91,7 +91,7 @@ export const updateInventoryItem = createAsyncThunk(
 
 export const removeInventoryItem = createAsyncThunk(
 	"inventory/removeInventoryItem",
-	async (id: number, thunkAPI) => {
+	async (id: any, thunkAPI) => {
 		try {
 			await apiClient.delete(`/inventory/${id}`);
 			return id;
