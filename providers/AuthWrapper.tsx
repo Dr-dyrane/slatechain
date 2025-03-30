@@ -1,7 +1,7 @@
 // src/components/layout/authWrapper.tsx
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import { RootState, AppDispatch } from "@/lib/store";
@@ -26,31 +26,37 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         }
     }, [isAuthenticated]);
 
+    const hasPrefetched = useRef(false); // Ref to track prefetching status
+
     // Preload all pages on first load
     useEffect(() => {
-        const settingsSubpages = [
-            "help-support",
-            "help-support/schedule",
-        ];
+        if (!hasPrefetched.current) { // Check if prefetching has already run
+            const settingsSubpages = [
+                "help-support",
+                "help-support/schedule",
+            ];
 
-        const pages = [
-            "/",           // Home
-            "/dashboard",  // Dashboard
-            "/inventory",  // Inventory
-            "/orders",     // Orders
-            "/logistics",  // Logistics
-            "/suppliers",  // Suppliers
-            "/users",      // Users
-            "/profile",    // Profile
-            "/settings",   // Settings root
-            // "/apps",       // Apps
-            // Dynamically include all settings subpages
-            // ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
-        ];
+            const pages = [
+                "/",           // Home
+                "/dashboard",  // Dashboard
+                "/inventory",  // Inventory
+                "/orders",     // Orders
+                "/logistics",  // Logistics
+                "/suppliers",  // Suppliers
+                "/users",      // Users
+                "/profile",    // Profile
+                "/settings",   // Settings root
+                "/apps",       // Apps
+                // Dynamically include all settings subpages
+                ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
+            ];
 
-        Promise.all(pages.map((page) => fetch(page))).catch((err) => {
-            console.error("Page prefetching failed", err);
-        });
+            Promise.all(pages.map((page) => fetch(page))).catch((err) => {
+                console.error("Page prefetching failed", err);
+            });
+
+            hasPrefetched.current = true; // Set prefetching status to true
+        }
     }, []);
 
     useEffect(() => {
