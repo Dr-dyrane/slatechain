@@ -3,18 +3,46 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Inventory from "../../models/Inventory";
+import User from "../../models/User";
 import { createNotification } from "@/app/actions/notifications";
 import mongoose from "mongoose";
+import { UserRole } from "@/lib/types";
 
 const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
+
+// Helper function to check if user has access to an inventory item
+async function hasAccessToItem(userId: string, itemId: string) {
+	// Get user to determine role
+	const user = await User.findById(userId);
+	if (!user) return false;
+
+	// Find the inventory item
+	const item = await Inventory.findById(itemId);
+	if (!item) return false;
+
+	// Check access based on role
+	if (user.role === UserRole.ADMIN) {
+		// Admin has access to all items
+		return true;
+	} else if (user.role === UserRole.MANAGER) {
+		// Manager has access to their own items and items of suppliers they manage
+		const managedSupplierIds = user.assignedManagers || [];
+		return (
+			item.supplierId === userId || managedSupplierIds.includes(item.supplierId)
+		);
+	} else {
+		// Suppliers and other roles only have access to their own items
+		return item.supplierId === userId;
+	}
+}
 
 // GET /api/inventory/[id] - Get a single inventory item
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -26,10 +54,9 @@ export async function GET(
 				);
 			}
 
-			// Fetch inventory item and ensure it belongs to the user
-			const item = await Inventory.findOne({ _id: id, userId });
-
-			if (!item) {
+			// Check if user has access to this item
+			const hasAccess = await hasAccessToItem(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{
 						code: "NOT_FOUND",
@@ -39,6 +66,8 @@ export async function GET(
 				);
 			}
 
+			// Fetch the item
+			const item = await Inventory.findById(id);
 			return NextResponse.json(item);
 		},
 		"inventory_get",
@@ -51,7 +80,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -63,15 +92,20 @@ export async function PUT(
 				);
 			}
 
-			const updates = await req.json();
-			const item = await Inventory.findById(id);
-
-			if (!item) {
+			// Check if user has access to this item
+			const hasAccess = await hasAccessToItem(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Inventory item not found" },
+					{
+						code: "NOT_FOUND",
+						message: "Inventory item not found or unauthorized",
+					},
 					{ status: 404 }
 				);
 			}
+
+			const updates = await req.json();
+			const item = await Inventory.findById(id);
 
 			// Check if quantity is being updated
 			const quantityChanged =
@@ -79,11 +113,9 @@ export async function PUT(
 			const previousQuantity = item.quantity;
 
 			// Update item
-			const updatedItem = await Inventory.findByIdAndUpdate(
-				id,
-				updates,
-				{ new: true }
-			);
+			const updatedItem = await Inventory.findByIdAndUpdate(id, updates, {
+				new: true,
+			});
 
 			// Create notification for quantity change
 			if (quantityChanged) {
@@ -113,7 +145,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -125,14 +157,19 @@ export async function DELETE(
 				);
 			}
 
-			const item = await Inventory.findById(id);
-			if (!item) {
+			// Check if user has access to this item
+			const hasAccess = await hasAccessToItem(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Inventory item not found" },
+					{
+						code: "NOT_FOUND",
+						message: "Inventory item not found or unauthorized",
+					},
 					{ status: 404 }
 				);
 			}
 
+			const item = await Inventory.findById(id);
 			await item.deleteOne();
 
 			// Create notification for item deletion

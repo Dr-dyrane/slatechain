@@ -3,13 +3,14 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Inventory from "../models/Inventory";
+import User from "../models/User";
 import { createNotification } from "@/app/actions/notifications";
+import { UserRole } from "@/lib/types";
 
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/inventory - List inventory items for a specific user
-
+// GET /api/inventory - List inventory items based on user role
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
@@ -19,8 +20,34 @@ export async function GET(req: NextRequest) {
 			const page = Number.parseInt(searchParams.get("page") || "1");
 			const limit = Number.parseInt(searchParams.get("limit") || "50");
 
-			// Fetch inventory only by userId
-			const query = { userId };
+			// Get user to determine role
+			const user = await User.findById(userId);
+			if (!user) {
+				return NextResponse.json(
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404 }
+				);
+			}
+
+			// Build query based on user role
+			let query = {};
+
+			if (user.role === UserRole.ADMIN) {
+				// Admin sees all inventory
+				query = {};
+			} else if (user.role === UserRole.MANAGER) {
+				// Manager sees their own inventory and inventory of suppliers under them
+				const managedSupplierIds = user.assignedManagers || [];
+				query = {
+					$or: [
+						{ supplierId: userId },
+						{ supplierId: { $in: managedSupplierIds } },
+					],
+				};
+			} else {
+				// Suppliers and other roles only see their own inventory
+				query = { supplierId: userId };
+			}
 
 			// Execute query with pagination
 			const [items, total] = await Promise.all([
@@ -51,6 +78,15 @@ export async function POST(req: NextRequest) {
 		async (req, userId) => {
 			const itemData = await req.json();
 
+			// Get user to determine role
+			const user = await User.findById(userId);
+			if (!user) {
+				return NextResponse.json(
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404 }
+				);
+			}
+
 			// Validate required fields
 			if (!itemData.name || !itemData.sku || !itemData.warehouseId) {
 				return NextResponse.json(
@@ -71,6 +107,24 @@ export async function POST(req: NextRequest) {
 						message: "An item with this SKU already exists",
 					},
 					{ status: 400 }
+				);
+			}
+
+			// Set supplierId based on role
+			if (!itemData.supplierId) {
+				// If supplierId is not provided, use the current user's ID
+				itemData.supplierId = userId;
+			} else if (
+				user.role !== UserRole.ADMIN &&
+				itemData.supplierId !== userId
+			) {
+				// Non-admins can only create items for themselves
+				return NextResponse.json(
+					{
+						code: "UNAUTHORIZED",
+						message: "You can only create inventory items for yourself",
+					},
+					{ status: 403 }
 				);
 			}
 
