@@ -43,12 +43,6 @@ export const DeleteModal = <TData extends Record<string, any>>({
     const [dataName, setDataName] = useState<string>('');
     const { loading } = useSelector((state: RootState) => state.inventory);
 
-    useEffect(() => {
-        if (data && typeof data === "object" && "name" in data) {
-            setDataName(data.name as string);
-        }
-    }, [data]);
-
     const {
         register,
         handleSubmit,
@@ -60,8 +54,19 @@ export const DeleteModal = <TData extends Record<string, any>>({
             id: data?.id ?? "",
             confirmation: "",
         },
-        mode: "onChange", // Enables dynamic validation
+        mode: "onChange",
     });
+
+    useEffect(() => {
+        if (data) {
+            reset({
+                id: data.id,
+                confirmation: "",
+            });
+            setDataName(data.name as string);
+        }
+    }, [data, reset]);
+    
 
     return (
         <AlertDialog open={open} onOpenChange={onClose}>

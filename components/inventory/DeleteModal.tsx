@@ -55,7 +55,7 @@ export const DeleteModal = <TData extends Record<string, any>>({
             id: data?.id ?? "",
             confirmation: "",
         },
-        mode: "onSubmit", // Enables dynamic validation
+        mode: "onChange", // Enables dynamic validation
     });
 
     useEffect(() => {
