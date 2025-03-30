@@ -99,6 +99,11 @@ const manufacturingOrderSchema = new mongoose.Schema(
 			instructions: String,
 			version: String,
 		},
+		createdBy: {
+			type: String,
+			required: true,
+			index: true,
+		},
 	},
 	{
 		timestamps: true,
