@@ -1,56 +1,77 @@
-"use client";
+"use client"
 
-import { AlertTriangle } from "lucide-react";
-import { Button } from "../components/ui/button";
-import { ReactNode, Component } from "react";
-import { connect } from "react-redux"; 
-import { LogoutError } from "@/lib/api/apiClient";
-import { logout } from "@/lib/slices/authSlice";
+import { AlertTriangle } from "lucide-react"
+import { Button } from "../components/ui/button"
+import { type ReactNode, Component, useEffect } from "react"
+import { connect } from "react-redux"
+import { LogoutError } from "@/lib/api/apiClient"
+import { logout } from "@/lib/slices/authSlice"
+import { useRouter } from "next/navigation"
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
-  logout: () => void; // logout action provided by redux
+  children: ReactNode
+  logout: () => void // logout action provided by redux
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: any;
+  hasError: boolean
+  error: any
 }
 
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundaryClass extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private sessionExpiredHandler: (() => void) | null = null
+
   constructor(props: ErrorBoundaryProps) {
-    super(props);
+    super(props)
     this.state = {
       hasError: false,
       error: null,
-    };
+    }
   }
 
   static getDerivedStateFromError(error: any) {
-    return { hasError: true, error };
+    return { hasError: true, error }
+  }
+
+  componentDidMount() {
+    // Listen for the custom session expired event
+    this.sessionExpiredHandler = this.handleSessionExpired.bind(this)
+    window.addEventListener("auth:sessionExpired", this.sessionExpiredHandler)
+  }
+
+  componentWillUnmount() {
+    // Clean up event listener
+    if (this.sessionExpiredHandler) {
+      window.removeEventListener("auth:sessionExpired", this.sessionExpiredHandler)
+    }
+  }
+
+  async handleSessionExpired() {
+    try {
+      await this.props.logout() // Dispatch logout action
+    } catch (logoutError) {
+      console.error("Logout failed:", logoutError)
+    } finally {
+      window.location.href = "/login" // Redirect manually
+    }
   }
 
   async componentDidCatch(error: any, info: any) {
-    console.error("Error caught by ErrorBoundary:", error, info);
+    console.error("Error caught by ErrorBoundary:", error, info)
 
+    // Handle LogoutError specifically
     if (error instanceof LogoutError) {
-      try {
-        await this.props.logout(); // Dispatch logout action
-      } catch (logoutError) {
-        console.error("Logout failed:", logoutError);
-      } finally {
-        window.location.href = "/login"; // Redirect manually
-      }
+      await this.handleSessionExpired()
     }
   }
 
   resetError = () => {
-    this.setState({ hasError: false, error: null });
-  };
+    this.setState({ hasError: false, error: null })
+  }
 
   render() {
-    const { hasError, error } = this.state;
-    const { children } = this.props;
+    const { hasError, error } = this.state
+    const { children } = this.props
 
     if (hasError) {
       return (
@@ -75,15 +96,42 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             </div>
           </div>
         </div>
-      );
+      )
     }
 
-    return children;
+    return children
   }
+}
+
+// Wrapper component to use hooks with class component
+function ErrorBoundary(props: ErrorBoundaryProps) {
+  const router = useRouter()
+
+  useEffect(() => {
+    // Global listener for session expired events
+    const handleGlobalSessionExpired = async () => {
+      try {
+        await props.logout()
+        router.push("/login")
+      } catch (error) {
+        console.error("Global logout failed:", error)
+        window.location.href = "/login" // Fallback
+      }
+    }
+
+    window.addEventListener("auth:sessionExpired", handleGlobalSessionExpired)
+
+    return () => {
+      window.removeEventListener("auth:sessionExpired", handleGlobalSessionExpired)
+    }
+  }, [props.logout, router])
+
+  return <ErrorBoundaryClass {...props} />
 }
 
 const mapDispatchToProps = {
   logout,
-};
+}
 
-export default connect(null, mapDispatchToProps)(ErrorBoundary);
+export default connect(null, mapDispatchToProps)(ErrorBoundary)
+

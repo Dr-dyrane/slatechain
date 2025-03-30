@@ -1,5 +1,3 @@
-// lib/api/apiClient/[...live]/index.ts
-
 import { tokenManager } from "@/lib/helpers/tokenManager";
 import axios, {
 	type AxiosError,
@@ -12,7 +10,7 @@ import { mockApiResponses } from "../../mockData";
 const BASE_URL = "/api"; // Calls will be directed to /app/api
 
 // Custom error for logout handling
-class LogoutError extends Error {
+export class LogoutError extends Error {
 	constructor(message: string) {
 		super(message);
 		this.name = "LogoutError";
@@ -169,9 +167,26 @@ class ApiClient {
 
 				// Check if error is 401 (Unauthorized) before attempting refresh
 				if (error.response?.status === 401) {
-					// If retry already attempted, clear tokens and log out user
-					if (originalRequest._retry) {
+					// Check for specific error messages that indicate we should not retry
+					const errorData = error.response?.data as
+						| { error?: string }
+						| undefined;
+					const errorMessage = errorData?.error || "";
+
+					// If the error indicates an invalid or expired token and we've already retried,
+					// or if the error specifically mentions the refresh token is invalid/expired
+					if (
+						originalRequest._retry ||
+						errorMessage.includes("Invalid refresh token") ||
+						errorMessage.includes("Refresh token has expired") ||
+						errorMessage.includes("Refresh token not found")
+					) {
+						// Clear tokens and throw logout error
 						tokenManager.clearTokens();
+						// Dispatch a custom event that the ErrorBoundary can listen for
+						if (typeof window !== "undefined") {
+							window.dispatchEvent(new CustomEvent("auth:sessionExpired"));
+						}
 						return Promise.reject(
 							new LogoutError("Session expired, please log in again.")
 						);
@@ -181,11 +196,17 @@ class ApiClient {
 
 					// Prevent multiple refresh calls at the same time
 					if (this.isRefreshing) {
-						return new Promise((resolve) => {
+						return new Promise((resolve, reject) => {
 							this.refreshSubscribers.push((token) => {
-								(originalRequest.headers ??= {})["Authorization"] =
-									`Bearer ${token}`;
-								resolve(this.axiosInstance(originalRequest));
+								if (token) {
+									(originalRequest.headers ??= {})["Authorization"] =
+										`Bearer ${token}`;
+									resolve(this.axiosInstance(originalRequest));
+								} else {
+									reject(
+										new LogoutError("Session expired, please log in again.")
+									);
+								}
 							});
 						});
 					}
@@ -202,22 +223,31 @@ class ApiClient {
 						}
 
 						// Attempt to refresh the token
-						const { data } = await this.axiosInstance.post("/auth/refresh", {
+						const response = await this.axiosInstance.post("/auth/refresh", {
 							refreshToken,
 						});
 
-						tokenManager.setTokens(data.accessToken, data.refreshToken);
+						// Extract the new tokens from the response
+						const { accessToken, refreshToken: newRefreshToken } =
+							response.data;
+
+						if (!accessToken || !newRefreshToken) {
+							throw new Error("Invalid token response from server");
+						}
+
+						// Store the new tokens
+						tokenManager.setTokens(accessToken, newRefreshToken);
 						this.isRefreshing = false;
 
 						// Resolve all queued requests with the new token
 						this.refreshSubscribers.forEach((callback) =>
-							callback(data.accessToken)
+							callback(accessToken)
 						);
 						this.refreshSubscribers = [];
 
 						// Retry the original request with the new token
 						(originalRequest.headers ??= {})["Authorization"] =
-							`Bearer ${data.accessToken}`;
+							`Bearer ${accessToken}`;
 
 						return this.axiosInstance(originalRequest);
 					} catch (refreshError) {
@@ -225,8 +255,14 @@ class ApiClient {
 						this.refreshSubscribers.forEach((callback) => callback(""));
 						this.refreshSubscribers = [];
 						tokenManager.clearTokens();
+
+						// Dispatch a custom event that the ErrorBoundary can listen for
+						if (typeof window !== "undefined") {
+							window.dispatchEvent(new CustomEvent("auth:sessionExpired"));
+						}
+
 						return Promise.reject(
-							new LogoutError("Session expired, please log in again...")
+							new LogoutError("Session expired, please log in again.")
 						);
 					}
 				}
@@ -414,4 +450,3 @@ class ApiClient {
 }
 
 export const apiClient = new ApiClient();
-export { LogoutError };
