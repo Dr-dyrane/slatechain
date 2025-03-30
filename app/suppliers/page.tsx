@@ -32,7 +32,7 @@ export default function SuppliersPage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const dispatch = useDispatch<AppDispatch>()
-  const suppliers = useSelector((state: RootState) => state.supplier.items)
+  const suppliers = useSelector((state: RootState) => state.supplier.items) as Supplier[]
   const documents = useSelector((state: RootState) => state.supplier.documents)
   const chatMessages = useSelector((state: RootState) => state.supplier.chatMessages)
 
