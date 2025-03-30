@@ -37,7 +37,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -101,7 +101,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {

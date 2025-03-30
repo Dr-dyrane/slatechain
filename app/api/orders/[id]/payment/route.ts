@@ -33,7 +33,7 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await params;
 
 	return handleRequest(
 		req,
@@ -257,7 +257,7 @@ async function processBlockchainPayment(order: any, paymentData: PaymentData) {
 		if (isLive()) {
 			const companyWalletAddress =
 				process.env.COMPANY_WALLET_ADDRESS ||
-				"";
+				"0x71C7656EC7ab88b098defB751B7401B5f6d8976F";
 
 			const verificationResult = await verifyTransaction(
 				transactionHash,

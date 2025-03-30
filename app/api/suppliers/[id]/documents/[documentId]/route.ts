@@ -38,7 +38,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id, documentId } = params;
+	const { id, documentId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -90,7 +90,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id, documentId } = params;
+	const { id, documentId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -154,7 +154,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string; documentId: string } }
 ) {
-	const { id, documentId } = params;
+	const { id, documentId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
