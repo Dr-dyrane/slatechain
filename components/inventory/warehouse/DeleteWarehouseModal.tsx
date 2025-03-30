@@ -70,6 +70,7 @@ export function DeleteWarehouseModal({
     const onSubmit = async (formData: DeleteFormValues) => {
         try {
             if (formData.id) {
+                console.log("Deleting warehouse...", formData.id);
                 await dispatch(deleteWarehouse(formData.id)).unwrap();
                 toast.success("Warehouse deleted successfully.");
                 reset();
@@ -121,11 +122,16 @@ export function DeleteWarehouseModal({
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction disabled={loading || !isValid} type="submit" className="bg-destructive">
+                        <button
+                            type="submit"
+                            disabled={loading || !isValid}
+                            className="bg-destructive text-white px-4 py-2 rounded-md"
+                        >
                             {loading ? "Deleting..." : "Confirm Delete"}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </form>
+
             </AlertDialogContent>
         </AlertDialog>
     );

@@ -3,18 +3,47 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Warehouse from "../../models/Warehouse";
+import User from "../../models/User";
 import { createNotification } from "@/app/actions/notifications";
 import mongoose from "mongoose";
+import { UserRole } from "@/lib/types";
 
 const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
+
+// Helper function to check if user has access to a warehouse
+async function hasAccessToWarehouse(userId: string, warehouseId: string) {
+	// Get user to determine role
+	const user = await User.findById(userId);
+	if (!user) return false;
+
+	// Find the warehouse
+	const warehouse = await Warehouse.findById(warehouseId);
+	if (!warehouse) return false;
+
+	// Check access based on role
+	if (user.role === UserRole.ADMIN) {
+		// Admin has access to all warehouses
+		return true;
+	} else if (user.role === UserRole.MANAGER) {
+		// Manager has access to warehouses they created and warehouses of suppliers they manage
+		const managedSupplierIds = user.assignedManagers || [];
+		return (
+			warehouse.createdBy === userId ||
+			managedSupplierIds.includes(warehouse.createdBy)
+		);
+	} else {
+		// Suppliers and other roles only have access to warehouses they created
+		return warehouse.createdBy === userId;
+	}
+}
 
 // GET /api/warehouses/[id] - Get a single warehouse
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -26,16 +55,17 @@ export async function GET(
 				);
 			}
 
-			// Fetch the warehouse and ensure it belongs to the user
-			const warehouse = await Warehouse.findOne({ _id: id, userId });
-
-			if (!warehouse) {
+			// Check if user has access to this warehouse
+			const hasAccess = await hasAccessToWarehouse(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Warehouse not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			// Fetch the warehouse
+			const warehouse = await Warehouse.findById(id);
 			return NextResponse.json(warehouse);
 		},
 		"warehouse_get",
@@ -48,7 +78,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -60,15 +90,17 @@ export async function PUT(
 				);
 			}
 
-			const updates = await req.json();
-			const warehouse = await Warehouse.findById(id);
-
-			if (!warehouse) {
+			// Check if user has access to this warehouse
+			const hasAccess = await hasAccessToWarehouse(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Warehouse not found" },
+					{ code: "NOT_FOUND", message: "Warehouse not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
+
+			const updates = await req.json();
+			const warehouse = await Warehouse.findById(id);
 
 			// Check if status is being updated
 			const statusChanged =
@@ -107,7 +139,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -119,13 +151,16 @@ export async function DELETE(
 				);
 			}
 
-			const warehouse = await Warehouse.findById(id);
-			if (!warehouse) {
+			// Check if user has access to this warehouse
+			const hasAccess = await hasAccessToWarehouse(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Warehouse not found" },
+					{ code: "NOT_FOUND", message: "Warehouse not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
+
+			const warehouse = await Warehouse.findById(id);
 
 			// Check if warehouse has inventory items
 			const Inventory = mongoose.model("Inventory");

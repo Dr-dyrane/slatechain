@@ -64,6 +64,11 @@ const warehouseSchema = new mongoose.Schema(
 			enum: ["ACTIVE", "INACTIVE", "MAINTENANCE"],
 			default: "ACTIVE",
 		},
+		createdBy: {
+			type: String,
+			required: true,
+			index: true,
+		},
 	},
 	{
 		timestamps: true,

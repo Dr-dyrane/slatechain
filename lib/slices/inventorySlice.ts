@@ -1,6 +1,10 @@
 // src/lib/slices/inventorySlice.ts
 
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+	createSlice,
+	createAsyncThunk,
+	type PayloadAction,
+} from "@reduxjs/toolkit";
 import type {
 	InventoryItem,
 	InventoryState,
@@ -131,8 +135,12 @@ export const addWarehouse = createAsyncThunk(
 			);
 			return response;
 		} catch (error: any) {
+			// Extract the error message from the response if available
+			if (error.message && typeof error.message === "string") {
+				return thunkAPI.rejectWithValue(error.message);
+			}
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to add warehouse"
+				"Failed to add warehouse. Please try again."
 			);
 		}
 	}
@@ -148,8 +156,12 @@ export const updateWarehouse = createAsyncThunk(
 			);
 			return response;
 		} catch (error: any) {
+			// Extract the error message from the response if available
+			if (error.message && typeof error.message === "string") {
+				return thunkAPI.rejectWithValue(error.message);
+			}
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to update warehouse"
+				"Failed to update warehouse. Please try again."
 			);
 		}
 	}
@@ -162,8 +174,12 @@ export const deleteWarehouse = createAsyncThunk(
 			await apiClient.delete(`/warehouses/${id}`);
 			return id;
 		} catch (error: any) {
+			// Extract the error message from the response if available
+			if (error.message && typeof error.message === "string") {
+				return thunkAPI.rejectWithValue(error.message);
+			}
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to delete warehouse"
+				"Failed to delete warehouse. Please try again."
 			);
 		}
 	}
@@ -228,8 +244,12 @@ export const createManufacturingOrder = createAsyncThunk(
 			);
 			return response;
 		} catch (error: any) {
+			// Extract the error message from the response if available
+			if (error.message && typeof error.message === "string") {
+				return thunkAPI.rejectWithValue(error.message);
+			}
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to create manufacturing order"
+				"Failed to create manufacturing order. Please try again."
 			);
 		}
 	}
@@ -245,8 +265,12 @@ export const updateManufacturingOrder = createAsyncThunk(
 			);
 			return response;
 		} catch (error: any) {
+			// Extract the error message from the response if available
+			if (error.message && typeof error.message === "string") {
+				return thunkAPI.rejectWithValue(error.message);
+			}
 			return thunkAPI.rejectWithValue(
-				error.message || "Failed to update manufacturing order"
+				"Failed to update manufacturing order. Please try again."
 			);
 		}
 	}
@@ -352,52 +376,142 @@ const inventorySlice = createSlice({
 				state.loading = false;
 				state.error = action.payload as string;
 			})
+			.addCase(addWarehouse.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(addWarehouse.fulfilled, (state, action) => {
+				state.loading = false;
 				state.warehouses.push(action.payload);
+				state.error = null;
+			})
+			.addCase(addWarehouse.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(updateWarehouse.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(updateWarehouse.fulfilled, (state, action) => {
+				state.loading = false;
 				const index = state.warehouses.findIndex(
 					(w) => w.id === action.payload.id
 				);
 				if (index !== -1) {
 					state.warehouses[index] = action.payload;
 				}
+				state.error = null;
+			})
+			.addCase(updateWarehouse.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(deleteWarehouse.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(deleteWarehouse.fulfilled, (state, action) => {
+				state.loading = false;
 				state.warehouses = state.warehouses.filter(
 					(w) => w.id !== action.payload
 				);
+				state.error = null;
+			})
+			.addCase(deleteWarehouse.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			});
 
 		// Stock Movement reducers
 		builder
+			.addCase(fetchStockMovements.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(fetchStockMovements.fulfilled, (state, action) => {
+				state.loading = false;
 				state.stockMovements = action.payload ?? [];
+				state.error = null;
+			})
+			.addCase(fetchStockMovements.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(createStockMovement.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(createStockMovement.fulfilled, (state, action) => {
+				state.loading = false;
 				state.stockMovements.push(action.payload);
+				state.error = null;
+			})
+			.addCase(createStockMovement.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			});
 
 		// Manufacturing Order reducers
 		builder
+			.addCase(fetchManufacturingOrders.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(fetchManufacturingOrders.fulfilled, (state, action) => {
+				state.loading = false;
 				state.manufacturingOrders = action.payload ?? [];
+				state.error = null;
+			})
+			.addCase(fetchManufacturingOrders.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(createManufacturingOrder.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(createManufacturingOrder.fulfilled, (state, action) => {
+				state.loading = false;
 				state.manufacturingOrders.push(action.payload);
+				state.error = null;
+			})
+			.addCase(createManufacturingOrder.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(updateManufacturingOrder.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(updateManufacturingOrder.fulfilled, (state, action) => {
+				state.loading = false;
 				const index = state.manufacturingOrders.findIndex(
 					(o) => o.id === action.payload.id
 				);
 				if (index !== -1) {
 					state.manufacturingOrders[index] = action.payload;
 				}
+				state.error = null;
+			})
+			.addCase(updateManufacturingOrder.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(deleteManufacturingOrder.pending, (state) => {
+				state.loading = true;
+				state.error = null;
 			})
 			.addCase(deleteManufacturingOrder.fulfilled, (state, action) => {
+				state.loading = false;
 				state.manufacturingOrders = state.manufacturingOrders.filter(
 					(o) => o.id !== action.payload
 				);
+				state.error = null;
+			})
+			.addCase(deleteManufacturingOrder.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			});
 	},
 });

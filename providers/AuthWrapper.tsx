@@ -30,7 +30,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
 
     // Preload all pages on first load
     useEffect(() => {
-        if (!hasPrefetched.current) { // Check if prefetching has already run
+        if (!hasPrefetched.current) { 
+            setIsChecking(true); // Set checking status to true
             const settingsSubpages = [
                 "help-support",
                 "help-support/schedule",
@@ -56,6 +57,7 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             });
 
             hasPrefetched.current = true; // Set prefetching status to true
+            setIsChecking(false); // Set checking status to false
         }
     }, []);
 
