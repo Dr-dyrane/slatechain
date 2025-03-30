@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { PlusIcon } from "lucide-react"
 import type { Supplier } from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table"
+import { Badge } from "../ui/badge"
 
 const supplierColumns: ColumnDef<Supplier>[] = [
   { accessorKey: "name", header: "Name" },
@@ -17,7 +18,15 @@ const supplierColumns: ColumnDef<Supplier>[] = [
     ),
   },
   { accessorKey: "rating", header: "Rating" },
-  { accessorKey: "status", header: "Status" },
+  {
+    accessorKey: "status", header: "Status",
+
+    cell: ({ row }) => (
+      <Badge variant={row.original.status === "ACTIVE" ? "success" : "destructive"}>
+        {row.original.status}
+      </Badge>
+    ),
+  },
 ]
 
 interface SupplierListProps {
