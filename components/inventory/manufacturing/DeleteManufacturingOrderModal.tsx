@@ -120,9 +120,13 @@ export function DeleteManufacturingOrderModal({
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction disabled={loading || !isValid} type="submit" className="bg-destructive">
+                        <button
+                            type="submit"
+                            disabled={loading || !isValid}
+                            className="bg-destructive text-white px-4 py-2 rounded-md"
+                        >
                             {loading ? "Deleting..." : "Confirm Delete"}
-                        </AlertDialogAction>
+                        </button>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
