@@ -31,6 +31,7 @@ export async function GET(req: NextRequest) {
 
 			// Build query based on user role
 			let query = {};
+			let additionalFilters = {};
 
 			if (user.role === UserRole.ADMIN) {
 				// Admin sees all inventory
@@ -44,10 +45,36 @@ export async function GET(req: NextRequest) {
 						{ supplierId: { $in: managedSupplierIds } },
 					],
 				};
+			} else if (user.role === UserRole.SUPPLIER) {
+				query = { supplierId: userId }; // Suppliers see their own inventory
+			} else if (user.role === UserRole.CUSTOMER) {
+				// 1. Fetch all suppliers
+				const suppliers = await User.find({ role: UserRole.SUPPLIER }).select(
+					"_id firstName lastName email phoneNumber avatarUrl supplierMetadata"
+				);
+				// 2. Filter for active suppliers based on supplierMetadata.status
+				const activeSuppliers = suppliers.filter(
+					(supplier) =>
+						supplier.supplierMetadata &&
+						supplier.supplierMetadata.status === "ACTIVE"
+				);
+				// 3. Extract IDs of active suppliers
+				const activeSupplierIds = activeSuppliers.map(
+					(supplier) => supplier._id
+				);
+				additionalFilters = {
+					quantity: { $gt: 0 }, // In-stock items only
+					supplierId: { $in: activeSupplierIds }, // Items from active suppliers only
+				};
 			} else {
-				// Suppliers and other roles only see their own inventory
-				query = { supplierId: userId };
+				return NextResponse.json(
+					{ code: "UNAUTHORIZED", message: "Unauthorized to view inventory." },
+					{ status: 403 }
+				); // Default: no access
 			}
+
+			// Merge the main query and role based filters
+			query = { ...query, ...additionalFilters };
 
 			// Execute query with pagination
 			const [items, total] = await Promise.all([
