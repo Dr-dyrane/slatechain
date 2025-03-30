@@ -11,14 +11,24 @@ import { PlusIcon } from "lucide-react";
 import { AddManufacturingOrderModal } from "@/components/inventory/manufacturing/AddManufacturingOrderModal";
 import { EditManufacturingOrderModal } from "@/components/inventory/manufacturing/EditManufacturingOrderModal";
 import { DeleteManufacturingOrderModal } from "@/components/inventory/manufacturing/DeleteManufacturingOrderModal";
+import { Badge } from "@/components/ui/badge";
+import { ColumnDef } from "@tanstack/react-table";
 
-
-const columns = [
+const columns: ColumnDef<ManufacturingOrder>[] = [
     { accessorKey: "orderNumber", header: "Order #" },
     { accessorKey: "name", header: "Name" },
     { accessorKey: "inventoryItemId", header: "Product ID" },
     { accessorKey: "quantity", header: "Quantity" },
-    { accessorKey: "status", header: "Status" },
+    {
+        accessorKey: "status", header: "Status",
+        cell: ({ row }) => {
+            return (
+                <Badge variant={row.original.status === "PLANNED" ? "warning" : row.original.status === "IN_PROGRESS" ? "default" : row.original.status === "COMPLETED" ? "success" : "destructive"}>
+                    {row.original.status}
+                </Badge>
+            );
+        }
+    },
 ];
 
 export function ManufacturingManagement() {

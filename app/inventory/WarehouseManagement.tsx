@@ -11,13 +11,23 @@ import { PlusIcon } from "lucide-react";
 import { AddWarehouseModal } from "@/components/inventory/warehouse/AddWarehouseModal";
 import { EditWarehouseModal } from "@/components/inventory/warehouse/EditWarehouseModal";
 import { DeleteWarehouseModal } from "@/components/inventory/warehouse/DeleteWarehouseModal";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 
-const columns = [
+const columns:ColumnDef<Warehouse>[] = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "location", header: "Location" },
     { accessorKey: "capacity", header: "Capacity" },
     { accessorKey: "utilizationPercentage", header: "Utilization" },
-    { accessorKey: "status", header: "Status" },
+    { accessorKey: "status", header: "Status",
+        cell: ({ row }) => {
+            return (
+                <Badge variant={row.original.status === "ACTIVE" ? "success" : row.original.status === "INACTIVE" ? "warning" : "destructive"}>
+                    {row.original.status}
+                </Badge>
+            );
+        }
+     },
 ];
 
 export function WarehouseManagement() {
