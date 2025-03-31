@@ -21,16 +21,17 @@ import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { addTransport, fetchCarriers } from "@/lib/slices/shipmentSlice"
 import type { Carrier, Transport } from "@/lib/types"
-import { X } from "lucide-react"
+import { X, MapPin, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useGeolocation } from "@/hooks/use-geolocation"
 
 // Define a Zod schema for transport validation
 const transportSchema = z.object({
     name: z.string().min(1, { message: "Name is required" }),
-    type: z.enum(["TRUCK", "SHIP", "PLANE"], {
+    type: z.enum(["TRUCK", "TRAIN", "PLANE", "SHIP", "OTHER"], {
         required_error: "Transport type is required",
     }),
     capacity: z
@@ -65,13 +66,18 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
     const [adding, setAdding] = useState(false)
+    const { location, loading: locationLoading, error: locationError, getLocation } = useGeolocation()
 
     // Fetch carriers when the modal opens
     useEffect(() => {
-        if (open && carriers.length === 0) {
-            dispatch(fetchCarriers())
+        if (open) {
+            if (carriers.length === 0) {
+                dispatch(fetchCarriers())
+            }
+            // Get current location when modal opens
+            getLocation()
         }
-    }, [open, dispatch, carriers.length])
+    }, [open, dispatch, carriers.length, getLocation])
 
     const {
         register,
@@ -94,6 +100,14 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
         },
     })
 
+    // Update form with current location when available
+    useEffect(() => {
+        if (location) {
+            setValue("currentLocation.latitude", location.latitude, { shouldValidate: true })
+            setValue("currentLocation.longitude", location.longitude, { shouldValidate: true })
+        }
+    }, [location, setValue])
+
     const onSubmit = async (data: TransportFormValues) => {
         setBackendError(null)
         setAdding(true)
@@ -108,8 +122,7 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add transport. Please try again.")
             }
-        }
-        finally {
+        } finally {
             setAdding(false)
         }
     }
@@ -135,6 +148,11 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
         setValue("status", value as Transport["status"], { shouldValidate: true })
     }
 
+    // Handle refresh location
+    const handleRefreshLocation = () => {
+        getLocation()
+    }
+
     return (
         <AlertDialog open={open} onOpenChange={handleClose}>
             <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
@@ -155,6 +173,15 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
                     <Alert variant="destructive" className="mb-4">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>{backendError}</AlertDescription>
+                    </Alert>
+                )}
+
+                {locationError && (
+                    <Alert variant="default" className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            Could not get your location: {locationError}. Please enter coordinates manually.
+                        </AlertDescription>
                     </Alert>
                 )}
 
@@ -211,7 +238,23 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
                     </div>
 
                     <div>
-                        <Label>Current Location</Label>
+                        <div className="flex justify-between items-center mb-2">
+                            <Label>Current Location</Label>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRefreshLocation}
+                                disabled={locationLoading}
+                            >
+                                {locationLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                ) : (
+                                    <MapPin className="h-4 w-4 mr-1" />
+                                )}
+                                {locationLoading ? "Getting Location..." : "Get Current Location"}
+                            </Button>
+                        </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
                                 <Label htmlFor="latitude">Latitude</Label>

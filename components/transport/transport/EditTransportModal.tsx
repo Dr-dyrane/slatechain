@@ -21,17 +21,18 @@ import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { updateTransport, fetchCarriers } from "@/lib/slices/shipmentSlice"
 import type { Transport } from "@/lib/types"
-import { X } from "lucide-react"
+import { X, MapPin, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useGeolocation } from "@/hooks/use-geolocation"
 
 // Define a Zod schema for transport validation
 const transportSchema = z.object({
     id: z.string().min(1, { message: "ID is required" }),
     name: z.string().min(1, { message: "Name is required" }),
-    type: z.enum(["TRUCK", "SHIP", "PLANE"], {
+    type: z.enum(["TRUCK", "TRAIN", "PLANE", "SHIP", "OTHER"], {
         required_error: "Transport type is required",
     }),
     capacity: z
@@ -67,6 +68,7 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
     const [updating, setUpdating] = useState(false)
+    const { location, loading: locationLoading, error: locationError, getLocation } = useGeolocation()
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -111,6 +113,14 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
         }
     }, [transport, reset])
 
+    // Update form with current location when requested
+    const updateLocationFromCurrent = () => {
+        if (location) {
+            setValue("currentLocation.latitude", location.latitude, { shouldValidate: true })
+            setValue("currentLocation.longitude", location.longitude, { shouldValidate: true })
+        }
+    }
+
     const onSubmit = async (data: TransportFormValues) => {
         setBackendError(null)
         setUpdating(true)
@@ -124,8 +134,7 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
             } else {
                 toast.error(error?.message || "Failed to update transport. Please try again.")
             }
-        }
-        finally {
+        } finally {
             setUpdating(false)
         }
     }
@@ -150,6 +159,20 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
         setValue("status", value as Transport["status"], { shouldValidate: true })
     }
 
+    // Handle refresh location
+    const handleRefreshLocation = () => {
+        getLocation()
+        // We'll update the form after location is fetched
+        setTimeout(updateLocationFromCurrent, 500)
+    }
+
+    // Update location when it changes
+    useEffect(() => {
+        if (location && locationLoading === false) {
+            updateLocationFromCurrent()
+        }
+    }, [location, locationLoading])
+
     return (
         <AlertDialog open={open} onOpenChange={handleClose}>
             <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
@@ -170,6 +193,15 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
                     <Alert variant="destructive" className="mb-4">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>{backendError}</AlertDescription>
+                    </Alert>
+                )}
+
+                {locationError && (
+                    <Alert variant="default" className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                            Could not get your location: {locationError}. Please enter coordinates manually.
+                        </AlertDescription>
                     </Alert>
                 )}
 
@@ -229,7 +261,23 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
                     </div>
 
                     <div>
-                        <Label>Current Location</Label>
+                        <div className="flex justify-between items-center mb-2">
+                            <Label>Current Location</Label>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRefreshLocation}
+                                disabled={locationLoading}
+                            >
+                                {locationLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                ) : (
+                                    <MapPin className="h-4 w-4 mr-1" />
+                                )}
+                                {locationLoading ? "Getting Location..." : "Update to Current Location"}
+                            </Button>
+                        </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
                                 <Label htmlFor="latitude">Latitude</Label>
