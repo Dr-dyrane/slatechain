@@ -45,7 +45,7 @@ export function FreightManagement() {
             accessorKey: "hazardous",
             header: "Hazardous",
             cell: ({ row }) => {
-                const isHazardous = row.original.hazardous === true;
+                const isHazardous = row.original.cargo?.hazmat === true;
                 return isHazardous ? (
                     <div className="flex items-center space-x-2">
                         <X className="w-4 h-4 text-red-500" />

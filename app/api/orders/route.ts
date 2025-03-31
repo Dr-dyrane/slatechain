@@ -106,6 +106,39 @@ export async function POST(req: NextRequest) {
 				0
 			);
 
+			// If no shipping address is provided, try to get it from the customer
+			if (!orderData.shippingAddress) {
+				try {
+					const customer = await User.findById(orderData.customerId);
+					if (customer && customer.address) {
+						orderData.shippingAddress = customer.address;
+					} else {
+						// Fallback to a default or placeholder address if none is found
+						orderData.shippingAddress = {
+							address1: "No Address Provided",
+							address2: "",
+							city: "Unknown",
+							state: "",
+							country: "Unknown",
+							postalCode: "",
+							phone: "",
+						};
+					}
+				} catch (error) {
+					console.error("Error fetching customer address:", error);
+					// Fallback to default if an error occurs
+					orderData.shippingAddress = {
+						address1: "No Address Provided",
+						address2: "",
+						city: "Unknown",
+						state: "",
+						country: "Unknown",
+						postalCode: "",
+						phone: "",
+					};
+				}
+			}
+
 			// Create order
 			const order = await Order.create({
 				...orderData,

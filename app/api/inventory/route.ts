@@ -125,17 +125,24 @@ export async function POST(req: NextRequest) {
 				);
 			}
 
-			// Check for duplicate SKU
-			const existingItem = await Inventory.findOne({ sku: itemData.sku });
-			if (existingItem) {
-				return NextResponse.json(
-					{
-						code: "DUPLICATE_SKU",
-						message: "An item with this SKU already exists",
-					},
-					{ status: 400 }
-				);
+			// Generate a unique SKU
+			const generateSKU = (name: string): string => {
+				const randomSegment = Math.floor(1000 + Math.random() * 9000); // 4-digit random number
+				const nameSegment = name.substring(0, 3).toUpperCase(); // First 3 letters of product name
+				return `${nameSegment}-${randomSegment}`;
+			};
+
+			let sku = generateSKU(itemData.name);
+			let existingItem = await Inventory.findOne({ sku });
+
+			// Ensure uniqueness by regenerating if duplicate
+			while (existingItem) {
+				sku = generateSKU(itemData.name);
+				existingItem = await Inventory.findOne({ sku });
 			}
+
+			// Assign the generated SKU to itemData
+			itemData.sku = sku;
 
 			// Set supplierId based on role
 			if (!itemData.supplierId) {

@@ -154,7 +154,7 @@ export function EditInventoryModal({ open, onClose, data }: EditInventoryModalPr
           </div>
           <div className="space-y-2">
             <Label htmlFor="sku">SKU</Label>
-            <Input id="sku" placeholder="SKU" {...register("sku")} className="input-focus input-hover" />
+            <Input id="sku" placeholder="SKU" {...register("sku")} className="input-focus input-hover" readOnly/>
             {errors.sku && <p className="text-sm text-red-500">{errors.sku.message}</p>}
           </div>
           <div className="space-y-2">

@@ -15,6 +15,17 @@ interface SupplierMetadata {
 	status?: string;
 }
 
+// Add address interface
+interface UserAddress {
+	address1: string;
+	address2?: string;
+	city: string;
+	state?: string;
+	country: string;
+	postalCode?: string;
+	phone?: string;
+}
+
 export interface IUser {
 	firstName: string;
 	lastName: string;
@@ -29,8 +40,9 @@ export interface IUser {
 	avatarUrl?: string;
 	integrations: UserIntegrations;
 	refreshToken?: string;
-	assignedManagers?: string[]; // Added for supplier management
-	supplierMetadata?: SupplierMetadata; // Added for supplier-specific data
+	assignedManagers?: string[];
+	supplierMetadata?: SupplierMetadata;
+	address?: UserAddress;
 	createdAt: Date;
 	updatedAt: Date;
 	blockchain?: {
@@ -38,6 +50,16 @@ export interface IUser {
 		registeredAt?: Date;
 	};
 }
+
+const userAddressSchema = new mongoose.Schema({
+	address1: { type: String, required: true },
+	address2: { type: String },
+	city: { type: String, required: true },
+	state: { type: String },
+	country: { type: String, required: true },
+	postalCode: { type: String },
+	phone: { type: String },
+});
 
 const userSchema = new mongoose.Schema<IUser>(
 	{
@@ -89,6 +111,10 @@ const userSchema = new mongoose.Schema<IUser>(
 				status: "ACTIVE",
 			}),
 		},
+		address: {
+			type: userAddressSchema,
+			required: false,
+		},
 		blockchain: {
 			walletAddress: { type: String, sparse: true, unique: true },
 			registeredAt: Date,
@@ -135,6 +161,15 @@ userSchema.methods.toAuthJSON = function () {
 			address: "",
 			rating: 3,
 			status: "ACTIVE",
+		},
+		address: this.address || {
+			address1: "No Address Provided",
+			address2: "",
+			city: "Unknown",
+			state: "",
+			country: "Unknown",
+			postalCode: "",
+			phone: "",
 		},
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,

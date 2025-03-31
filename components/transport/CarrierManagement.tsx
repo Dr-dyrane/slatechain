@@ -1,29 +1,24 @@
 // src/components/transport/CarrierManagement.tsx
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import type { RootState, AppDispatch } from "@/lib/store"
-
 import type { Carrier } from "@/lib/types"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { DataTable } from "@/components/table/DataTable"
 import type { ColumnDef } from "@tanstack/react-table"
-import { fetchCarriers, removeCarrier, updateCarrier, addCarrier } from "@/lib/slices/shipmentSlice"
+import { fetchCarriers } from "@/lib/slices/shipmentSlice"
 import { AddCarrierModal } from "@/components/transport/carrier/AddCarrierModal"
 import { EditCarrierModal } from "@/components/transport/carrier/EditCarrierModal"
 import { DeleteCarrierModal } from "@/components/transport/carrier/DeleteCarrierModal"
-import { CirclePlus } from "lucide-react"
-
+import { Badge } from "@/components/ui/badge"
+import { CirclePlus, Star, StarHalf } from "lucide-react"
 
 export function CarrierManagement() {
     const dispatch = useDispatch<AppDispatch>()
     const carriers = useSelector((state: RootState) => state.shipment.carriers)
     const [selectedCarrier, setSelectedCarrier] = useState<Carrier | null>(null)
-    const [isAddingCarrier, setIsAddingCarrier] = useState(false)
 
     const [addModalOpen, setAddModalOpen] = useState(false)
     const [editModalOpen, setEditModalOpen] = useState(false)
@@ -34,10 +29,48 @@ export function CarrierManagement() {
     }, [dispatch])
 
     const columns: ColumnDef<Carrier>[] = [
-        { accessorKey: "name", header: "Name" },
-        { accessorKey: "contactPerson", header: "Contact Person" },
-        { accessorKey: "email", header: "Email" },
-        { accessorKey: "phone", header: "Phone" },
+        {
+            accessorKey: "name",
+            header: "Name",
+        },
+        {
+            accessorKey: "contactPerson",
+            header: "Contact Person",
+        },
+        {
+            accessorKey: "email",
+            header: "Email",
+        },
+        {
+            accessorKey: "phone",
+            header: "Phone",
+        },
+        {
+            accessorKey: "rating",
+            header: "Rating",
+            cell: ({ row }) => {
+                const rating = row.getValue("rating") as number
+                return (
+                    <div className="flex items-center">
+                        {rating > 0
+                            ? Array.from({ length: Math.floor(rating) }).map((_, i) => (
+                                <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+                            ))
+                            : null}
+                        {rating % 1 !== 0 && <StarHalf className="h-4 w-4 text-yellow-400 fill-yellow-400" />}
+                        <span className="ml-1">{rating.toFixed(1)}</span>
+                    </div>
+                )
+            },
+        },
+        {
+            accessorKey: "status",
+            header: "Status",
+            cell: ({ row }) => {
+                const status = row.getValue("status") as string
+                return <Badge variant={status === "ACTIVE" ? "success" : "destructive"}>{status}</Badge>
+            },
+        },
     ]
 
     const handleAddModalOpen = () => {
@@ -77,19 +110,10 @@ export function CarrierManagement() {
                     <span className="hidden sm:flex ml-2">Add Carrier</span>
                 </Button>
             </div>
-            <DataTable
-                columns={columns}
-                data={carriers}
-                onEdit={handleEditCarrier}
-                onDelete={handleDeleteCarrier}
-            />
+            <DataTable columns={columns} data={carriers} onEdit={handleEditCarrier} onDelete={handleDeleteCarrier} />
             <AddCarrierModal open={addModalOpen} onClose={handleAddModalClose} />
             {selectedCarrier && (
-                <EditCarrierModal
-                    open={editModalOpen}
-                    onClose={handleEditModalClose}
-                    carrier={selectedCarrier}
-                />
+                <EditCarrierModal open={editModalOpen} onClose={handleEditModalClose} carrier={selectedCarrier} />
             )}
             {selectedCarrier && (
                 <DeleteCarrierModal
@@ -102,3 +126,4 @@ export function CarrierManagement() {
         </div>
     )
 }
+

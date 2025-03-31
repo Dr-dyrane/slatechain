@@ -21,6 +21,17 @@ const orderItemSchema = new mongoose.Schema({
 	},
 });
 
+// Define shipping address schema
+const shippingAddressSchema = new mongoose.Schema({
+	address1: { type: String },
+	address2: { type: String },
+	city: { type: String },
+	state: { type: String },
+	country: { type: String },
+	postalCode: { type: String },
+	phone: { type: String },
+});
+
 // Define payment method types
 export enum PaymentMethod {
 	STRIPE = "stripe",
@@ -109,6 +120,10 @@ const orderSchema = new mongoose.Schema(
 				},
 			},
 			processedAt: Date,
+		},
+		shippingAddress: {
+			type: shippingAddressSchema,
+			required: false,
 		},
 		createdBy: {
 			type: String,

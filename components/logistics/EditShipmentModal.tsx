@@ -1,6 +1,8 @@
 // src/components/logistics/EditShipmentModal.tsx
 "use client"
 
+import type React from "react"
+
 import {
     AlertDialog,
     AlertDialogCancel,
@@ -18,13 +20,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
-import type { Shipment } from "@/lib/types"
+import type { Shipment, Order } from "@/lib/types"
 import { toast } from "sonner"
-import { updateShipment } from "@/lib/slices/shipmentSlice"
+import { updateShipment, fetchCarriers, fetchRoutes, fetchTransports, fetchFreights } from "@/lib/slices/shipmentSlice"
+import { fetchOrders } from "@/lib/slices/orderSlice"
 import { X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const shipmentSchema = z.object({
     id: z.string().min(1, { message: "Id is required" }),
@@ -37,8 +41,9 @@ const shipmentSchema = z.object({
     }),
     destination: z.string().min(1, { message: "Destination is required" }),
     estimatedDeliveryDate: z.string().min(1, { message: "Estimated delivery date is required" }),
-    freightId: z.string().min(1, { message: "Freight Id date is required" }),
-    routeId: z.string().min(1, { message: "Route Id date is required" }),
+    freightId: z.string().min(1, { message: "Freight ID is required" }),
+    routeId: z.string().min(1, { message: "Route ID is required" }),
+    actualDeliveryDate: z.string().optional(),
 })
 
 type ShipmentFormValues = z.infer<typeof shipmentSchema>
@@ -46,19 +51,35 @@ type ShipmentFormValues = z.infer<typeof shipmentSchema>
 interface EditShipmentModalProps {
     open: boolean
     onClose: () => void
-    shipment: Shipment | null
+    shipment: Shipment
 }
 
 export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModalProps) {
     const dispatch = useDispatch<AppDispatch>()
-    const { loading } = useSelector((state: RootState) => state.shipment)
+    const { loading, carriers, routes, transports, freights } = useSelector((state: RootState) => state.shipment)
+    const orders = useSelector((state: RootState) => state.orders.items) as Order[]
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [destinationEdited, setDestinationEdited] = useState(true) // Assume destination is already set
+
+    // Fetch related data when the modal opens
+    useEffect(() => {
+        if (open) {
+            dispatch(fetchOrders())
+            dispatch(fetchCarriers())
+            dispatch(fetchRoutes())
+            dispatch(fetchTransports())
+            dispatch(fetchFreights())
+        }
+    }, [open, dispatch])
 
     const {
         register,
         handleSubmit,
         reset,
-        formState: { errors, isValid },
+        setValue,
+        watch,
+        formState: { errors },
     } = useForm<ShipmentFormValues>({
         resolver: zodResolver(shipmentSchema),
         defaultValues: {
@@ -72,25 +93,65 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
             estimatedDeliveryDate: shipment?.estimatedDeliveryDate || "",
             freightId: shipment?.freightId || "",
             routeId: shipment?.routeId || "",
+            actualDeliveryDate: shipment?.actualDeliveryDate || "",
         },
     })
 
+    const selectedOrderId = watch("orderId")
+    const selectedCarrier = watch("carrier")
+    const selectedStatus = watch("status")
+    const destination = watch("destination")
+
+    // Update form when shipment changes
     useEffect(() => {
         if (shipment) {
             reset({
-                id: shipment?.id || "",
-                name: shipment?.name || "",
-                orderId: shipment?.orderId || "",
-                trackingNumber: shipment?.trackingNumber || "",
-                carrier: shipment?.carrier || "",
-                status: shipment?.status || "PREPARING",
-                destination: shipment?.destination || "",
-                estimatedDeliveryDate: shipment?.estimatedDeliveryDate || "",
-                freightId: shipment?.freightId || "",
-                routeId: shipment?.routeId || "",
+                id: shipment.id,
+                name: shipment.name,
+                orderId: shipment.orderId,
+                trackingNumber: shipment.trackingNumber,
+                carrier: shipment.carrier,
+                status: shipment.status,
+                destination: shipment.destination,
+                estimatedDeliveryDate: shipment.estimatedDeliveryDate,
+                freightId: shipment.freightId,
+                routeId: shipment.routeId,
+                actualDeliveryDate: shipment.actualDeliveryDate,
             })
+            setDestinationEdited(true) // Assume destination is already set for existing shipments
         }
     }, [shipment, reset])
+
+    // Update destination when order changes
+    useEffect(() => {
+        if (selectedOrderId && orders.length > 0 && !destinationEdited) {
+            const order = orders.find((o) => o.id.toString() === selectedOrderId)
+            if (order) {
+                setSelectedOrder(order)
+
+                // Set destination from shipping address if available
+                if (order.shippingAddress) {
+                    const address = order.shippingAddress
+                    const formattedAddress = `${address.address1}${address.address2 ? ", " + address.address2 : ""}, ${address.city || ""}, ${address.country || ""}`
+                    setValue("destination", formattedAddress, { shouldValidate: true })
+                }
+            }
+        }
+    }, [selectedOrderId, orders, setValue, destinationEdited])
+
+    // Track when user manually edits the destination
+    const handleDestinationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value !== destination) {
+            setDestinationEdited(true)
+        }
+    }
+
+    // Set actual delivery date when status changes to DELIVERED
+    useEffect(() => {
+        if (selectedStatus === "DELIVERED" && !watch("actualDeliveryDate")) {
+            setValue("actualDeliveryDate", new Date().toISOString().slice(0, 16))
+        }
+    }, [selectedStatus, setValue, watch])
 
     const onSubmit = async (data: ShipmentFormValues) => {
         setBackendError(null)
@@ -110,6 +171,40 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
     const handleClose = () => {
         setBackendError(null)
         onClose()
+    }
+
+    // Handle order selection
+    const handleOrderChange = (value: string) => {
+        setValue("orderId", value, { shouldValidate: true })
+        setDestinationEdited(false) // Reset destination edited flag when order changes
+    }
+
+    // Handle carrier selection
+    const handleCarrierChange = (value: string) => {
+        setValue("carrier", value, { shouldValidate: true })
+    }
+
+    // Handle route selection
+    const handleRouteChange = (value: string) => {
+        setValue("routeId", value, { shouldValidate: true })
+
+        // If a route is selected, update destination if not manually edited
+        if (!destinationEdited && routes.length > 0) {
+            const selectedRoute = routes.find((r) => r.id === value)
+            if (selectedRoute && selectedRoute.destination?.location?.address) {
+                setValue("destination", selectedRoute.destination.location.address, { shouldValidate: true })
+            }
+        }
+    }
+
+    // Handle freight selection
+    const handleFreightChange = (value: string) => {
+        setValue("freightId", value, { shouldValidate: true })
+    }
+
+    // Handle status selection
+    const handleStatusChange = (value: string) => {
+        setValue("status", value as Shipment["status"], { shouldValidate: true })
     }
 
     return (
@@ -141,40 +236,168 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
                         <Input id="id" placeholder="ID" {...register("id")} readOnly />
                         {errors.id && <p className="text-sm text-red-500">{errors.id.message}</p>}
                     </div>
+
+                    <div>
+                        <Label htmlFor="orderId">Order</Label>
+                        <Select onValueChange={handleOrderChange} defaultValue={shipment.orderId}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select an order" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loading ? (
+                                    <SelectItem value="loading" disabled>
+                                        Loading orders...
+                                    </SelectItem>
+                                ) : orders.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                        No orders available
+                                    </SelectItem>
+                                ) : (
+                                    orders.map((order) => (
+                                        <SelectItem key={order.id} value={order.id.toString()}>
+                                            Order #{order.orderNumber} - ${order.totalAmount}
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("orderId")} />
+                        {errors.orderId && <p className="text-sm text-red-500">{errors.orderId.message}</p>}
+                    </div>
+
                     <div>
                         <Label htmlFor="name">Shipment Name</Label>
                         <Input id="name" placeholder="Shipment Name" {...register("name")} />
                         {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
                     </div>
-                    <div>
-                        <Label htmlFor="orderId">Order ID</Label>
-                        <Input id="orderId" placeholder="Order ID" {...register("orderId")} />
-                        {errors.orderId && <p className="text-sm text-red-500">{errors.orderId.message}</p>}
-                    </div>
+
                     <div>
                         <Label htmlFor="trackingNumber">Tracking Number</Label>
                         <Input id="trackingNumber" placeholder="Tracking Number" {...register("trackingNumber")} />
                         {errors.trackingNumber && <p className="text-sm text-red-500">{errors.trackingNumber.message}</p>}
                     </div>
+
                     <div>
                         <Label htmlFor="carrier">Carrier</Label>
-                        <Input id="carrier" placeholder="Carrier" {...register("carrier")} />
+                        <Select onValueChange={handleCarrierChange} defaultValue={shipment.carrier}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a carrier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loading ? (
+                                    <SelectItem value="loading" disabled>
+                                        Loading carriers...
+                                    </SelectItem>
+                                ) : carriers.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                        No carriers available
+                                    </SelectItem>
+                                ) : (
+                                    carriers.map((carrier) => (
+                                        <SelectItem key={carrier.id} value={carrier.name}>
+                                            {carrier.name}
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("carrier")} />
                         {errors.carrier && <p className="text-sm text-red-500">{errors.carrier.message}</p>}
                     </div>
+
+                    <div>
+                        <Label htmlFor="routeId">Route</Label>
+                        <Select onValueChange={handleRouteChange} defaultValue={shipment.routeId}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a route" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loading ? (
+                                    <SelectItem value="loading" disabled>
+                                        Loading routes...
+                                    </SelectItem>
+                                ) : routes.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                        No routes available
+                                    </SelectItem>
+                                ) : (
+                                    routes.map((route) => (
+                                        <SelectItem key={route.id} value={route.id}>
+                                            {route.name} ({route.startLocation} to {route.endLocation})
+                                        </SelectItem>
+                                    ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("routeId")} />
+                        {errors.routeId && <p className="text-sm text-red-500">{errors.routeId.message}</p>}
+                    </div>
+
+                    <div>
+                        <Label htmlFor="freightId">Freight</Label>
+                        <Select onValueChange={handleFreightChange} defaultValue={shipment.freightId}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a freight" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loading ? (
+                                    <SelectItem value="loading" disabled>
+                                        Loading freights...
+                                    </SelectItem>
+                                ) : freights.length === 0 ? (
+                                    <SelectItem value="none" disabled>
+                                        No freights available
+                                    </SelectItem>
+                                ) : (
+                                    freights
+                                        .filter(
+                                            (f) => !selectedCarrier || f.carrierId === carriers.find((c) => c.name === selectedCarrier)?.id,
+                                        )
+                                        .map((freight) => (
+                                            <SelectItem key={freight.id} value={freight.id}>
+                                                {freight.type} - {freight.freightNumber || freight.id}
+                                            </SelectItem>
+                                        ))
+                                )}
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("freightId")} />
+                        {errors.freightId && <p className="text-sm text-red-500">{errors.freightId.message}</p>}
+                    </div>
+
                     <div>
                         <Label htmlFor="status">Status</Label>
-                        <select id="status" {...register("status")} className="w-full p-2 border rounded">
-                            <option value="PREPARING">Preparing</option>
-                            <option value="IN_TRANSIT">In Transit</option>
-                            <option value="DELIVERED">Delivered</option>
-                        </select>
+                        <Select onValueChange={handleStatusChange} defaultValue={shipment.status}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="CREATED">Created</SelectItem>
+                                <SelectItem value="PREPARING">Preparing</SelectItem>
+                                <SelectItem value="IN_TRANSIT">In Transit</SelectItem>
+                                <SelectItem value="DELIVERED">Delivered</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("status")} />
                         {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
                     </div>
+
                     <div>
-                        <Label htmlFor="destination">Destination</Label>
-                        <Input id="destination" placeholder="Destination" {...register("destination")} />
+                        <Label htmlFor="destination">
+                            Destination
+                            {selectedOrder && !selectedOrder.shippingAddress && (
+                                <span className="text-amber-500 ml-2 text-xs">(No shipping address found for this order)</span>
+                            )}
+                        </Label>
+                        <Input
+                            id="destination"
+                            placeholder="Destination Address"
+                            {...register("destination")}
+                            onChange={handleDestinationChange}
+                        />
                         {errors.destination && <p className="text-sm text-red-500">{errors.destination.message}</p>}
                     </div>
+
                     <div>
                         <Label htmlFor="estimatedDeliveryDate">Estimated Delivery Date</Label>
                         <Input id="estimatedDeliveryDate" type="datetime-local" {...register("estimatedDeliveryDate")} />
@@ -182,19 +405,17 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
                             <p className="text-sm text-red-500">{errors.estimatedDeliveryDate.message}</p>
                         )}
                     </div>
-                    <div>
-                        <Label htmlFor="freightId">Freight Id</Label>
-                        <Input id="freightId" type="text" {...register("freightId")} />
-                        {errors.freightId && <p className="text-sm text-red-500">{errors.freightId.message}</p>}
-                    </div>
-                    <div>
-                        <Label htmlFor="routeId">Route Id</Label>
-                        <Input id="routeId" type="text" {...register("routeId")} />
-                        {errors.routeId && <p className="text-sm text-red-500">{errors.routeId.message}</p>}
-                    </div>
+
+                    {selectedStatus === "DELIVERED" && (
+                        <div>
+                            <Label htmlFor="actualDeliveryDate">Actual Delivery Date</Label>
+                            <Input id="actualDeliveryDate" type="datetime-local" {...register("actualDeliveryDate")} />
+                        </div>
+                    )}
+
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading || !isValid}>
+                        <Button type="submit" disabled={loading}>
                             {loading ? "Updating..." : "Update Shipment"}
                         </Button>
                     </AlertDialogFooter>

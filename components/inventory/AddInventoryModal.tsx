@@ -26,7 +26,7 @@ import { X } from "lucide-react"
 
 const addInventorySchema = z.object({
     name: z.string().min(1, "Name is required"),
-    sku: z.string().min(1, "SKU is required"),
+    sku: z.string().default("SKU-0000"), // Set a default value
     quantity: z.number({ invalid_type_error: "Quantity must be a number" }).min(0, "Quantity must be a positive number"),
     minAmount: z
         .number({ invalid_type_error: "Minimum Amount must be a number" })
@@ -76,6 +76,7 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
             description: "",
             lotNumber: "",
             serialNumber: "",
+            sku: 'SKU-0000',
         },
     })
 
@@ -127,11 +128,6 @@ export function AddInventoryModal({ open, onClose }: AddInventoryModalProps) {
                         <Label htmlFor="name">Name</Label>
                         <Input id="name" placeholder="Name" {...register("name")} className="input-focus input-hover" />
                         {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="sku">SKU</Label>
-                        <Input id="sku" placeholder="SKU" {...register("sku")} className="input-focus input-hover" />
-                        {errors.sku && <p className="text-sm text-red-500">{errors.sku.message}</p>}
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="quantity">Quantity</Label>

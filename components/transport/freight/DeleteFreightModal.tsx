@@ -1,132 +1,137 @@
 // src/components/transport/freight/DeleteFreightModal.tsx
-"use client";
+"use client"
 
 import {
     AlertDialog,
-    AlertDialogAction,
     AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { removeFreight } from "@/lib/slices/shipmentSlice";
-import { AppDispatch, RootState } from "@/lib/store";
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { X } from "lucide-react";
-import { Freight } from "@/lib/types";
+} from "@/components/ui/alert-dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import type { AppDispatch, RootState } from "@/lib/store"
+import { useDispatch, useSelector } from "react-redux"
+import { toast } from "sonner"
+import { removeFreight } from "@/lib/slices/shipmentSlice"
+import type { Freight } from "@/lib/types"
+import { X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
 
-const deleteSchema = z.object({
-    id: z.string().min(1, "Id is required"),
-    confirmation: z.string().min(1, "Name is required"),
-});
+const deleteFreightSchema = z.object({
+    id: z.string().min(1, { message: "ID is required" }),
+    confirmation: z.literal("DELETE", {
+        errorMap: () => ({ message: "Please type DELETE to confirm" }),
+    }),
+})
 
-type DeleteFormValues = z.infer<typeof deleteSchema>;
+type DeleteFreightFormValues = z.infer<typeof deleteFreightSchema>
 
 interface DeleteFreightModalProps {
-    open: boolean;
-    onClose: () => void;
-    freight: Freight | null;
-    deleteModalTitle?: string;
+    open: boolean
+    onClose: () => void
+    freight: Freight
+    deleteModalTitle?: string
 }
 
-export function DeleteFreightModal({
-    open,
-    onClose,
-    freight,
-    deleteModalTitle,
-}: DeleteFreightModalProps) {
-    const [freightName, setFreightName] = useState<string>('');
-    const { loading } = useSelector((state: RootState) => state.shipment);
-    const dispatch = useDispatch<AppDispatch>();
-
-    useEffect(() => {
-        if (freight) {
-            setFreightName(freight.name);
-        }
-    }, [freight]);
+export function DeleteFreightModal({ open, onClose, freight, deleteModalTitle }: DeleteFreightModalProps) {
+    const dispatch = useDispatch<AppDispatch>()
+    const { loading } = useSelector((state: RootState) => state.shipment)
+    const [backendError, setBackendError] = useState<string | null>(null)
 
     const {
         register,
         handleSubmit,
         reset,
         formState: { errors, isValid },
-    } = useForm<DeleteFormValues>({
-        resolver: zodResolver(deleteSchema),
+    } = useForm<DeleteFreightFormValues>({
+        resolver: zodResolver(deleteFreightSchema),
         defaultValues: {
-            id: freight?._id ?? "",
+            id: freight?.id || "",
+            confirmation: "" as any,
         },
-        mode: "onChange", // Enables dynamic validation
-    });
+    })
 
-    const onSubmit = async (formData: DeleteFormValues) => {
-        try {
-            if (formData.id) {
-                await dispatch(removeFreight(formData.id)).unwrap();
-                toast.success("Freight deleted successfully.");
-                reset();
-                onClose();
-            }
-        } catch (error) {
-            toast.error("Failed to delete the freight. Please try again later.");
+    useEffect(() => {
+        if (freight) {
+            reset({
+                id: freight.id,
+                confirmation: "" as any,
+            })
         }
-    };
+    }, [freight, reset])
+
+    const onSubmit = async (data: DeleteFreightFormValues) => {
+        setBackendError(null)
+        try {
+            await dispatch(removeFreight(data.id)).unwrap()
+            toast.success("Freight deleted successfully!")
+            onClose()
+        } catch (error: any) {
+            if (typeof error === "string") {
+                setBackendError(error)
+            } else {
+                toast.error(error?.message || "Failed to delete freight. Please try again.")
+            }
+        }
+    }
+
+    const handleClose = () => {
+        setBackendError(null)
+        reset()
+        onClose()
+    }
 
     return (
-        <AlertDialog open={open} onOpenChange={onClose}>
-            <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto max-h-[80vh] overflow-y-auto">
+        <AlertDialog open={open} onOpenChange={handleClose}>
+            <AlertDialogContent className="w-full max-w-md rounded-2xl sm:max-w-lg mx-auto">
                 <AlertDialogHeader>
                     <div className="flex justify-center items-center relative">
-                        <AlertDialogTitle>{deleteModalTitle || "Confirm Delete Freight"}</AlertDialogTitle>
-                        <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 -right-4 p-2 bg-muted rounded-full">
+                        <AlertDialogTitle>{deleteModalTitle || "Delete Freight"}</AlertDialogTitle>
+                        <button
+                            onClick={handleClose}
+                            className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full"
+                        >
                             <X className="w-5 h-5 " />
                         </button>
                     </div>
                     <AlertDialogDescription>
-                        Are you sure you want to delete this freight?
+                        Are you sure you want to delete this freight? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
-                    {freight && (
-                        <p>
-                            You are about to delete <b>{freightName}</b>. Please enter the name of the
-                            freight in the field below to confirm deletion.
-                        </p>
-                    )}
-                    <div className="space-y-2">
-                        <Label htmlFor="confirmation">Name of Freight</Label>
-                        <Input
-                            id="confirmation"
-                            placeholder="Enter Name To Confirm Deletion"
-                            {...register("confirmation", {
-                                validate: (value) =>
-                                    value === freightName || "Name does not match the freight to be deleted.",
-                            })}
-                            className="input-focus input-hover"
-                        />
-                        {errors.confirmation && (
-                            <p className="text-sm text-red-500">{errors.confirmation.message}</p>
-                        )}
+
+                {backendError && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{backendError}</AlertDescription>
+                    </Alert>
+                )}
+
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <div>
+                        <Label htmlFor="confirmation">Type DELETE to confirm</Label>
+                        <Input id="confirmation" placeholder="DELETE" {...register("confirmation")} />
+                        {errors.confirmation && <p className="text-sm text-red-500">{errors.confirmation.message}</p>}
                     </div>
-                    <div className="hidden">
-                        <Input type="hidden" {...register("id")} />
-                    </div>
+                    <input type="hidden" {...register("id")} />
+
                     <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction disabled={loading || !isValid} type="submit" className="bg-destructive">
-                            {loading ? "Deleting..." : "Confirm Delete"}
-                        </AlertDialogAction>
+                        <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
+                        <Button type="submit" disabled={loading} variant="destructive">
+                            {loading ? "Deleting..." : "Delete Freight"}
+                        </Button>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
         </AlertDialog>
-    );
+    )
 }
+

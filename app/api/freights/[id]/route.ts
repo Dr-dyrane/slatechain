@@ -3,17 +3,46 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Freight from "../../models/Freight";
+import User from "../../models/User";
 import mongoose from "mongoose";
+import { UserRole } from "@/lib/types";
 
 const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
+
+// Helper function to check if user has access to a freight
+async function hasAccessToFreight(userId: string, freightId: string) {
+	// Get user to determine role
+	const user = await User.findById(userId);
+	if (!user) return false;
+
+	// Find the freight
+	const freight = await Freight.findById(freightId);
+	if (!freight) return false;
+
+	// Check access based on role
+	if (user.role === UserRole.ADMIN) {
+		// Admin has access to all freights
+		return true;
+	} else if (user.role === UserRole.MANAGER) {
+		// Manager has access to freights they created and freights of suppliers they manage
+		const managedSupplierIds = user.assignedManagers || [];
+		return (
+			freight.createdBy.toString() === userId ||
+			managedSupplierIds.includes(freight.createdBy.toString())
+		);
+	} else {
+		// Suppliers and other roles only have access to freights they created
+		return freight.createdBy.toString() === userId;
+	}
+}
 
 // GET /api/freights/[id] - Get a single freight
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -25,16 +54,17 @@ export async function GET(
 				);
 			}
 
-			// Find freight and ensure it belongs to the user
-			const freight = await Freight.findOne({ _id: id, userId });
-
-			if (!freight) {
+			// Check if user has access to this freight
+			const hasAccess = await hasAccessToFreight(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Freight not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			// Fetch the freight
+			const freight = await Freight.findById(id);
 			return NextResponse.json(freight);
 		},
 		"freight_get",
@@ -47,7 +77,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -59,22 +89,21 @@ export async function PUT(
 				);
 			}
 
-			const updates = await req.json();
-			const freight = await Freight.findOne({ _id: id, userId });
-
-			if (!freight) {
+			// Check if user has access to this freight
+			const hasAccess = await hasAccessToFreight(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Freight not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			const updates = await req.json();
+
 			// Update freight
-			const updatedFreight = await Freight.findByIdAndUpdate(
-				id,
-				updates,
-				{ new: true }
-			);
+			const updatedFreight = await Freight.findByIdAndUpdate(id, updates, {
+				new: true,
+			});
 
 			return NextResponse.json(updatedFreight);
 		},
@@ -88,7 +117,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -100,20 +129,21 @@ export async function DELETE(
 				);
 			}
 
-			// Find freight and ensure it belongs to the user
-			const freight = await Freight.findOne({ _id: id, userId });
-
-			if (!freight) {
+			// Check if user has access to this freight
+			const hasAccess = await hasAccessToFreight(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Freight not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			const freight = await Freight.findById(id);
+
 			// Check if freight is used in any shipments
 			const Shipment = mongoose.models.Shipment;
 			const shipmentCount = await Shipment.countDocuments({
-				freightId: freight._id,
+				freightId: id,
 			});
 
 			if (shipmentCount > 0) {

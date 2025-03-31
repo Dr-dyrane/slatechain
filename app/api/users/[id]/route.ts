@@ -58,7 +58,7 @@ export async function PUT(
 		}
 
 		const body = await req.json();
-		const { password, email, role, ...updateData } = body;
+		const { password, email, role, address, ...updateData } = body;
 
 		// Find user to update
 		const user = await User.findById(id);
@@ -90,6 +90,11 @@ export async function PUT(
 		// Update password if provided
 		if (password) {
 			user.password = await bcrypt.hash(password, 10);
+		}
+
+		// Update address if provided
+		if (address) {
+			user.address = address;
 		}
 
 		// Update other fields

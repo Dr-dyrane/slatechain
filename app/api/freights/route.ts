@@ -3,19 +3,50 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Freight from "../models/Freight";
+import User from "../models/User";
+import { UserRole } from "@/lib/types";
+import mongoose from "mongoose";
 
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/freights - List freights for a specific user
+// GET /api/freights - List freights based on user role
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			// Find all freights for this user
-			const freights = await Freight.find({ userId }).sort({ name: 1 });
+			// Get user to determine role
+			const user = await User.findById(userId);
+			if (!user) {
+				return NextResponse.json(
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404 }
+				);
+			}
 
-			// Return raw freights array
+			// Build query based on user role
+			let query = {};
+
+			if (user.role === UserRole.ADMIN) {
+				// Admin sees all freights
+				query = {};
+			} else if (user.role === UserRole.MANAGER) {
+				// Manager sees freights they created and freights of suppliers they manage
+				const managedSupplierIds = user.assignedManagers || [];
+				query = {
+					$or: [
+						{ createdBy: userId },
+						{ createdBy: { $in: managedSupplierIds } },
+					],
+				};
+			} else {
+				// Suppliers and other roles only see freights they created
+				query = { createdBy: userId };
+			}
+
+			// Find freights based on role-specific query
+			const freights = await Freight.find(query).sort({ createdAt: -1 });
+
 			return NextResponse.json(freights);
 		},
 		"freights_list",
@@ -32,27 +63,46 @@ export async function POST(req: NextRequest) {
 
 			// Validate required fields
 			if (
-				!freightData.name ||
 				!freightData.type ||
-				freightData.weight === undefined ||
-				freightData.volume === undefined
+				!freightData.carrierId ||
+				!freightData.routeId ||
+				!freightData.schedule ||
+				!freightData.vehicle
 			) {
 				return NextResponse.json(
 					{
 						code: "INVALID_INPUT",
-						message: "Name, type, weight, and volume are required",
+						message: "Missing required fields for freight creation",
 					},
 					{ status: 400 }
 				);
 			}
 
-			// Create freight
-			const freight = await Freight.create({
-				...freightData,
-				userId,
-			});
+			// Start a transaction
+			const session = await mongoose.startSession();
+			session.startTransaction();
 
-			return NextResponse.json(freight);
+			try {
+				// Set creator information
+				freightData.createdBy = userId;
+
+				// Create freight
+				const freight = await Freight.create([freightData], { session });
+
+				await session.commitTransaction();
+				return NextResponse.json(freight[0]);
+			} catch (error: any) {
+				await session.abortTransaction();
+				return NextResponse.json(
+					{
+						code: "CREATE_ERROR",
+						message: error.message || "Failed to create freight",
+					},
+					{ status: 400 }
+				);
+			} finally {
+				session.endSession();
+			}
 		},
 		"freight_create",
 		CREATE_RATE_LIMIT

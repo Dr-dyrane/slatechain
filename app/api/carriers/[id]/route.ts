@@ -3,17 +3,46 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Carrier from "../../models/Carrier";
+import User from "../../models/User";
 import mongoose from "mongoose";
+import { UserRole } from "@/lib/types";
 
 const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
+
+// Helper function to check if user has access to a carrier
+async function hasAccessToCarrier(userId: string, carrierId: string) {
+	// Get user to determine role
+	const user = await User.findById(userId);
+	if (!user) return false;
+
+	// Find the carrier
+	const carrier = await Carrier.findById(carrierId);
+	if (!carrier) return false;
+
+	// Check access based on role
+	if (user.role === UserRole.ADMIN) {
+		// Admin has access to all carriers
+		return true;
+	} else if (user.role === UserRole.MANAGER) {
+		// Manager has access to carriers they created and carriers of suppliers they manage
+		const managedSupplierIds = user.assignedManagers || [];
+		return (
+			carrier.userId.toString() === userId ||
+			managedSupplierIds.includes(carrier.userId.toString())
+		);
+	} else {
+		// Suppliers and other roles only have access to carriers they created
+		return carrier.userId.toString() === userId;
+	}
+}
 
 // GET /api/carriers/[id] - Get a single carrier
 export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -25,16 +54,17 @@ export async function GET(
 				);
 			}
 
-			// Find carrier and ensure it belongs to the user
-			const carrier = await Carrier.findOne({ _id: id, userId });
-
-			if (!carrier) {
+			// Check if user has access to this carrier
+			const hasAccess = await hasAccessToCarrier(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Carrier not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			// Fetch the carrier
+			const carrier = await Carrier.findById(id);
 			return NextResponse.json(carrier);
 		},
 		"carrier_get",
@@ -47,7 +77,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -59,22 +89,37 @@ export async function PUT(
 				);
 			}
 
-			const updates = await req.json();
-			const carrier = await Carrier.findOne({ _id: id, userId });
-
-			if (!carrier) {
+			// Check if user has access to this carrier
+			const hasAccess = await hasAccessToCarrier(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Carrier not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
 
+			const updates = await req.json();
+
+			// Validate required fields
+			if (
+				!updates.name ||
+				!updates.contactPerson ||
+				!updates.email ||
+				!updates.phone
+			) {
+				return NextResponse.json(
+					{
+						code: "INVALID_INPUT",
+						message: "Name, contact person, email, and phone are required",
+					},
+					{ status: 400 }
+				);
+			}
+
 			// Update carrier
-			const updatedCarrier = await Carrier.findByIdAndUpdate(
-				id,
-				updates,
-				{ new: true }
-			);
+			const updatedCarrier = await Carrier.findByIdAndUpdate(id, updates, {
+				new: true,
+			});
 
 			return NextResponse.json(updatedCarrier);
 		},
@@ -88,7 +133,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await params;
+	const { id } = params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -100,15 +145,16 @@ export async function DELETE(
 				);
 			}
 
-			// Find carrier and ensure it belongs to the user
-			const carrier = await Carrier.findOne({ _id: id, userId });
-
-			if (!carrier) {
+			// Check if user has access to this carrier
+			const hasAccess = await hasAccessToCarrier(userId, id);
+			if (!hasAccess) {
 				return NextResponse.json(
 					{ code: "NOT_FOUND", message: "Carrier not found or unauthorized" },
 					{ status: 404 }
 				);
 			}
+
+			const carrier = await Carrier.findById(id);
 
 			// Check if carrier is used in any shipments
 			const Shipment = mongoose.models.Shipment;
@@ -121,6 +167,22 @@ export async function DELETE(
 					{
 						code: "CARRIER_IN_USE",
 						message: "Cannot delete carrier that is used in shipments",
+					},
+					{ status: 400 }
+				);
+			}
+
+			// Check if carrier is used in any transports
+			const Transport = mongoose.models.Transport;
+			const transportCount = await Transport.countDocuments({
+				carrierId: id,
+			});
+
+			if (transportCount > 0) {
+				return NextResponse.json(
+					{
+						code: "CARRIER_IN_USE",
+						message: "Cannot delete carrier that is used in transports",
 					},
 					{ status: 400 }
 				);

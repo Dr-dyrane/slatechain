@@ -54,6 +54,15 @@ export interface User {
 		rating?: number;
 		status?: string;
 	};
+	address?: {
+		address1: string;
+		address2?: string;
+		city: string;
+		state?: string;
+		country: string;
+		postalCode?: string;
+		phone?: string;
+	};
 	blockchain?: {
 		walletAddress?: string;
 		registeredAt?: string;
@@ -153,8 +162,8 @@ export interface AuthState {
 	error: AuthError | null;
 	kycStatus: KYCStatus;
 	onboardingStatus: OnboardingStatus;
-	wallet: WalletInfo | null
-	isWalletConnecting: boolean
+	wallet: WalletInfo | null;
+	isWalletConnecting: boolean;
 }
 
 export interface AuthError {
@@ -468,6 +477,15 @@ export interface Order {
 	updatedAt: string;
 	paymentMethod?: string;
 	paymentDetails?: Record<string, any>;
+	shippingAddress?: {
+		address1: string;
+		address2?: string;
+		city: string;
+		state?: string;
+		country: string;
+		postalCode?: string;
+		phone?: string;
+	};
 }
 
 export interface OrderItem {
@@ -536,18 +554,107 @@ export interface Route {
 	endLocation: string;
 	distance: number;
 	estimatedDuration: number;
+	type: RouteType;
+	status: RouteStatus;
+	routeNumber?: string;
+	origin?: {
+		type: string;
+		location: {
+			address: string;
+			coordinates?: {
+				latitude: number;
+				longitude: number;
+			};
+		};
+		scheduledTime?: string;
+	};
+	destination?: {
+		type: string;
+		location: {
+			address: string;
+			coordinates?: {
+				latitude: number;
+				longitude: number;
+			};
+		};
+		scheduledTime?: string;
+	};
+	waypoints?: any[];
+	schedule?: {
+		startDate: string;
+		endDate: string;
+		frequency?: string;
+		days?: number[];
+	};
+	carriers?: {
+		carrierId: string;
+		priority: number;
+	}[];
+	createdBy?: string;
+	userId?: string;
 }
 
 // Freight interface
 export interface Freight {
 	id: string;
 	_id?: string;
+	freightNumber?: string;
 	type: string;
-	name: string;
-	weight: number;
-	volume: number;
-	hazardous: boolean;
-	specialInstructions?: string;
+	status: FreightStatus;
+	shipmentIds?: string[];
+	carrierId: string;
+	routeId: string;
+	vehicleType?: "TRUCK" | "TRAIN" | "PLANE" | "SHIP" | "OTHER" | undefined;
+	vehicle?: {
+		type: "TRUCK" | "TRAIN" | "PLANE" | "SHIP" | "OTHER" | undefined;
+		identifier: string;
+		capacity?: {
+			weight: number;
+			volume: number;
+			units: number;
+		};
+		driver?: {
+			name: string;
+			phone: string;
+			license: string;
+		};
+	};
+	schedule?: {
+		departureDate: string;
+		arrivalDate: string;
+		actualDeparture?: string;
+		actualArrival?: string;
+		stops?: any[];
+	};
+	cargo?: {
+		totalWeight: number;
+		totalVolume: number;
+		units?: number;
+		hazmat: boolean;
+		temperature?: {
+			required: boolean;
+			min: number;
+			max: number;
+			unit: string;
+		};
+	};
+	documents?: any[];
+	cost?: {
+		baseRate: number;
+		fuelSurcharge: number;
+		otherCharges: number;
+		currency: string;
+		total: number;
+	};
+	tracking?: {
+		number: string;
+		url: string;
+		lastUpdate: string;
+		location: string;
+		status: string;
+	};
+	notes?: string;
+	createdBy?: string;
 }
 
 export interface ShipmentState {
