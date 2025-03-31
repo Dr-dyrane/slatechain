@@ -181,7 +181,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
           <div className="text-lg font-semibold">Total: ${editedOrder.totalAmount.toFixed(2)}</div>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <Button onClick={handleSubmit} disabled={loading}>
+            <Button onClick={handleSubmit} disabled={loading || updating}>
               {loading || updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               {loading || updating ? "Updating Order" : "Update Order"}
             </Button>
