@@ -50,6 +50,7 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
     const dispatch = useDispatch<AppDispatch>()
     const { loading } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [updating, setUpdating] = useState(false)
 
     const {
         register,
@@ -86,6 +87,7 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
 
     const onSubmit = async (data: CarrierFormValues) => {
         setBackendError(null)
+        setUpdating(true)
         try {
             await dispatch(updateCarrier(data as Carrier)).unwrap()
             toast.success("Carrier updated successfully!")
@@ -96,6 +98,9 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
             } else {
                 toast.error(error?.message || "Failed to update carrier. Please try again.")
             }
+        }
+        finally {
+            setUpdating(false)
         }
     }
 
@@ -193,8 +198,8 @@ export function EditCarrierModal({ open, onClose, carrier }: EditCarrierModalPro
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Updating..." : "Update Carrier"}
+                        <Button type="submit" disabled={loading || updating}>
+                            {loading || updating ? "Updating..." : "Update Carrier"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

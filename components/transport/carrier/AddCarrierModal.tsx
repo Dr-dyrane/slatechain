@@ -48,6 +48,7 @@ export function AddCarrierModal({ open, onClose }: AddCarrierModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [adding, setAdding] = useState(false)
 
     const {
         register,
@@ -69,6 +70,7 @@ export function AddCarrierModal({ open, onClose }: AddCarrierModalProps) {
 
     const onSubmit = async (data: CarrierFormValues) => {
         setBackendError(null)
+        setAdding(true)
         try {
             await dispatch(addCarrier(data as Omit<Carrier, "id">)).unwrap()
             toast.success("Carrier added successfully!")
@@ -80,6 +82,8 @@ export function AddCarrierModal({ open, onClose }: AddCarrierModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add carrier. Please try again.")
             }
+        } finally {
+            setAdding(false)
         }
     }
 
@@ -173,8 +177,8 @@ export function AddCarrierModal({ open, onClose }: AddCarrierModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Adding..." : "Add Carrier"}
+                        <Button type="submit" disabled={loading || adding}>
+                            {loading || adding ? "Adding..." : "Add Carrier"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

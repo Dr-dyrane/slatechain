@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { CirclePlus } from "lucide-react"
+import { CirclePlus, Star, StarHalf } from "lucide-react"
 import type { Supplier } from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "../ui/badge"
@@ -17,7 +17,23 @@ const supplierColumns: ColumnDef<Supplier>[] = [
       </div>
     ),
   },
-  { accessorKey: "rating", header: "Rating" },
+  {
+    accessorKey: "rating", header: "Rating",
+    cell: ({ row }) => {
+      const rating = row.getValue("rating") as number
+      return (
+        <div className="flex items-center">
+          {rating > 0
+            ? Array.from({ length: Math.floor(rating) }).map((_, i) => (
+              <Star key={i} className="h-4 w-4 text-yellow-400 fill-yellow-400" />
+            ))
+            : null}
+          {rating % 1 !== 0 && <StarHalf className="h-4 w-4 text-yellow-400 fill-yellow-400" />}
+          <span className="ml-1">{rating.toFixed(1)}</span>
+        </div>
+      )
+    },
+  },
   {
     accessorKey: "status", header: "Status",
 

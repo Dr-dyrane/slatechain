@@ -46,6 +46,7 @@ export function DeleteFreightModal({ open, onClose, freight, deleteModalTitle }:
     const dispatch = useDispatch<AppDispatch>()
     const { loading } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState(false)
 
     const {
         register,
@@ -71,6 +72,7 @@ export function DeleteFreightModal({ open, onClose, freight, deleteModalTitle }:
 
     const onSubmit = async (data: DeleteFreightFormValues) => {
         setBackendError(null)
+        setDeleting(true)
         try {
             await dispatch(removeFreight(data.id)).unwrap()
             toast.success("Freight deleted successfully!")
@@ -81,6 +83,9 @@ export function DeleteFreightModal({ open, onClose, freight, deleteModalTitle }:
             } else {
                 toast.error(error?.message || "Failed to delete freight. Please try again.")
             }
+        }
+        finally {
+            setDeleting(false)
         }
     }
 
@@ -125,8 +130,8 @@ export function DeleteFreightModal({ open, onClose, freight, deleteModalTitle }:
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading} variant="destructive">
-                            {loading ? "Deleting..." : "Delete Freight"}
+                        <Button type="submit" disabled={loading || deleting} variant="destructive">
+                            {loading || deleting ? "Deleting..." : "Delete Freight"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

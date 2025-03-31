@@ -62,6 +62,8 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers, routes, transports } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [updating, setUpdating] = useState(false)
+
 
     // Fetch carriers, routes, and transports when the modal opens
     useEffect(() => {
@@ -127,6 +129,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
 
     const onSubmit = async (data: FreightFormValues) => {
         setBackendError(null)
+        setUpdating(true)
         try {
             // Create freight data structure required by the model
             const freightData = {
@@ -165,6 +168,9 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
             } else {
                 toast.error(error?.message || "Failed to update freight. Please try again.")
             }
+        }
+        finally {
+            setUpdating(false)
         }
     }
 
@@ -404,8 +410,8 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Updating..." : "Update Freight"}
+                        <Button type="submit" disabled={loading || updating}>
+                            {loading || updating ? "Updating..." : "Update Freight"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

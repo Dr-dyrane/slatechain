@@ -53,6 +53,7 @@ export function AddRouteModal({ open, onClose }: AddRouteModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [adding, setAdding] = useState(false)
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -82,6 +83,7 @@ export function AddRouteModal({ open, onClose }: AddRouteModalProps) {
 
     const onSubmit = async (data: RouteFormValues) => {
         setBackendError(null)
+        setAdding(true)
         try {
             // Create origin and destination objects required by the model
             const routeData = {
@@ -114,6 +116,9 @@ export function AddRouteModal({ open, onClose }: AddRouteModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add route. Please try again.")
             }
+        }
+        finally {
+            setAdding(false)
         }
     }
 
@@ -233,8 +238,8 @@ export function AddRouteModal({ open, onClose }: AddRouteModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Adding..." : "Add Route"}
+                        <Button type="submit" disabled={loading || adding}>
+                            {loading || adding ? "Adding..." : "Add Route"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

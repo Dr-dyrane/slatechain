@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+
 // Define a Zod schema for route validation
 const routeSchema = z.object({
     id: z.string().min(1, { message: "ID is required" }),
@@ -55,6 +56,8 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [updating, setUpdating] = useState(false)
+
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -100,6 +103,7 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
 
     const onSubmit = async (data: RouteFormValues) => {
         setBackendError(null)
+        setUpdating(true)
         try {
             await dispatch(updateRoute(data as Route)).unwrap()
             toast.success("Route updated successfully!")
@@ -110,6 +114,8 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
             } else {
                 toast.error(error?.message || "Failed to update route. Please try again.")
             }
+        } finally {
+            setUpdating(false)
         }
     }
 
@@ -233,8 +239,8 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Updating..." : "Update Route"}
+                        <Button type="submit" disabled={loading || updating}>
+                            {loading || updating ? "Updating..." : "Update Route"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

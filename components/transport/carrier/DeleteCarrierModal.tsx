@@ -26,6 +26,7 @@ import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
+
 const deleteCarrierSchema = z.object({
     id: z.string().min(1, { message: "ID is required" }),
     confirmation: z.literal("DELETE", {
@@ -46,6 +47,7 @@ export function DeleteCarrierModal({ open, onClose, carrier, deleteModalTitle }:
     const dispatch = useDispatch<AppDispatch>()
     const { loading } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState(false)
 
     const {
         register,
@@ -71,6 +73,7 @@ export function DeleteCarrierModal({ open, onClose, carrier, deleteModalTitle }:
 
     const onSubmit = async (data: DeleteCarrierFormValues) => {
         setBackendError(null)
+        setDeleting(true)
         try {
             await dispatch(removeCarrier(data.id)).unwrap()
             toast.success("Carrier deleted successfully!")
@@ -81,6 +84,8 @@ export function DeleteCarrierModal({ open, onClose, carrier, deleteModalTitle }:
             } else {
                 toast.error(error?.message || "Failed to delete carrier. Please try again.")
             }
+        } finally {
+            setDeleting(false)
         }
     }
 
@@ -125,8 +130,8 @@ export function DeleteCarrierModal({ open, onClose, carrier, deleteModalTitle }:
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading} variant="destructive">
-                            {loading ? "Deleting..." : "Delete Carrier"}
+                        <Button type="submit" disabled={loading || deleting} variant="destructive">
+                            {loading || deleting ? "Deleting..." : "Delete Carrier"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

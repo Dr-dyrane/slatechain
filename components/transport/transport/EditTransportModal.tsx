@@ -66,6 +66,7 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [updating, setUpdating] = useState(false)
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -112,6 +113,7 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
 
     const onSubmit = async (data: TransportFormValues) => {
         setBackendError(null)
+        setUpdating(true)
         try {
             await dispatch(updateTransport(data as Transport)).unwrap()
             toast.success("Transport updated successfully!")
@@ -122,6 +124,9 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
             } else {
                 toast.error(error?.message || "Failed to update transport. Please try again.")
             }
+        }
+        finally {
+            setUpdating(false)
         }
     }
 
@@ -285,8 +290,8 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Updating..." : "Update Transport"}
+                        <Button type="submit" disabled={loading || updating}>
+                            {loading || updating ? "Updating..." : "Update Transport"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

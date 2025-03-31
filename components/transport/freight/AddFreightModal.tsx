@@ -20,7 +20,7 @@ import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { addFreight, fetchCarriers, fetchRoutes, fetchTransports } from "@/lib/slices/shipmentSlice"
-import type { FreightStatus } from "@/lib/types"
+import type { FreightStatus, Transport } from "@/lib/types"
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -60,6 +60,8 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers, routes, transports } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [adding, setAdding] = useState(false)
+
 
     // Fetch carriers, routes, and transports when the modal opens
     useEffect(() => {
@@ -96,6 +98,7 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
 
     const onSubmit = async (data: FreightFormValues) => {
         setBackendError(null)
+        setAdding(true)
         try {
             // Create freight data structure required by the model
             const freightData = {
@@ -134,6 +137,8 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add freight. Please try again.")
             }
+        } finally {
+            setAdding(false)
         }
     }
 
@@ -159,7 +164,7 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
 
         // Auto-select a transport if available for this carrier
         if (selectedCarrierId) {
-            const carrierTransports = transports.filter((t) => t.carrierId === selectedCarrierId && t.type === value)
+            const carrierTransports = transports.filter((t: Transport) => t.carrierId === selectedCarrierId && t.type === value)
             if (carrierTransports.length > 0) {
                 setValue("vehicleIdentifier", carrierTransports[0].id, { shouldValidate: true })
             }
@@ -374,8 +379,8 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Adding..." : "Add Freight"}
+                        <Button type="submit" disabled={loading || adding}>
+                            {loading || adding ? "Adding..." : "Add Freight"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

@@ -64,6 +64,7 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [adding, setAdding] = useState(false)
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -95,6 +96,7 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
 
     const onSubmit = async (data: TransportFormValues) => {
         setBackendError(null)
+        setAdding(true)
         try {
             await dispatch(addTransport(data as Omit<Transport, "id">)).unwrap()
             toast.success("Transport added successfully!")
@@ -106,6 +108,9 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add transport. Please try again.")
             }
+        }
+        finally {
+            setAdding(false)
         }
     }
 
@@ -265,8 +270,8 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Adding..." : "Add Transport"}
+                        <Button type="submit" disabled={loading || adding}>
+                            {loading || adding ? "Adding..." : "Add Transport"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

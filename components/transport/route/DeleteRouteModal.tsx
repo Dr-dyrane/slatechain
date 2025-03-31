@@ -46,6 +46,7 @@ export function DeleteRouteModal({ open, onClose, route, deleteModalTitle }: Del
     const dispatch = useDispatch<AppDispatch>()
     const { loading } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
+    const [deleting, setDeleting] = useState(false)
 
     const {
         register,
@@ -71,6 +72,7 @@ export function DeleteRouteModal({ open, onClose, route, deleteModalTitle }: Del
 
     const onSubmit = async (data: DeleteRouteFormValues) => {
         setBackendError(null)
+        setDeleting(true)
         try {
             await dispatch(removeRoute(data.id)).unwrap()
             toast.success("Route deleted successfully!")
@@ -81,6 +83,9 @@ export function DeleteRouteModal({ open, onClose, route, deleteModalTitle }: Del
             } else {
                 toast.error(error?.message || "Failed to delete route. Please try again.")
             }
+        }
+        finally {
+            setDeleting(false)
         }
     }
 
@@ -125,8 +130,8 @@ export function DeleteRouteModal({ open, onClose, route, deleteModalTitle }: Del
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading} variant="destructive">
-                            {loading ? "Deleting..." : "Delete Route"}
+                        <Button type="submit" disabled={loading || deleting} variant="destructive">
+                            {loading || deleting ? "Deleting..." : "Delete Route"}
                         </Button>
                     </AlertDialogFooter>
                 </form>
