@@ -31,6 +31,7 @@ interface EditOrderModalProps {
 
 export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
   const dispatch = useDispatch<AppDispatch>()
+  const { items: inventoryItems, loading: inventoryLoading } = useSelector((state: RootState) => state.inventory)
   const [activeTab, setActiveTab] = useState("details")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const { loading: updateLoading, paymentLoading } = useSelector((state: RootState) => state.orders)
@@ -38,38 +39,39 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
 
   const [editedOrder, setEditedOrder] = useState<Order | null>(order)
 
+  // Initialize edited order when the order prop changes
   useEffect(() => {
     if (order) {
       setEditedOrder({
         ...order,
-        customerId: order.name as string, // Convert name to customerId
+        customerId: order.customerId || (order.name as string), // Use customerId if available, otherwise use name
       })
     }
   }, [order])
 
   const handleStatusChange = (status: Order["status"]) => {
     if (editedOrder) {
-      setEditedOrder({ ...editedOrder, status })
+      setEditedOrder((prev) => ({ ...prev!, status }))
     }
   }
 
   const handleCustomerIdChange = (customerId: string) => {
     if (editedOrder) {
-      setEditedOrder({ ...editedOrder, customerId })
+      setEditedOrder((prev) => ({ ...prev!, customerId }))
     }
   }
 
   const handleItemsChange = (items: OrderItem[]) => {
     if (editedOrder) {
       const totalAmount = items.reduce((sum, item) => sum + item.quantity * item.price, 0)
-      setEditedOrder({ ...editedOrder, items, totalAmount })
+      setEditedOrder((prev) => ({ ...prev!, items, totalAmount }))
     }
   }
 
   const handlePaidChange = (paid: boolean) => {
     if (editedOrder) {
-      setEditedOrder((prevOrder) => ({
-        ...prevOrder!,
+      setEditedOrder((prev) => ({
+        ...prev!,
         paid: paid,
       }))
     }
@@ -77,10 +79,10 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
 
   const handlePaymentProcess = (paymentResult: boolean) => {
     if (editedOrder) {
-      setEditedOrder((prevOrder) => ({
-        ...prevOrder!,
+      setEditedOrder((prev) => ({
+        ...prev!,
         paid: paymentResult,
-        status: paymentResult ? "PROCESSING" : prevOrder!.status,
+        status: paymentResult ? "PROCESSING" : prev!.status,
       }))
       setShowPaymentModal(false)
 
@@ -96,12 +98,21 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
   const handleSubmit = async () => {
     if (editedOrder) {
       try {
-        const submittingOrder = {
+        // Prepare the payload for the backend
+        const orderToSubmit = {
           ...editedOrder,
+          items: editedOrder.items?.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
           customerId: editedOrder.customerId || (editedOrder.name as string),
+          // Keep the original order number
+          orderNumber: editedOrder.orderNumber,
         }
 
-        const { name, ...finalOrder } = submittingOrder
+        // Remove name property if it exists to avoid conflicts
+        const { name, ...finalOrder } = orderToSubmit
 
         console.log("Submitting updated order:", finalOrder)
         await dispatch(updateOrder(finalOrder))
@@ -124,7 +135,10 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
         <AlertDialogHeader>
           <div className="flex justify-center items-center relative">
             <AlertDialogTitle>Edit Order: {editedOrder.orderNumber}</AlertDialogTitle>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full">
+            <button
+              onClick={onClose}
+              className="text-gray-500 hover:text-gray-700 absolute -top-4 sm:-top-1 -right-4 p-2 bg-muted rounded-full"
+            >
               <X className="w-5 h-5 " />
             </button>
           </div>
@@ -148,7 +162,12 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
           </TabsContent>
 
           <TabsContent value="items" className="mt-4">
-            <OrderItemsForm items={editedOrder.items} onItemsChange={handleItemsChange} />
+            <OrderItemsForm
+              items={editedOrder.items}
+              onItemsChange={handleItemsChange}
+              inventoryItems={inventoryItems || []}
+              inventoryLoading={inventoryLoading}
+            />
           </TabsContent>
         </Tabs>
 

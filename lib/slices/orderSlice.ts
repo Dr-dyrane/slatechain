@@ -44,11 +44,31 @@ export const addOrder = createAsyncThunk(
 		thunkAPI
 	) => {
 		try {
-			const response = await apiClient.post<Order>("/orders", order);
+			// Generate a temporary order number if not provided
+			const orderNumber = `ORD${String(Date.now()).slice(-5).padStart(5, "0")}`;
+
+			// Ensure we're sending the exact fields the backend expects
+			const orderPayload = {
+				customerId: order.customerId,
+				orderNumber: orderNumber, 
+				items: order.items.map((item) => ({
+					productId: item.productId,
+					quantity: item.quantity,
+					price: item.price,
+				})),
+				totalAmount: order.totalAmount,
+				status: order.status,
+				paid: order.paid,
+				// Note: createdBy will be set by the backend from the authenticated user
+			};
+
+			console.log("Sending order payload:", orderPayload);
+			const response = await apiClient.post<Order>("/orders", orderPayload);
 			return (
 				response ?? thunkAPI.rejectWithValue("Invalid response from server")
 			);
 		} catch (error: any) {
+			console.error("Error in addOrder:", error);
 			return thunkAPI.rejectWithValue(
 				error?.message || "Failed to add order item"
 			);
@@ -155,10 +175,19 @@ const orderSlice = createSlice({
 				state.items = []; // Reset orders to prevent stale data
 			})
 
+			.addCase(addOrder.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(addOrder.fulfilled, (state, action) => {
+				state.loading = false;
 				if (action.payload) {
 					state.items.push(action.payload);
 				}
+			})
+			.addCase(addOrder.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			})
 
 			.addCase(updateOrder.pending, (state) => {

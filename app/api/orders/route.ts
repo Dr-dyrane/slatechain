@@ -4,16 +4,72 @@ import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import { createNotification } from "@/app/actions/notifications";
 import Order from "../models/Order";
+import User from "../models/User";
+import { UserRole } from "@/lib/types";
+import Inventory from "../models/Inventory";
 
 const LIST_RATE_LIMIT = 30;
 const CREATE_RATE_LIMIT = 10;
 
-// GET /api/orders - List orders for a specific user
+// GET /api/orders - List orders based on user role
 export async function GET(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const orders = await Order.find({ userId }).sort({ createdAt: -1 });
+			// Get user to determine role
+			const user = await User.findById(userId);
+			if (!user) {
+				return NextResponse.json(
+					{ code: "USER_NOT_FOUND", message: "User not found" },
+					{ status: 404 }
+				);
+			}
+
+			// Build query based on user role
+			let query = {};
+
+			if (user.role === UserRole.ADMIN) {
+				// Admin sees all orders
+				query = {};
+			} else if (user.role === UserRole.MANAGER) {
+				// Manager sees orders from their own suppliers and assigned suppliers
+				const managedSupplierIds = user.assignedManagers || [];
+
+				// Find all inventory items from managed suppliers
+				const supplierProducts = await Inventory.find({
+					supplierId: { $in: managedSupplierIds },
+				}).select("_id");
+				const supplierProductIds = supplierProducts.map((item) => item._id);
+
+				query = {
+					$or: [
+						{ "items.productId": { $in: supplierProductIds } }, // Orders with items from managed suppliers
+						{ supplierId: { $in: managedSupplierIds } }, // Orders directly from managed suppliers
+					],
+				};
+			} else if (user.role === UserRole.SUPPLIER) {
+				// Supplier sees only orders containing their own products
+				const supplierProducts = await Inventory.find({
+					supplierId: userId,
+				}).select("_id");
+				const supplierProductIds = supplierProducts.map((item) => item._id);
+
+				query = {
+					"items.productId": { $in: supplierProductIds }, // Check if any order item belongs to the supplier
+				};
+			} else if (user.role === UserRole.CUSTOMER) {
+				// Customer sees orders they placed
+				query = { customerId: userId };
+			} else {
+				return NextResponse.json(
+					{ code: "UNAUTHORIZED", message: "Unauthorized to view orders." },
+					{ status: 403 }
+				);
+			}
+
+			// Execute query to get all orders without pagination
+			const orders = await Order.find(query).sort({ createdAt: -1 });
+
 			return NextResponse.json(orders);
 		},
 		"orders_list",
