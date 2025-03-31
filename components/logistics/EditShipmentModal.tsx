@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
-import type { Shipment, Order } from "@/lib/types"
+import type { Shipment, Order, Route } from "@/lib/types"
 import { toast } from "sonner"
 import { updateShipment, fetchCarriers, fetchRoutes, fetchTransports, fetchFreights } from "@/lib/slices/shipmentSlice"
 import { fetchOrders } from "@/lib/slices/orderSlice"
@@ -195,7 +195,7 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
 
         // If a route is selected, update destination if not manually edited
         if (!destinationEdited && routes.length > 0) {
-            const selectedRoute = routes.find((r) => r.id === value)
+            const selectedRoute = routes.find((r: Route) => r.id === value)
             if (selectedRoute && selectedRoute.destination?.location?.address) {
                 setValue("destination", selectedRoute.destination.location.address, { shouldValidate: true })
             }
@@ -278,7 +278,7 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
 
                     <div>
                         <Label htmlFor="trackingNumber">Tracking Number</Label>
-                        <Input id="trackingNumber" placeholder="Tracking Number" {...register("trackingNumber")} />
+                        <Input id="trackingNumber" placeholder="Tracking Number" {...register("trackingNumber")} readOnly/>
                         {errors.trackingNumber && <p className="text-sm text-red-500">{errors.trackingNumber.message}</p>}
                     </div>
 

@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
-import type { Shipment, Order, Route } from "@/lib/types"
+import type { Shipment, Order, Route, Carrier } from "@/lib/types"
 import { toast } from "sonner"
 import { addShipment, fetchCarriers, fetchRoutes, fetchTransports, fetchFreights } from "@/lib/slices/shipmentSlice"
 import { fetchOrders } from "@/lib/slices/orderSlice"
@@ -34,7 +34,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 const shipmentSchema = z.object({
     name: z.string().min(1, { message: "Shipment name is required" }),
     orderId: z.string().min(1, { message: "Order ID is required" }),
-    trackingNumber: z.string().min(1, { message: "Tracking number is required" }),
     carrier: z.string().min(1, { message: "Carrier is required" }),
     status: z.enum(["CREATED", "PREPARING", "IN_TRANSIT", "DELIVERED"] as const, {
         required_error: "Shipment status is required",
@@ -122,12 +121,18 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
         setBackendError(null)
         setAdding(true)
         try {
-            // Generate a tracking number if not provided
-            if (!data.trackingNumber) {
-                data.trackingNumber = `TRK-${Date.now().toString().slice(-8)}`
+            // Generate a tracking number
+            const trackingNumber = `TRK-${Math.floor(Math.random() * 1000000)
+                .toString()
+                .padStart(6, "0")}`
+
+            // Add tracking number to the payload
+            const shipmentData = {
+                ...data,
+                trackingNumber,
             }
 
-            await dispatch(addShipment(data as Omit<Shipment, "id">)).unwrap()
+            await dispatch(addShipment(shipmentData as Omit<Shipment, "id">)).unwrap()
             toast.success("Shipment added successfully!")
             reset()
             setDestinationEdited(false)
@@ -244,16 +249,6 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
                     </div>
 
                     <div>
-                        <Label htmlFor="trackingNumber">Tracking Number</Label>
-                        <Input
-                            id="trackingNumber"
-                            placeholder="Tracking Number (auto-generated if empty)"
-                            {...register("trackingNumber")}
-                        />
-                        {errors.trackingNumber && <p className="text-sm text-red-500">{errors.trackingNumber.message}</p>}
-                    </div>
-
-                    <div>
                         <Label htmlFor="carrier">Carrier</Label>
                         <Select onValueChange={handleCarrierChange}>
                             <SelectTrigger className="w-full">
@@ -269,7 +264,7 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
                                         No carriers available
                                     </SelectItem>
                                 ) : (
-                                    carriers.map((carrier) => (
+                                    carriers.map((carrier: Carrier) => (
                                         <SelectItem key={carrier.id} value={carrier.name}>
                                             {carrier.name}
                                         </SelectItem>
@@ -297,7 +292,7 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
                                         No routes available
                                     </SelectItem>
                                 ) : (
-                                    routes.map((route) => (
+                                    routes.map((route: Route) => (
                                         <SelectItem key={route.id} value={route.id}>
                                             {route.name} ({route.startLocation} to {route.endLocation})
                                         </SelectItem>

@@ -72,7 +72,7 @@ shipmentSchema.index({ carrier: 1 });
 
 // Auto-generate tracking number if not provided
 shipmentSchema.pre("save", async function (next) {
-	if (this.isNew && !this.trackingNumber) {
+	if (this.isNew) {
 		const count = await mongoose.models.Shipment.countDocuments();
 		this.trackingNumber = `TRK${String(count + 1).padStart(6, "0")}`;
 	}
