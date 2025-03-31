@@ -507,6 +507,8 @@ export interface Shipment {
 
 export interface Transport {
 	id: string;
+	_id?: string;
+	name: string;
 	type: "TRUCK" | "SHIP" | "PLANE";
 	capacity: number;
 	currentLocation: GeoLocation;

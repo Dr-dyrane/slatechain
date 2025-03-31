@@ -5,6 +5,11 @@ import mongoose from "mongoose";
 
 const transportSchema = new mongoose.Schema(
 	{
+		name: {
+			type: String,
+			required: true,
+			index: true,
+		},
 		type: {
 			type: String,
 			enum: ["TRUCK", "SHIP", "PLANE"],
