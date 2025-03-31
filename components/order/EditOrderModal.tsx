@@ -36,6 +36,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const { loading: updateLoading, paymentLoading } = useSelector((state: RootState) => state.orders)
   const loading = updateLoading || paymentLoading
+  const [updating, setUpdating] = useState(false)
 
   const [editedOrder, setEditedOrder] = useState<Order | null>(order)
 
@@ -97,6 +98,7 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
 
   const handleSubmit = async () => {
     if (editedOrder) {
+      setUpdating(true)
       try {
         // Prepare the payload for the backend
         const orderToSubmit = {
@@ -121,6 +123,8 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
       } catch (error) {
         console.error("Error updating order:", error)
         toast.error("Failed to update order")
+      } finally {
+        setUpdating(false)
       }
     }
   }
@@ -178,8 +182,8 @@ export function EditOrderModal({ open, onClose, order }: EditOrderModalProps) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              Save Changes
+              {loading || updating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {loading || updating ? "Updating Order" : "Update Order"}
             </Button>
           </AlertDialogFooter>
         </div>

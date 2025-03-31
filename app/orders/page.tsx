@@ -65,6 +65,7 @@ export const columns: ColumnDef<OrderRow>[] = [
     cell: ({ row }) => {
       const items = row.getValue("items") as OrderItem[]
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+      const { items: inventoryItems, loading: inventoryLoading } = useSelector((state: RootState) => state.inventory)
 
       return (
         <TooltipProvider>
@@ -95,7 +96,7 @@ export const columns: ColumnDef<OrderRow>[] = [
                       key={index}
                       className="py-2 flex justify-between items-center border-b border-muted last:border-b-0"
                     >
-                      <span className="text-sm font-medium">{item.productId}</span>
+                      {inventoryItems.find((inventoryItem) => inventoryItem.id === item.productId)?.name || item.productId}
                       <div className="text-xs text-muted-foreground">
                         <span className="mr-2">Qty: {item.quantity}</span>
                         <span>${item.price.toFixed(2)}</span>
