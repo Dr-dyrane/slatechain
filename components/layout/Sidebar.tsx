@@ -6,11 +6,10 @@ import { usePathname } from "next/navigation";
 import { cn, getSidebarItemMeta } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog, LayoutGrid, User } from "lucide-react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { UserRole } from "@/lib/types";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
+import { useNavState } from "@/hooks/use-nav-state";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/dashboard": Home,
@@ -36,7 +35,7 @@ interface SidebarProps {
 
 export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
   const pathname = usePathname();
-  const state = useSelector((state: RootState) => state)
+  const navState = useNavState();
   // const user = state.auth.user
 
   // const filteredItems = items.filter(item => {
@@ -50,7 +49,7 @@ export function Sidebar({ items, isCollapsed, toggleSidebar }: SidebarProps) {
           {items.map((item) => {
             const Icon = icons[item.href] || Home;
             const isActive = pathname === item.href;
-            const meta = getSidebarItemMeta(state, item.href)
+            const meta = getSidebarItemMeta(navState, item.href)
 
             return (
               <Link key={item.href} href={item.href} passHref>

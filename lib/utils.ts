@@ -5,7 +5,7 @@ import { Redis } from "@upstash/redis";
 import type { NextRequest } from "next/server";
 import crypto from "crypto";
 import type mongoose from "mongoose";
-import { Supplier, UserRole } from "./types";
+import type { Supplier, UserRole } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -32,17 +32,18 @@ export interface RateLimitConfig {
 }
 
 export const getSidebarItemMeta = (
-	state: RootState,
+	state: Partial<RootState>,
 	path: string
 ): SidebarItemMeta => {
 	switch (path) {
 		case "/inventory":
 			const totalStock =
-				state.inventory.items?.reduce((sum, item) => sum + item.quantity, 0) ||
+				state.inventory?.items?.reduce((sum, item) => sum + item.quantity, 0) ||
 				0;
 			const lowStockItems =
-				state.inventory.items?.filter((item) => item.quantity <= item.minAmount)
-					.length || 0;
+				state.inventory?.items?.filter(
+					(item) => item.quantity <= item.minAmount
+				).length || 0;
 			return {
 				badge:
 					lowStockItems > 0
@@ -51,7 +52,7 @@ export const getSidebarItemMeta = (
 								variant: "warning",
 							}
 						: undefined,
-				serviceIcon: state.auth.user?.integrations?.erp_crm?.enabled
+				serviceIcon: state.auth?.user?.integrations?.erp_crm?.enabled
 					? {
 							src: "/icons/sap.svg",
 							alt: "ERP Integration",
@@ -60,9 +61,9 @@ export const getSidebarItemMeta = (
 			};
 
 		case "/orders":
-			const pendingOrders = state.orders.items.filter(
-				(order) => order.status === "PENDING"
-			).length;
+			const pendingOrders =
+				state.orders?.items.filter((order) => order.status === "PENDING")
+					.length || 0;
 			return {
 				badge:
 					pendingOrders > 0
@@ -74,9 +75,9 @@ export const getSidebarItemMeta = (
 			};
 
 		case "/logistics":
-			const inTransitShipments = state.shipment.items.filter(
-				(s) => s.status === "IN_TRANSIT"
-			).length;
+			const inTransitShipments =
+				state.shipment?.items.filter((s) => s.status === "IN_TRANSIT").length ||
+				0;
 			return {
 				badge:
 					inTransitShipments > 0
@@ -90,7 +91,7 @@ export const getSidebarItemMeta = (
 		case "/suppliers":
 			return {
 				badge: {
-					count: state.supplier.items.length,
+					count: state.supplier?.items.length || 0,
 					variant: "secondary",
 				},
 			};
@@ -98,10 +99,10 @@ export const getSidebarItemMeta = (
 		case "/users":
 			return {
 				badge: {
-					count: state.user.items.length,
+					count: state.user?.items.length || 0,
 					variant: "secondary",
 				},
-				serviceIcon: state.auth.user?.integrations?.erp_crm?.enabled
+				serviceIcon: state.auth?.user?.integrations?.erp_crm?.enabled
 					? {
 							src: "/icons/sap.svg",
 							alt: "CRM Integration",
@@ -110,7 +111,7 @@ export const getSidebarItemMeta = (
 			};
 
 		case "/apps":
-			const ecommerceIntegration = state.auth.user?.integrations?.ecommerce;
+			const ecommerceIntegration = state.auth?.user?.integrations?.ecommerce;
 			return ecommerceIntegration?.enabled
 				? {
 						serviceIcon: {

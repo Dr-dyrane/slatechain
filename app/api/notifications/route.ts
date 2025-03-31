@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import Notification from "../models/Notification";
 
-const LIST_RATE_LIMIT = 60;
+const LIST_RATE_LIMIT = 30;
 const VERIFY_RATE_LIMIT = 30;
 
 // GET /api/notifications - List all notifications for a user

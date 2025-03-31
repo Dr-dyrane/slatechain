@@ -37,7 +37,7 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
     // Set up polling interval - every 30 seconds
     const notificationInterval = setInterval(() => {
       dispatch(fetchNotifications())
-    }, 60000)
+    }, 30000)
 
     return () => {
       clearInterval(notificationInterval)

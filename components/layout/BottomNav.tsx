@@ -6,10 +6,9 @@ import { usePathname } from "next/navigation";
 import { cn, getSidebarItemMeta } from "@/lib/utils";
 import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, UserCog, User } from "lucide-react";
 import { UserRole } from "@/lib/types";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
+import { useNavState } from "@/hooks/use-nav-state";
 
 const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/": Home,
@@ -32,8 +31,7 @@ interface SidebarProps {
 
 export function BottomNav({ items }: SidebarProps) {
   const pathname = usePathname();
-  const state = useSelector((state: RootState) => state)
-  // const user = state.auth.user
+  const navState = useNavState();
 
   // const filteredItems = items.filter(item => {
   //   return !item.role || user?.role === item.role;
@@ -45,7 +43,7 @@ export function BottomNav({ items }: SidebarProps) {
         {items.map((item) => {
           const Icon = icons[item.href] || Home; // Fallback to Home
           const isActive = pathname === item.href;
-          const meta = getSidebarItemMeta(state, item.href)
+          const meta = getSidebarItemMeta(navState, item.href)
 
           return (
             <li key={item.href}>
