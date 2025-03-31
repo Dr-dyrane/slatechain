@@ -8,7 +8,7 @@ import { PlusIcon, Package, ChevronRight } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import { fetchOrders } from "@/lib/slices/orderSlice"
 import { AddOrderModal } from "@/components/order/AddOrderModal"
-import type { Order, OrderItem } from "@/lib/types"
+import type { InventoryItem, Order, OrderItem } from "@/lib/types"
 import { EditOrderModal } from "@/components/order/EditOrderModal"
 import { DeleteOrderModal } from "@/components/order/DeleteOrderModal"
 import { Label } from "@/components/ui/label"
@@ -27,7 +27,7 @@ export interface OrderRow {
   items: OrderItem[]
 }
 
-export const columns: ColumnDef<OrderRow>[] = [
+export const columns = (inventoryItems: InventoryItem[]): ColumnDef<OrderRow>[] => [
   {
     accessorKey: "orderNumber",
     header: "Order Number",
@@ -35,21 +35,6 @@ export const columns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: "name",
     header: "Customer ID",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as Order["status"]
-      const statusColors: Record<Order["status"], string> = {
-        PENDING: "bg-yellow-500/85 text-white",
-        PROCESSING: "bg-blue-500/85 text-white",
-        SHIPPED: "bg-indigo-500/85 text-white",
-        DELIVERED: "bg-green-500/85 text-white",
-        CANCELLED: "bg-red-500/85 text-white",
-      }
-      return <span className={`px-3 py-2 rounded-lg text-xs font-semibold ${statusColors[status]}`}>{status}</span>
-    },
   },
   {
     accessorKey: "totalAmount",
@@ -65,7 +50,6 @@ export const columns: ColumnDef<OrderRow>[] = [
     cell: ({ row }) => {
       const items = row.getValue("items") as OrderItem[]
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-      const { items: inventoryItems, loading: inventoryLoading } = useSelector((state: RootState) => state.inventory)
 
       return (
         <TooltipProvider>
@@ -112,6 +96,21 @@ export const columns: ColumnDef<OrderRow>[] = [
     },
   },
   {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as Order["status"]
+      const statusColors: Record<Order["status"], string> = {
+        PENDING: "bg-yellow-500/85 text-white",
+        PROCESSING: "bg-blue-500/85 text-white",
+        SHIPPED: "bg-indigo-500/85 text-white",
+        DELIVERED: "bg-green-500/85 text-white",
+        CANCELLED: "bg-red-500/85 text-white",
+      }
+      return <span className={`px-3 py-2 rounded-lg text-xs font-semibold ${statusColors[status]}`}>{status}</span>
+    },
+  },
+  {
     accessorKey: "paid",
     header: "Payment",
     cell: ({ row }) =>
@@ -127,6 +126,7 @@ export default function OrdersPage() {
   const dispatch = useDispatch<AppDispatch>()
   const router = useRouter();
   const searchParams = useSearchParams();
+  const inventoryItems = useSelector((state: RootState) => state.inventory.items)
   const orders = useSelector((state: RootState) => state.orders.items)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -257,7 +257,7 @@ export default function OrdersPage() {
       </div>
 
       <DataTable
-        columns={columns}
+        columns={columns(inventoryItems)}
         data={formattedOrders}
         onEdit={handleEditModalOpen}
         onDelete={handleDeleteModalOpen}
