@@ -600,12 +600,25 @@ export interface Route {
 	};
 }
 
+export enum FreightTypes {
+	STANDARD = "STANDARD",
+	EXPRESS = "EXPRESS",
+	REFRIGERATED = "REFRIGERATED",
+	HAZARDOUS = "HAZARDOUS",
+	OVERSIZED = "OVERSIZED",
+	FRAGILE = "FRAGILE",
+	PERISHABLE = "PERISHABLE",
+	BULK = "BULK",
+	CONTAINER = "CONTAINER",
+	LIQUID = "LIQUID",
+}
+
 // Freight interface
 export interface Freight {
 	id: string;
 	_id?: string;
 	freightNumber?: string;
-	type: string;
+	type: FreightTypes;
 	status: FreightStatus;
 	shipmentIds?: string[];
 	carrierId: string;

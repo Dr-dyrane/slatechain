@@ -20,7 +20,7 @@ import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { addTransport, fetchCarriers } from "@/lib/slices/shipmentSlice"
-import type { Transport } from "@/lib/types"
+import type { Carrier, Transport } from "@/lib/types"
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -258,7 +258,7 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
                                         No carriers available
                                     </SelectItem>
                                 ) : (
-                                    carriers.map((carrier) => (
+                                    carriers.map((carrier: Carrier) => (
                                         <SelectItem key={carrier.id} value={carrier.id}>
                                             {carrier.name}
                                         </SelectItem>

@@ -21,17 +21,29 @@ import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { addFreight, fetchCarriers, fetchRoutes, fetchTransports } from "@/lib/slices/shipmentSlice"
 import type { FreightStatus, Transport } from "@/lib/types"
-import { X } from "lucide-react"
+import { FreightTypes } from "@/lib/types"
+import { X } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
 
 // Define a Zod schema for freight validation
 const freightSchema = z.object({
-    type: z.string().min(1, { message: "Type is required" }),
+    type: z.enum([
+        FreightTypes.STANDARD,
+        FreightTypes.EXPRESS,
+        FreightTypes.REFRIGERATED,
+        FreightTypes.HAZARDOUS,
+        FreightTypes.OVERSIZED,
+        FreightTypes.FRAGILE,
+        FreightTypes.PERISHABLE,
+        FreightTypes.BULK,
+        FreightTypes.CONTAINER,
+        FreightTypes.LIQUID
+    ], { required_error: "Freight type is required" }),
     carrierId: z.string().min(1, { message: "Carrier is required" }),
     routeId: z.string().min(1, { message: "Route is required" }),
     status: z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "ON_HOLD"], { required_error: "Status is required" }),
@@ -82,7 +94,7 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
     } = useForm<FreightFormValues>({
         resolver: zodResolver(freightSchema),
         defaultValues: {
-            type: "STANDARD",
+            type: FreightTypes.STANDARD,
             status: "PENDING",
             vehicleType: "TRUCK",
             departureDate: new Date().toISOString().slice(0, 16),
@@ -102,6 +114,8 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
         try {
             // Create freight data structure required by the model
             const freightData = {
+                ...data,
+                freightNumber: "FREIGHT-" + Math.floor(Math.random() * 1000000),
                 type: data.type,
                 status: data.status,
                 carrierId: data.carrierId,
@@ -146,6 +160,11 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
         setBackendError(null)
         reset()
         onClose()
+    }
+
+    // Handle freight type selection
+    const handleFreightTypesChange = (value: string) => {
+        setValue("type", value as FreightTypes, { shouldValidate: true })
     }
 
     // Handle carrier selection
@@ -202,7 +221,24 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     <div>
                         <Label htmlFor="type">Freight Type</Label>
-                        <Input id="type" placeholder="Freight Type" {...register("type")} />
+                        <Select onValueChange={handleFreightTypesChange} defaultValue={FreightTypes.STANDARD}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select freight type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FreightTypes.STANDARD}>Standard</SelectItem>
+                                <SelectItem value={FreightTypes.EXPRESS}>Express</SelectItem>
+                                <SelectItem value={FreightTypes.REFRIGERATED}>Refrigerated</SelectItem>
+                                <SelectItem value={FreightTypes.HAZARDOUS}>Hazardous</SelectItem>
+                                <SelectItem value={FreightTypes.OVERSIZED}>Oversized</SelectItem>
+                                <SelectItem value={FreightTypes.FRAGILE}>Fragile</SelectItem>
+                                <SelectItem value={FreightTypes.PERISHABLE}>Perishable</SelectItem>
+                                <SelectItem value={FreightTypes.BULK}>Bulk</SelectItem>
+                                <SelectItem value={FreightTypes.CONTAINER}>Container</SelectItem>
+                                <SelectItem value={FreightTypes.LIQUID}>Liquid</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("type")} />
                         {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
                     </div>
 
@@ -388,4 +424,3 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
         </AlertDialog>
     )
 }
-

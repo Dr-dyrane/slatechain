@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { updateFreight, fetchCarriers, fetchRoutes, fetchTransports } from "@/lib/slices/shipmentSlice"
 import type { Freight, FreightStatus } from "@/lib/types"
+import { FreightTypes } from "@/lib/types"
 import { X } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -32,7 +33,21 @@ import { Textarea } from "@/components/ui/textarea"
 // Define a Zod schema for freight validation
 const freightSchema = z.object({
     id: z.string().min(1, { message: "ID is required" }),
-    type: z.string().min(1, { message: "Type is required" }),
+    type: z.enum(
+        [
+            FreightTypes.STANDARD,
+            FreightTypes.EXPRESS,
+            FreightTypes.REFRIGERATED,
+            FreightTypes.HAZARDOUS,
+            FreightTypes.OVERSIZED,
+            FreightTypes.FRAGILE,
+            FreightTypes.PERISHABLE,
+            FreightTypes.BULK,
+            FreightTypes.CONTAINER,
+            FreightTypes.LIQUID,
+        ],
+        { required_error: "Freight type is required" },
+    ),
     carrierId: z.string().min(1, { message: "Carrier is required" }),
     routeId: z.string().min(1, { message: "Route is required" }),
     status: z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "ON_HOLD"], { required_error: "Status is required" }),
@@ -64,7 +79,6 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
     const [backendError, setBackendError] = useState<string | null>(null)
     const [updating, setUpdating] = useState(false)
 
-
     // Fetch carriers, routes, and transports when the modal opens
     useEffect(() => {
         if (open) {
@@ -85,7 +99,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
         resolver: zodResolver(freightSchema),
         defaultValues: {
             id: freight?.id || "",
-            type: freight?.type || "STANDARD",
+            type: freight?.type || FreightTypes.STANDARD,
             carrierId: freight?.carrierId || "",
             routeId: freight?.routeId || "",
             status: freight?.status || "PENDING",
@@ -107,7 +121,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
         if (freight) {
             reset({
                 id: freight.id,
-                type: freight.type,
+                type: freight.type as FreightTypes,
                 carrierId: freight.carrierId,
                 routeId: freight.routeId,
                 status: freight.status as FreightStatus,
@@ -133,6 +147,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
         try {
             // Create freight data structure required by the model
             const freightData = {
+                ...data,
                 id: data.id,
                 type: data.type,
                 status: data.status,
@@ -168,8 +183,7 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
             } else {
                 toast.error(error?.message || "Failed to update freight. Please try again.")
             }
-        }
-        finally {
+        } finally {
             setUpdating(false)
         }
     }
@@ -177,6 +191,11 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
     const handleClose = () => {
         setBackendError(null)
         onClose()
+    }
+
+    // Handle freight type selection
+    const handleFreightTypesChange = (value: string) => {
+        setValue("type", value as FreightTypes, { shouldValidate: true })
     }
 
     // Handle carrier selection
@@ -230,7 +249,24 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
 
                     <div>
                         <Label htmlFor="type">Freight Type</Label>
-                        <Input id="type" placeholder="Freight Type" {...register("type")} />
+                        <Select onValueChange={handleFreightTypesChange} defaultValue={freight.type}>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Select freight type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value={FreightTypes.STANDARD}>Standard</SelectItem>
+                                <SelectItem value={FreightTypes.EXPRESS}>Express</SelectItem>
+                                <SelectItem value={FreightTypes.REFRIGERATED}>Refrigerated</SelectItem>
+                                <SelectItem value={FreightTypes.HAZARDOUS}>Hazardous</SelectItem>
+                                <SelectItem value={FreightTypes.OVERSIZED}>Oversized</SelectItem>
+                                <SelectItem value={FreightTypes.FRAGILE}>Fragile</SelectItem>
+                                <SelectItem value={FreightTypes.PERISHABLE}>Perishable</SelectItem>
+                                <SelectItem value={FreightTypes.BULK}>Bulk</SelectItem>
+                                <SelectItem value={FreightTypes.CONTAINER}>Container</SelectItem>
+                                <SelectItem value={FreightTypes.LIQUID}>Liquid</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register("type")} />
                         {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
                     </div>
 

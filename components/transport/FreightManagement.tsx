@@ -38,29 +38,44 @@ export function FreightManagement() {
         {
             accessorKey: "name",
             header: "Name",
+            cell: ({ row }) => row.original.freightNumber ?? "N/A",
         },
-        { accessorKey: "weight", header: "Weight (kg)" },
-        { accessorKey: "volume", header: "Volume (m³)" },
+        {
+            accessorKey: "weight",
+            header: "Weight (kg)",
+            cell: ({ row }) => {
+                const weight = row.original.cargo?.totalWeight ?? 0;
+                return `${weight} kg`;
+            },
+        },
+        {
+            accessorKey: "volume",
+            header: "Volume (m³)",
+            cell: ({ row }) => {
+                const volume = row.original.cargo?.totalVolume ?? 0;
+                return `${volume} m³`;
+            },
+        },
         {
             accessorKey: "hazardous",
             header: "Hazardous",
             cell: ({ row }) => {
-                const isHazardous = row.original.cargo?.hazmat === true;
+                const isHazardous = row.original.cargo?.hazmat === false;
                 return isHazardous ? (
                     <div className="flex items-center space-x-2">
                         <X className="w-4 h-4 text-red-500" />
-                        <span>Yes</span>
+                        <span>No</span>
                     </div>
                 ) : (
                     <div className="flex items-center space-x-2">
                         <Check className="w-4 h-4 text-green-500" />
-                        <span>No</span>
+                        <span>Yes</span>
                     </div>
                 );
             },
         },
-        { accessorKey: "specialInstructions", header: "Special Instructions" },
-    ]
+        { accessorKey: "notes", header: "Special Instructions" },
+    ];
 
     const handleAddModalOpen = () => {
         setAddModalOpen(true)

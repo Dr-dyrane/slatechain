@@ -1,7 +1,7 @@
 // app/api/models/Freight.ts
 
 import mongoose from "mongoose";
-import { FreightStatus } from "@/lib/types";
+import { FreightStatus, FreightTypes } from "@/lib/types";
 import { addIdSupport } from "@/lib/utils";
 
 // Create schema for stops
@@ -31,13 +31,14 @@ const freightSchema = new mongoose.Schema(
 	{
 		freightNumber: {
 			type: String,
-			required: true,
+			required: false,
 			unique: true,
 			index: true,
 		},
 		type: {
 			type: String,
 			required: true,
+			enum: Object.values(FreightTypes),
 			index: true,
 		},
 		status: {

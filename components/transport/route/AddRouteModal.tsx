@@ -20,7 +20,7 @@ import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
 import { toast } from "sonner"
 import { addRoute, fetchCarriers } from "@/lib/slices/shipmentSlice"
-import type { RouteType, RouteStatus } from "@/lib/types"
+import type { RouteType, RouteStatus, Carrier } from "@/lib/types"
 import { X } from 'lucide-react'
 import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -347,7 +347,7 @@ export function AddRouteModal({ open, onClose }: AddRouteModalProps) {
                             <div className="text-sm text-muted-foreground">No carriers available</div>
                         ) : (
                             <div className="space-y-2 max-h-40 overflow-y-auto">
-                                {carriers.map((carrier) => (
+                                {carriers.map((carrier: Carrier) => (
                                     <div key={carrier.id} className="flex items-center space-x-2">
                                         <Checkbox
                                             id={`carrier-${carrier.id}`}
