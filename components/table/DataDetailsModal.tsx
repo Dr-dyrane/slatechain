@@ -69,20 +69,22 @@ export function DataDetailsModal<TData extends Record<string, any>>({
                                     <MoreVertical className="w-5 h-5" />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="w-auto rounded-xl shadow-lg bg-primary/10 ring-1 ring-primary/10 py-4 px-2 focus:outline-none">
-                                {onEdit && (<DropdownMenuItem onClick={() => {
-                                    onEdit(data)
-                                    onClose()
-                                }}>
-                                    <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
-                                    Edit {title}
-                                </DropdownMenuItem>)}
-                                {onDelete && (<DropdownMenuItem onClick={() => {
-                                    onDelete(data)
-                                    onClose()
-                                }}><Trash className="w-4 h-4 mr-2 text-muted-foreground" />
-                                    Delete {title}
-                                </DropdownMenuItem>
+                            <DropdownMenuContent className="w-auto rounded-xl shadow-lg bg-muted/95 ring-1 ring-primary/10 py-4 px-2 focus:outline-none">
+                                {onEdit && (
+                                    <DropdownMenuItem className="hover:bg-background" onClick={() => {
+                                        onEdit(data)
+                                        onClose()
+                                    }}>
+                                        <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
+                                        Edit {title}
+                                    </DropdownMenuItem>)}
+                                {onDelete && (
+                                    <DropdownMenuItem className="hover:bg-background" onClick={() => {
+                                        onDelete(data)
+                                        onClose()
+                                    }}><Trash className="w-4 h-4 mr-2 text-muted-foreground" />
+                                        Delete {title}
+                                    </DropdownMenuItem>
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
