@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
-import { PlusIcon } from "lucide-react"
+import { CirclePlus, PlusIcon } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import type { User } from "@/lib/types"
 
@@ -198,7 +198,8 @@ export default function UsersPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl sm:text-3xl font-bold">User Management</h1>
         <Button onClick={handleAddUserOpen}>
-          <PlusIcon className="mr-2 h-4 w-4" /> Add User
+          <CirclePlus />
+          <span className="hidden sm:flex ml-2">Add User</span>
         </Button>
       </div>
 
@@ -282,9 +283,9 @@ export default function UsersPage() {
         </TabsContent>
       </Tabs>
 
-      <UserModal open={addModalOpen} onClose={handleAddUserClose} setRefetchUsers={setRefetchUsers}/>
-      <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers}/>
-      <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers}/>
+      <UserModal open={addModalOpen} onClose={handleAddUserClose} setRefetchUsers={setRefetchUsers} />
+      <EditUserModal open={editModalOpen} onClose={handleEditUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers} />
+      <DeleteUserModal open={deleteModalOpen} onClose={handleDeleteUserClose} user={selectedUser} setRefetchUsers={setRefetchUsers} />
 
       {/* KYC Modals */}
       <ViewKYCSubmissionModal

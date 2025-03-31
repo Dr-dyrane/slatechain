@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { DataTable } from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { RootState, AppDispatch } from "@/lib/store";
 import { fetchInventory, setLoading, updateInventoryItem } from "@/lib/slices/inventorySlice";
 import { AddInventoryModal } from "@/components/inventory/AddInventoryModal";
@@ -31,7 +31,7 @@ export const columns = [
 ];
 
 export default function InventoryPage() {
-    const inventory = useSelector((state: RootState) => state.inventory);
+    const inventory = useSelector((state: RootState) => state.inventory)
     const dispatch = useDispatch<AppDispatch>();
     const [addModalOpen, setAddModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -141,7 +141,8 @@ export default function InventoryPage() {
                     <div className="flex justify-between items-center mb-4">
                         <p className="text-muted-foreground">Real-time stock levels</p>
                         <Button onClick={handleAddModalOpen}>
-                            <PlusIcon className="mr-2 h-4 w-4" /> Add Stock
+                            <CirclePlus />
+                            <span className="hidden sm:flex ml-2">Add Stock</span>
                         </Button>
                     </div>
                     {/* Inventory Table */}

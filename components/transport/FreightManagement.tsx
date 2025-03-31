@@ -17,7 +17,7 @@ import { CheckedState } from "@radix-ui/react-checkbox"
 import { AddFreightModal } from "@/components/transport/freight/AddFreightModal"
 import { EditFreightModal } from "@/components/transport/freight/EditFreightModal"
 import { DeleteFreightModal } from "@/components/transport/freight/DeleteFreightModal"
-import { Check, X } from "lucide-react"
+import { Check, CirclePlus, X } from "lucide-react"
 
 export function FreightManagement() {
     const dispatch = useDispatch<AppDispatch>()
@@ -95,7 +95,8 @@ export function FreightManagement() {
             <div className="flex justify-between flex-wrap items-center">
                 <h3 className="text-xl font-semibold mb-4">Freight Management</h3>
                 <Button onClick={handleAddModalOpen} className="mb-4">
-                    Add Freight
+                    <CirclePlus />
+                    <span className="hidden sm:flex ml-2">Add Freight</span>
                 </Button>
             </div>
             <DataTable

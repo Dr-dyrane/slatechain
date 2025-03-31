@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import { useSelector, useDispatch } from "react-redux"
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
-import { PlusIcon, Package, ChevronRight } from "lucide-react"
+import { Package, ChevronRight, CirclePlus } from "lucide-react"
 import type { RootState, AppDispatch } from "@/lib/store"
 import { fetchOrders } from "@/lib/slices/orderSlice"
 import { AddOrderModal } from "@/components/order/AddOrderModal"
@@ -196,7 +196,8 @@ export default function OrdersPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl sm:text-3xl font-bold">Order Management</h1>
         <Button onClick={handleAddModalOpen}>
-          <PlusIcon className="mr-2 h-4 w-4" /> Create Order
+          <CirclePlus />
+          <span className="hidden sm:flex ml-2">Create Order</span>
         </Button>
       </div>
 

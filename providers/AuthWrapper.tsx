@@ -6,7 +6,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { usePathname, useRouter } from "next/navigation";
 import { RootState, AppDispatch } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
-import { initializeApp } from "@/lib/helpers/appInitializer"; // Import the helper
+import { initializeApp } from "@/lib/helpers/appInitializer";
 import { UserRole } from "@/lib/types";
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
@@ -19,19 +19,22 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const role = user?.role;
 
     const [isChecking, setIsChecking] = useState(true);
+    const isInitialized = useRef(false); // Track whether initialization has been done
 
     useEffect(() => {
-        if (isAuthenticated) {
+        // Ensure initialization is only performed once
+        if (isAuthenticated && !isInitialized.current) {
             initializeApp(dispatch, role as UserRole);
+            isInitialized.current = true; // Mark as initialized
         }
     }, [isAuthenticated]);
 
-    const hasPrefetched = useRef(false); // Ref to track prefetching status
+    const hasPrefetched = useRef(false); // Track prefetching status
 
     // Preload all pages on first load
     useEffect(() => {
-        if (!hasPrefetched.current) { 
-            setIsChecking(true); // Set checking status to true
+        if (!hasPrefetched.current) {
+            setIsChecking(true);
             const settingsSubpages = [
                 "help-support",
                 "help-support/schedule",
@@ -48,7 +51,6 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
                 "/profile",    // Profile
                 "/settings",   // Settings root
                 "/apps",       // Apps
-                // Dynamically include all settings subpages
                 ...settingsSubpages.map((subpage) => `/settings/${subpage}`),
             ];
 
@@ -56,8 +58,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
                 console.error("Page prefetching failed", err);
             });
 
-            hasPrefetched.current = true; // Set prefetching status to true
-            setIsChecking(false); // Set checking status to false
+            hasPrefetched.current = true;
+            setIsChecking(false);
         }
     }, []);
 
@@ -65,10 +67,14 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
         const handleRouting = () => {
             setIsChecking(true);
 
-            const publicPages = ["/", "/login", "/register", '/reset-password', '/pricing', '/policy', '/terms', '/contact', '/about', '/faq', '/features', '/blog', '/blog/[slug]'];
+            const publicPages = [
+                "/", "/login", "/register", "/reset-password", "/pricing",
+                "/policy", "/terms", "/contact", "/about", "/faq",
+                "/features", "/blog", "/blog/[slug]"
+            ];
             const isPublicPage = publicPages.includes(pathname);
 
-            if ((isAuthenticated) && isPublicPage) {
+            if (isAuthenticated && isPublicPage) {
                 router.push("/dashboard");
             } else if (!isAuthenticated && !isPublicPage) {
                 router.push("/login");

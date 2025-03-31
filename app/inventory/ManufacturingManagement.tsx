@@ -7,7 +7,7 @@ import { fetchManufacturingOrders } from "@/lib/slices/inventorySlice";
 import { ManufacturingOrder } from "@/lib/types";
 import { DataTable } from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { AddManufacturingOrderModal } from "@/components/inventory/manufacturing/AddManufacturingOrderModal";
 import { EditManufacturingOrderModal } from "@/components/inventory/manufacturing/EditManufacturingOrderModal";
 import { DeleteManufacturingOrderModal } from "@/components/inventory/manufacturing/DeleteManufacturingOrderModal";
@@ -77,8 +77,8 @@ export function ManufacturingManagement() {
             <div className="flex justify-between items-center mb-4">
                 <p className="text-muted-foreground">Manage manufacturing orders and production planning.</p>
                 <Button onClick={handleAddModalOpen}>
-                    <PlusIcon className="mr-2 h-4 w-4" /> Add Order
-                </Button>
+                    <CirclePlus />
+                    <span className="hidden sm:flex ml-2">Add Order</span>                </Button>
             </div>
             <DataTable
                 columns={columns}

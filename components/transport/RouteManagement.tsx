@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTable } from "@/components/table/DataTable"
 import type { ColumnDef } from "@tanstack/react-table"
-import {AddRouteModal} from "@/components/transport/route/AddRouteModal"
-import {EditRouteModal} from "@/components/transport/route/EditRouteModal"
-import {DeleteRouteModal} from "@/components/transport/route/DeleteRouteModal"
+import { AddRouteModal } from "@/components/transport/route/AddRouteModal"
+import { EditRouteModal } from "@/components/transport/route/EditRouteModal"
+import { DeleteRouteModal } from "@/components/transport/route/DeleteRouteModal"
+import { CirclePlus } from "lucide-react"
 
 export function RouteManagement() {
     const dispatch = useDispatch<AppDispatch>()
@@ -71,7 +72,8 @@ export function RouteManagement() {
             <div className="flex justify-between flex-wrap items-center">
                 <h3 className="text-xl font-semibold mb-4">Route Management</h3>
                 <Button onClick={handleAddModalOpen} className="mb-4">
-                    Add Route
+                    <CirclePlus />
+                    <span className="hidden sm:flex ml-2">Add Route</span>
                 </Button>
             </div>
             <DataTable

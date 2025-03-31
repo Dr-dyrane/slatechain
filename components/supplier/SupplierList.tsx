@@ -1,7 +1,7 @@
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { PlusIcon } from "lucide-react"
+import { CirclePlus } from "lucide-react"
 import type { Supplier } from "@/lib/types"
 import { ColumnDef } from "@tanstack/react-table"
 import { Badge } from "../ui/badge"
@@ -50,7 +50,8 @@ export function SupplierList({
         <div className="flex justify-between items-center">
           <CardTitle>Suppliers</CardTitle>
           <Button onClick={onAddSupplier}>
-            <PlusIcon className="mr-2 h-4 w-4" /> Add Supplier
+            <CirclePlus />
+            <span className="hidden sm:flex ml-2">Add Supplier</span>
           </Button>
         </div>
         <CardDescription>Manage your supplier relationships</CardDescription>

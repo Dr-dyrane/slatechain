@@ -13,9 +13,10 @@ import { Input } from "@/components/ui/input"
 import { DataTable } from "@/components/table/DataTable"
 import type { ColumnDef } from "@tanstack/react-table"
 import { fetchCarriers, removeCarrier, updateCarrier, addCarrier } from "@/lib/slices/shipmentSlice"
-import {AddCarrierModal} from "@/components/transport/carrier/AddCarrierModal"
-import {EditCarrierModal} from "@/components/transport/carrier/EditCarrierModal"
-import {DeleteCarrierModal} from "@/components/transport/carrier/DeleteCarrierModal"
+import { AddCarrierModal } from "@/components/transport/carrier/AddCarrierModal"
+import { EditCarrierModal } from "@/components/transport/carrier/EditCarrierModal"
+import { DeleteCarrierModal } from "@/components/transport/carrier/DeleteCarrierModal"
+import { CirclePlus } from "lucide-react"
 
 
 export function CarrierManagement() {
@@ -72,7 +73,8 @@ export function CarrierManagement() {
             <div className="flex justify-between flex-wrap items-center">
                 <h3 className="text-xl font-semibold mb-4">Carrier Management</h3>
                 <Button onClick={handleAddModalOpen} className="mb-4">
-                    Add Carrier
+                    <CirclePlus />
+                    <span className="hidden sm:flex ml-2">Add Carrier</span>
                 </Button>
             </div>
             <DataTable

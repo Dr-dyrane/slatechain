@@ -7,19 +7,20 @@ import { fetchWarehouses } from "@/lib/slices/inventorySlice";
 import { Warehouse } from "@/lib/types";
 import { DataTable } from "@/components/table/DataTable";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { AddWarehouseModal } from "@/components/inventory/warehouse/AddWarehouseModal";
 import { EditWarehouseModal } from "@/components/inventory/warehouse/EditWarehouseModal";
 import { DeleteWarehouseModal } from "@/components/inventory/warehouse/DeleteWarehouseModal";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 
-const columns:ColumnDef<Warehouse>[] = [
+const columns: ColumnDef<Warehouse>[] = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "location", header: "Location" },
     { accessorKey: "capacity", header: "Capacity" },
     { accessorKey: "utilizationPercentage", header: "Utilization" },
-    { accessorKey: "status", header: "Status",
+    {
+        accessorKey: "status", header: "Status",
         cell: ({ row }) => {
             return (
                 <Badge variant={row.original.status === "ACTIVE" ? "success" : row.original.status === "INACTIVE" ? "warning" : "destructive"}>
@@ -27,7 +28,7 @@ const columns:ColumnDef<Warehouse>[] = [
                 </Badge>
             );
         }
-     },
+    },
 ];
 
 export function WarehouseManagement() {
@@ -76,7 +77,8 @@ export function WarehouseManagement() {
             <div className="flex justify-between items-center mb-4">
                 <p className="text-muted-foreground">Manage your warehouses and their details.</p>
                 <Button onClick={handleAddModalOpen}>
-                    <PlusIcon className="mr-2 h-4 w-4" /> Add Warehouse
+                    <CirclePlus />
+                    <span className="hidden sm:flex ml-2">Add Warehouse</span>
                 </Button>
             </div>
 
