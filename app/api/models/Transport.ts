@@ -12,7 +12,7 @@ const transportSchema = new mongoose.Schema(
 		},
 		type: {
 			type: String,
-			enum: ["TRUCK", "SHIP", "PLANE"],
+			enum: ["TRUCK", "TRAIN", "PLANE", "SHIP", "OTHER"],
 			required: true,
 			index: true,
 		},

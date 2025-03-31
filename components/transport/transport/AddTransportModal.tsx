@@ -173,8 +173,10 @@ export function AddTransportModal({ open, onClose }: AddTransportModalProps) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="TRUCK">Truck</SelectItem>
-                                <SelectItem value="SHIP">Ship</SelectItem>
+                                <SelectItem value="TRAIN">Train</SelectItem>
                                 <SelectItem value="PLANE">Plane</SelectItem>
+                                <SelectItem value="SHIP">Ship</SelectItem>
+                                <SelectItem value="OTHER">Other</SelectItem>
                             </SelectContent>
                         </Select>
                         <input type="hidden" {...register("type")} />

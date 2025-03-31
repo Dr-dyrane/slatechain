@@ -42,8 +42,8 @@ export function TransitManagement() {
     {
       accessorKey: "currentLocation",
       header: "Current Location",
-      cell: (info) => {
-        const location = info.getValue() as GeoLocation;
+      cell: ({ row }) => {
+        const location = row.original.currentLocation;
         return `${location.latitude}, ${location.longitude}`;
       },
     },
