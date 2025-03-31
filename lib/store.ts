@@ -25,10 +25,11 @@ import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
 import { useDispatch } from "react-redux";
+import safeStorage from "./helpers/safeStorage";
 
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
-	storage,
+	storage : safeStorage,
 	whitelist: [
 		"auth",
 		"onboarding",
@@ -72,6 +73,7 @@ export const createStore = (userId: string | null) => {
 		reducer: persistedReducer,
 		middleware: (getDefaultMiddleware) =>
 			getDefaultMiddleware({
+				immutableCheck: false, 
 				serializableCheck: {
 					ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
 				},
