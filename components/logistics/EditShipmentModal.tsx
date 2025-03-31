@@ -30,6 +30,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
+
 const shipmentSchema = z.object({
     id: z.string().min(1, { message: "Id is required" }),
     name: z.string().min(1, { message: "Shipment name is required" }),
@@ -61,6 +62,7 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
     const [backendError, setBackendError] = useState<string | null>(null)
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [destinationEdited, setDestinationEdited] = useState(true) // Assume destination is already set
+    const [updating, setUpdating] = useState(false)
 
     // Fetch related data when the modal opens
     useEffect(() => {
@@ -155,6 +157,7 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
 
     const onSubmit = async (data: ShipmentFormValues) => {
         setBackendError(null)
+        setUpdating(true)
         try {
             await dispatch(updateShipment(data as Shipment)).unwrap()
             toast.success("Shipment updated successfully!")
@@ -165,6 +168,8 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
             } else {
                 toast.error(error?.message || "Failed to update shipment. Please try again.")
             }
+        } finally {
+            setUpdating(false)
         }
     }
 
@@ -415,8 +420,8 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Updating..." : "Update Shipment"}
+                        <Button type="submit" disabled={loading || updating}>
+                            {loading || updating ? "Updating..." : "Update Shipment"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

@@ -47,6 +47,7 @@ export const DeleteShipmentModal = <TData extends Record<string, any>>({
     const [dataName, setDataName] = useState<string>('');
     const { loading } = useSelector((state: RootState) => state.shipment);
     const dispatch = useDispatch<AppDispatch>();
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (data && typeof data === "object" && "name" in data) {
@@ -68,6 +69,7 @@ export const DeleteShipmentModal = <TData extends Record<string, any>>({
     });
 
     const onSubmit = async (formData: DeleteFormValues) => {
+        setDeleting(true);
         try {
             if (formData.id) {
                 await dispatch(removeShipment(formData.id)).unwrap();
@@ -77,6 +79,9 @@ export const DeleteShipmentModal = <TData extends Record<string, any>>({
             }
         } catch (error) {
             toast.error("Failed to delete the item. Please try again later.");
+        }
+        finally {
+            setDeleting(false);
         }
     };
 
@@ -121,8 +126,8 @@ export const DeleteShipmentModal = <TData extends Record<string, any>>({
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <Button disabled={loading || !isValid} type="submit" className="bg-destructive">
-                            {loading ? "Deleting..." : "Confirm Delete"}
+                        <Button disabled={loading || !isValid || deleting} type="submit" className="bg-destructive">
+                            {loading || deleting ? "Deleting..." : "Confirm Delete"}
                         </Button>
                     </AlertDialogFooter>
                 </form>

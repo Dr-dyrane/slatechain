@@ -55,10 +55,11 @@ interface AddShipmentModalProps {
 export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const { loading, carriers, routes, transports, freights } = useSelector((state: RootState) => state.shipment)
-    const orders  = useSelector((state: RootState) => state.orders.items as Order[])
+    const orders = useSelector((state: RootState) => state.orders.items as Order[])
     const [backendError, setBackendError] = useState<string | null>(null)
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [destinationEdited, setDestinationEdited] = useState(false)
+    const [adding, setAdding] = useState(false)
 
     // Fetch related data when the modal opens
     useEffect(() => {
@@ -119,6 +120,7 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
 
     const onSubmit = async (data: ShipmentFormValues) => {
         setBackendError(null)
+        setAdding(true)
         try {
             // Generate a tracking number if not provided
             if (!data.trackingNumber) {
@@ -136,6 +138,9 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
             } else {
                 toast.error(error?.message || "Failed to add shipment. Please try again.")
             }
+        }
+        finally {
+            setAdding(false)
         }
     }
 
@@ -163,7 +168,7 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
 
         // If a route is selected, update destination if not manually edited
         if (!destinationEdited && routes.length > 0) {
-            const selectedRoute = routes.find((r : Route) => r.id === value)
+            const selectedRoute = routes.find((r: Route) => r.id === value)
             if (selectedRoute && selectedRoute.destination?.location?.address) {
                 setValue("destination", selectedRoute.destination.location.address, { shouldValidate: true })
             }
@@ -379,8 +384,8 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
 
                     <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setBackendError(null)}>Cancel</AlertDialogCancel>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? "Adding..." : "Add Shipment"}
+                        <Button type="submit" disabled={loading || adding}>
+                            {loading || adding ? "Adding..." : "Add Shipment"}
                         </Button>
                     </AlertDialogFooter>
                 </form>
