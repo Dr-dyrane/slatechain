@@ -70,8 +70,7 @@ export async function POST(req: NextRequest) {
 				routeData.estimatedDuration === undefined ||
 				!routeData.type ||
 				!routeData.origin ||
-				!routeData.destination ||
-				!routeData.schedule
+				!routeData.destination
 			) {
 				return NextResponse.json(
 					{

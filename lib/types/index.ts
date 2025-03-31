@@ -592,6 +592,12 @@ export interface Route {
 	}[];
 	createdBy?: string;
 	userId?: string;
+	cost?: {
+		baseRate: number;
+		additionalCharges: number;
+		currency: string;
+		total: number;
+	};
 }
 
 // Freight interface

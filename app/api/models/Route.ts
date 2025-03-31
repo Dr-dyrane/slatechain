@@ -60,7 +60,7 @@ const routeSchema = new mongoose.Schema(
 		},
 		routeNumber: {
 			type: String,
-			required: true,
+			required: false,
 			unique: true,
 			index: true,
 		},

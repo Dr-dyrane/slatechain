@@ -26,7 +26,7 @@ import { useState, useEffect } from "react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import { Checkbox } from "@/components/ui/checkbox"
 
 // Define a Zod schema for route validation
 const routeSchema = z.object({
@@ -42,6 +42,16 @@ const routeSchema = z.object({
         .min(0, { message: "Duration must be positive" }),
     type: z.enum(["LOCAL", "REGIONAL", "INTERNATIONAL"], { required_error: "Route type is required" }),
     status: z.enum(["PLANNED", "ACTIVE", "INACTIVE", "UNDER_MAINTENANCE"], { required_error: "Status is required" }),
+    baseRate: z
+        .number({ invalid_type_error: "Base rate must be a number" })
+        .min(0, { message: "Base rate must be non-negative" })
+        .default(0),
+    additionalCharges: z
+        .number({ invalid_type_error: "Additional charges must be a number" })
+        .min(0, { message: "Additional charges must be non-negative" })
+        .default(0),
+    currency: z.string().default("USD"),
+    selectedCarriers: z.array(z.string()).default([]),
 })
 
 type RouteFormValues = z.infer<typeof routeSchema>
@@ -57,7 +67,7 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
     const { loading, carriers } = useSelector((state: RootState) => state.shipment)
     const [backendError, setBackendError] = useState<string | null>(null)
     const [updating, setUpdating] = useState(false)
-
+    const [selectedCarrierIds, setSelectedCarrierIds] = useState<string[]>([])
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -66,11 +76,20 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
         }
     }, [open, dispatch, carriers.length])
 
+    // Initialize selected carriers from route
+    useEffect(() => {
+        if (route?.carriers) {
+            const carrierIds = route.carriers.map((c) => c.carrierId)
+            setSelectedCarrierIds(carrierIds)
+        }
+    }, [route])
+
     const {
         register,
         handleSubmit,
         reset,
         setValue,
+        watch,
         formState: { errors },
     } = useForm<RouteFormValues>({
         resolver: zodResolver(routeSchema),
@@ -83,8 +102,17 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
             estimatedDuration: route?.estimatedDuration || 0,
             type: route?.type || "LOCAL",
             status: route?.status || "PLANNED",
+            baseRate: route?.cost?.baseRate || 0,
+            additionalCharges: route?.cost?.additionalCharges || 0,
+            currency: route?.cost?.currency || "USD",
+            selectedCarriers: route?.carriers?.map((c) => c.carrierId) || [],
         },
     })
+
+    // Watch base rate and additional charges to calculate total
+    const baseRate = watch("baseRate") || 0
+    const additionalCharges = watch("additionalCharges") || 0
+    const totalCost = baseRate + additionalCharges
 
     useEffect(() => {
         if (route) {
@@ -97,7 +125,16 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
                 estimatedDuration: route.estimatedDuration,
                 type: route.type as RouteType,
                 status: route.status as RouteStatus,
+                baseRate: route.cost?.baseRate || 0,
+                additionalCharges: route.cost?.additionalCharges || 0,
+                currency: route.cost?.currency || "USD",
+                selectedCarriers: route.carriers?.map((c) => c.carrierId) || [],
             })
+
+            // Set selected carrier IDs
+            if (route.carriers) {
+                setSelectedCarrierIds(route.carriers.map((c) => c.carrierId))
+            }
         }
     }, [route, reset])
 
@@ -105,7 +142,27 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
         setBackendError(null)
         setUpdating(true)
         try {
-            await dispatch(updateRoute(data as Route)).unwrap()
+            // Prepare the route data for update
+            const routeData = {
+                ...data,
+                // Add carriers array with selected carrier IDs
+                carriers: data.selectedCarriers.map((carrierId, index) => ({
+                    carrierId,
+                    priority: index + 1,
+                })),
+                // Add cost object
+                cost: {
+                    baseRate: data.baseRate,
+                    additionalCharges: data.additionalCharges,
+                    currency: data.currency,
+                    total: data.baseRate + data.additionalCharges,
+                },
+            }
+
+            // Remove the selectedCarriers field as it's not needed in the API payload
+            const { selectedCarriers, baseRate, additionalCharges, currency, ...finalRouteData } = routeData
+
+            await dispatch(updateRoute(finalRouteData as Route)).unwrap()
             toast.success("Route updated successfully!")
             onClose()
         } catch (error: any) {
@@ -132,6 +189,16 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
     // Handle status selection
     const handleStatusChange = (value: string) => {
         setValue("status", value as RouteStatus, { shouldValidate: true })
+    }
+
+    // Handle carrier selection
+    const handleCarrierChange = (carrierId: string, checked: boolean) => {
+        const updatedCarriers = checked
+            ? [...selectedCarrierIds, carrierId]
+            : selectedCarrierIds.filter((id) => id !== carrierId)
+
+        setSelectedCarrierIds(updatedCarriers)
+        setValue("selectedCarriers", updatedCarriers, { shouldValidate: true })
     }
 
     return (
@@ -235,6 +302,88 @@ export function EditRouteModal({ open, onClose, route }: EditRouteModalProps) {
                         </Select>
                         <input type="hidden" {...register("status")} />
                         {errors.status && <p className="text-sm text-red-500">{errors.status.message}</p>}
+                    </div>
+
+                    {/* Cost Information */}
+                    <div className="space-y-4 border rounded-md p-4">
+                        <h3 className="font-medium">Cost Information</h3>
+
+                        <div>
+                            <Label htmlFor="baseRate">Base Rate</Label>
+                            <Input
+                                id="baseRate"
+                                type="number"
+                                step="0.01"
+                                placeholder="Base Rate"
+                                {...register("baseRate", { valueAsNumber: true })}
+                            />
+                            {errors.baseRate && <p className="text-sm text-red-500">{errors.baseRate.message}</p>}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="additionalCharges">Additional Charges</Label>
+                            <Input
+                                id="additionalCharges"
+                                type="number"
+                                step="0.01"
+                                placeholder="Additional Charges"
+                                {...register("additionalCharges", { valueAsNumber: true })}
+                            />
+                            {errors.additionalCharges && <p className="text-sm text-red-500">{errors.additionalCharges.message}</p>}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="currency">Currency</Label>
+                            <Select
+                                onValueChange={(value) => setValue("currency", value)}
+                                defaultValue={route.cost?.currency || "USD"}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select currency" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="USD">USD</SelectItem>
+                                    <SelectItem value="EUR">EUR</SelectItem>
+                                    <SelectItem value="GBP">GBP</SelectItem>
+                                    <SelectItem value="NGN">NGN</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <input type="hidden" {...register("currency")} />
+                        </div>
+
+                        <div>
+                            <Label>Total Cost</Label>
+                            <div className="text-lg font-semibold">{totalCost.toFixed(2)}</div>
+                        </div>
+                    </div>
+
+                    {/* Carrier Selection */}
+                    <div className="space-y-4 border rounded-md p-4">
+                        <h3 className="font-medium">Assign Carriers</h3>
+
+                        {loading ? (
+                            <div className="text-sm text-muted-foreground">Loading carriers...</div>
+                        ) : carriers.length === 0 ? (
+                            <div className="text-sm text-muted-foreground">No carriers available</div>
+                        ) : (
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {carriers.map((carrier) => (
+                                    <div key={carrier.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id={`carrier-${carrier.id}`}
+                                            checked={selectedCarrierIds.includes(carrier.id)}
+                                            onCheckedChange={(checked) => handleCarrierChange(carrier.id, checked === true)}
+                                        />
+                                        <Label htmlFor={`carrier-${carrier.id}`} className="text-sm cursor-pointer">
+                                            {carrier.name} {carrier.email ? `(${carrier.email})` : ""}
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Hidden field to store selected carriers */}
+                        <input type="hidden" {...register("selectedCarriers")} value={selectedCarrierIds.join(",")} />
                     </div>
 
                     <AlertDialogFooter>
