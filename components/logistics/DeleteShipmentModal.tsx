@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { X } from "lucide-react";
+import { Button } from "../ui/button";
 
 const deleteSchema = z.object({
     id: z.string().min(1, "Id is required"),
@@ -120,9 +121,9 @@ export const DeleteShipmentModal = <TData extends Record<string, any>>({
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction disabled={loading || !isValid} type="submit" className="bg-destructive">
+                        <Button disabled={loading || !isValid} type="submit" className="bg-destructive">
                             {loading ? "Deleting..." : "Confirm Delete"}
-                        </AlertDialogAction>
+                        </Button>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

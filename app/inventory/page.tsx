@@ -53,7 +53,7 @@ export default function InventoryPage() {
             case "stock":
                 return [
                     { title: "Total Stock", value: (inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0).toString(), type: "number", icon: "Package2", description: "Total items in stock", sparklineData: [inventory.items?.reduce((sum, item) => sum + item.quantity, 0) || 0] },
-                    { title: "Low Stock Items", value: (inventory.items?.filter(item => item.quantity < item.minAmount) || []).length.toString(), type: "number", icon: "Truck", description: "Items that need replenishment", sparklineData: [(inventory.items?.filter(item => item.quantity < item.minAmount) || []).length] },
+                    { title: "Low Stock Items", value: (inventory?.items?.filter(item => item.quantity <= item.minAmount) || []).length.toString(), type: "number", icon: "Truck", description: "Items that need replenishment", sparklineData: [(inventory.items?.filter(item => item.quantity < item.minAmount) || []).length] },
                     { title: "Most Stocked Item", value: inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }).name || "N/A", type: "orders", icon: "Package", description: "Item with highest stock", sparklineData: [inventory.items?.reduce((max, item) => (item.quantity > max.quantity ? item : max), inventory.items?.[0] || { name: "N/A", quantity: 0 }).quantity || 0] }
                 ];
             case "warehouse":
