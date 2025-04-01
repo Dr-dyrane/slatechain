@@ -162,6 +162,10 @@ export function EditFreightModal({ open, onClose, freight }: EditFreightModalPro
                         units: 1,
                     },
                 },
+                currentLocation: transports.find((t) => t.id === data.vehicleIdentifier)?.currentLocation || {
+                    latitude: 0,
+                    longitude: 0,
+                },
                 schedule: {
                     departureDate: new Date(data.departureDate),
                     arrivalDate: new Date(data.arrivalDate),

@@ -29,6 +29,7 @@ import { AlertCircle } from 'lucide-react'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Textarea } from "@/components/ui/textarea"
+import { current } from "@reduxjs/toolkit"
 
 // Define a Zod schema for freight validation
 const freightSchema = z.object({
@@ -116,6 +117,10 @@ export function AddFreightModal({ open, onClose }: AddFreightModalProps) {
             const freightData = {
                 ...data,
                 freightNumber: "FREIGHT-" + Math.floor(Math.random() * 1000000),
+                currentLocation: transports.find((t) => t.id === data.vehicleIdentifier)?.currentLocation || {
+                    latitude: 0,
+                    longitude: 0,
+                },
                 type: data.type,
                 status: data.status,
                 carrierId: data.carrierId,

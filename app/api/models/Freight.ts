@@ -128,6 +128,10 @@ const freightSchema = new mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
+		currentLocation: {
+			latitude: Number,
+			longitude: Number,
+		},
 	},
 	{
 		timestamps: true,
