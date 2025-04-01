@@ -5,18 +5,18 @@ import { useSelector, useDispatch } from "react-redux"
 import { DataTable } from "@/components/table/DataTable"
 import { Button } from "@/components/ui/button"
 import { CirclePlus, RefreshCcw } from "lucide-react"
-import { RootState, AppDispatch } from "@/lib/store"
-import { fetchReturns } from "@/lib/slices/returnSlice"
+import type { RootState, AppDispatch } from "@/lib/store"
+import { fetchReturns, fetchReturnById } from "@/lib/slices/returnSlice"
 import { ReturnRequest, ReturnRequestStatus, UserRole } from "@/lib/types"
 import { Label } from "@/components/ui/label"
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import DashboardCard from "@/components/dashboard/DashboardCard"
 import { AddReturnModal } from "@/components/returns/AddReturnModal"
 import { ViewReturnModal } from "@/components/returns/ViewReturnModal"
 import { ProcessReturnModal } from "@/components/returns/ProcessReturnModal"
 
 export interface ReturnRow {
-    id: string | undefined
+    id: string
     name: string
     returnRequestNumber: string
     orderNumber: string
@@ -120,18 +120,31 @@ export default function ReturnsTab() {
     }, [returns, filterStatus])
 
     const formattedReturns: ReturnRow[] = useMemo(() => {
-        return filteredReturns.map((returnReq) => ({
-            id: returnReq._id,
-            returnRequestNumber: returnReq.returnRequestNumber,
-            orderNumber: typeof returnReq.orderId === "object" ? returnReq.orderId.orderNumber : returnReq.orderId,
-            name: typeof returnReq.customerId === "object" ? returnReq.customerId.email : returnReq.customerId,
-            status: returnReq.status,
-            returnReason: returnReq.returnReason,
-            preferredReturnType: returnReq.preferredReturnType,
-            requestDate: returnReq.requestDate || returnReq.createdAt,
-        }))
+        return filteredReturns.map((returnReq) => {
+            // Handle nested objects from API response
+            const orderNumber =
+                returnReq.orderId && typeof returnReq.orderId === "object"
+                    ? returnReq.orderId.orderNumber
+                    : returnReq.order?.orderNumber || returnReq.orderId
+            const customerName =
+                returnReq.customerId
+                    ? returnReq.customerId.email
+                    : returnReq.customerId || "unknown"
+
+            const name: string = userRole === UserRole.CUSTOMER ? "" : customerName
+            return {
+                id: returnReq._id || returnReq.id,
+                returnRequestNumber: returnReq.returnRequestNumber,
+                orderNumber,
+                customerName,
+                name,
+                status: returnReq.status,
+                returnReason: returnReq.returnReason,
+                preferredReturnType: returnReq.preferredReturnType,
+                requestDate: returnReq.requestDate || returnReq.createdAt,
+            }
+        })
     }, [filteredReturns])
-    
 
     // Calculate KPIs
     const totalReturns = formattedReturns.length
@@ -147,20 +160,20 @@ export default function ReturnsTab() {
                 <h2 className="text-xl font-semibold">Returns</h2>
                 <div className="flex space-x-2">
                     <Button variant="outline" onClick={handleRefresh}>
-                        <RefreshCcw />
-                        <span className="hidden sm:flex ml-2">Refresh</span>
+                        <RefreshCcw className="w-4 h-4 mr-2" />
+                        Refresh
                     </Button>
-                    {true && (
+                    {userRole === UserRole.CUSTOMER && (
                         <Button onClick={handleAddModalOpen}>
-                            <CirclePlus />
-                            <span className="hidden sm:flex ml-2">Request Return</span>
+                            <CirclePlus className="w-4 h-4 mr-2" />
+                            Request Return
                         </Button>
                     )}
                 </div>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 <DashboardCard
                     card={{
                         title: "Total Returns",
@@ -206,7 +219,7 @@ export default function ReturnsTab() {
             <div className="flex items-center space-x-4">
                 <Label>Status Filter:</Label>
                 <select
-                    className="input-focus input-hover p-2 rounded-lg"
+                    className="input-focus input-hover"
                     onChange={(e) => setFilterStatus((e.target.value as ReturnRequestStatus) || null)}
                 >
                     <option value="">All Returns</option>
@@ -221,7 +234,7 @@ export default function ReturnsTab() {
             </div>
 
             <DataTable
-                columns={columns(userRole) as ColumnDef<any>[]} 
+                columns={columns(userRole)}
                 data={formattedReturns}
                 onEdit={handleViewReturn}
             />

@@ -20,7 +20,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -41,76 +41,88 @@ export async function GET(
 				);
 			}
 
-			// Fetch the full return request with populated details
-			const returnRequest = (await ReturnRequest.findById(id)
-				.populate("customerId", "name email role")
-				.populate({
-					path: "orderId",
-					select: "orderNumber customerId items",
-					populate: {
-						path: "items.productId",
-						model: "Inventory",
-						select: "name sku",
-					},
-				}) // Populate deeply
-				.populate({
-					path: "returnItems",
-					populate: {
-						path: "productId",
-						model: "Inventory",
-						select: "name sku supplierId",
-					},
-				}) // Populate product details in items
-				.populate("reviewedBy", "name")
-				.populate("resolution") // Populate the resolution sub-document
-				.populate({
-					path: "resolution",
-					populate: [
-						// Deep populate resolution fields
-						{ path: "resolvedBy", model: "User", select: "name" },
-						{
-							path: "replacementOrderId",
-							model: "Order",
-							select: "orderNumber",
+			try {
+
+				// Fetch the full return request with populated details
+				const returnRequest = (await ReturnRequest.findById(id)
+					.populate("customerId", "name email role")
+					.populate({
+						path: "orderId",
+						select: "orderNumber customerId items",
+						populate: {
+							path: "items.productId",
+							model: "Inventory",
+							select: "name sku",
 						},
-					],
-				})
-				.lean()) as unknown as ReturnRequestType;
-			if (!returnRequest) {
-				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Return request not found" },
-					{ status: 404 }
-				);
-			}
+					}) // Populate deeply
+					.populate({
+						path: "returnItems",
+						populate: {
+							path: "productId",
+							model: "Inventory",
+							select: "name sku supplierId",
+						},
+					}) // Populate product details in items
+					.populate("reviewedBy", "name")
+					.populate("resolution", "resolvedBy replacementOrderId resolutionDate resolutionNotes")
+					.populate({
+						path: "resolution",
+						populate: [
+							// Deep populate resolution fields
+							{ path: "resolvedBy", model: "User", select: "name" },
+							{
+								path: "replacementOrderId",
+								model: "Order",
+								select: "orderNumber",
+							},
+						],
+					})
+					.lean()) as unknown as ReturnRequestType;
+				if (!returnRequest) {
+					return NextResponse.json(
+						{ code: "NOT_FOUND", message: "Return request not found" },
+						{ status: 404 }
+					);
+				}
 
-			// --- Authorization Check ---
-			let canView = false;
-			if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
-				canView = true;
-			} else if (
-				user.role === UserRole.CUSTOMER &&
-				returnRequest.customerId.toString() === userId
-			) {
-				canView = true;
-			} else if (user.role === UserRole.SUPPLIER) {
-				// Check if any return item product belongs to this supplier
-				// @ts-ignore // Handle TS issues with populated types if necessary
-				canView = returnRequest.returnItems?.some(
-					(item) => item.productId?.toString() === userId
-				);
-			}
+				// --- Authorization Check ---
+				let canView = false;
+				if (user.role === UserRole.ADMIN || user.role === UserRole.MANAGER) {
+					canView = true;
+				} else if (
+					user.role === UserRole.CUSTOMER &&
+					returnRequest.customerId.toString() === userId
+				) {
+					canView = true;
+				} else if (user.role === UserRole.SUPPLIER) {
+					// Check if any return item product belongs to this supplier
+					// @ts-ignore // Handle TS issues with populated types if necessary
+					canView = returnRequest.returnItems?.some(
+						(item) => item.productId?.toString() === userId
+					);
+				}
 
-			if (!canView) {
+				if (!canView) {
+					return NextResponse.json(
+						{
+							code: "FORBIDDEN",
+							message: "Unauthorized to view this return request",
+						},
+						{ status: 403 }
+					);
+				}
+
+				return NextResponse.json(returnRequest);
+			} catch (error: any) {
+				console.error("Error fetching return request details:", error);
 				return NextResponse.json(
 					{
-						code: "FORBIDDEN",
-						message: "Unauthorized to view this return request",
+						code: "FETCH_ERROR",
+						message: error.message || "Failed to fetch return request",
 					},
-					{ status: 403 }
+					{ status: 500 }
 				);
 			}
-
-			return NextResponse.json(returnRequest);
 		},
 		"return_get_details",
 		GET_DETAILS_RATE_LIMIT
@@ -123,7 +135,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await  params;
 	return handleRequest(
 		req,
 		async (req, userId) => {

@@ -23,7 +23,7 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id: returnRequestId } = params;
+	const { id: returnRequestId } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {

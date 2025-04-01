@@ -1,8 +1,8 @@
 "use client"
 
 import { useSelector } from "react-redux"
-import { RootState } from "@/lib/store"
-import { ReturnItem, ReturnRequest } from "@/lib/types"
+import type { RootState } from "@/lib/store"
+import type { ReturnItem, ReturnRequest } from "@/lib/types"
 import {
     AlertDialog,
     AlertDialogContent,
@@ -46,6 +46,17 @@ export function ViewReturnModal({ open, onClose, returnRequest }: ViewReturnModa
         return statusColors[status] || "bg-gray-500 text-white"
     }
 
+    // Handle nested objects from API response
+    const orderNumber =
+        returnRequest.orderId && typeof returnRequest.orderId === "object"
+            ? returnRequest.orderId.orderNumber
+            : returnRequest.order?.orderNumber || returnRequest.orderId
+
+    const customerName =
+        returnRequest.customerId && typeof returnRequest.customerId === "object"
+            ? returnRequest.customerId.email || returnRequest.customerId._id
+            : returnRequest.customer?.name || returnRequest.customerId
+
     return (
         <AlertDialog open={open} onOpenChange={onClose}>
             <AlertDialogContent className="w-full max-w-3xl rounded-2xl mx-auto max-h-[80vh] overflow-y-auto">
@@ -75,7 +86,7 @@ export function ViewReturnModal({ open, onClose, returnRequest }: ViewReturnModa
                                 <CardTitle className="text-sm font-medium">Order</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <p>{returnRequest.order?.orderNumber || returnRequest.orderId}</p>
+                                <p>{orderNumber}</p>
                             </CardContent>
                         </Card>
 
@@ -140,15 +151,23 @@ export function ViewReturnModal({ open, onClose, returnRequest }: ViewReturnModa
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {returnRequest.returnItems?.map((item: ReturnItem, index: number) => (
-                                            <tr key={index} className="border-b">
-                                                <td className="py-2">{item.product?.name || item.productId}</td>
-                                                <td className="text-center py-2">{item.quantityRequested}</td>
-                                                <td className="text-center py-2">{item.quantityReceived || "Pending"}</td>
-                                                <td className="text-center py-2">{item.itemCondition || "Pending"}</td>
-                                                <td className="text-center py-2">{item.disposition || "Pending"}</td>
-                                            </tr>
-                                        ))}
+                                        {returnRequest.returnItems?.map((item: ReturnItem, index: number) => {
+                                            // Handle nested product object
+                                            const productName =
+                                                item.productId && typeof item.productId === "object"
+                                                    ? item.productId.name
+                                                    : item.product?.name || item.productId
+
+                                            return (
+                                                <tr key={index} className="border-b">
+                                                    <td className="py-2">{productName}</td>
+                                                    <td className="text-center py-2">{item.quantityRequested}</td>
+                                                    <td className="text-center py-2">{item.quantityReceived || "Pending"}</td>
+                                                    <td className="text-center py-2">{item.itemCondition || "Pending"}</td>
+                                                    <td className="text-center py-2">{item.disposition || "Pending"}</td>
+                                                </tr>
+                                            )
+                                        })}
                                     </tbody>
                                 </table>
                             </div>

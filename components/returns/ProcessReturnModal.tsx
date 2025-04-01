@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { updateReturnRequest, resolveReturnRequest, fetchReturnById } from "@/lib/slices/returnSlice"
-import { AppDispatch } from "@/lib/store"
+import { AppDispatch, RootState } from "@/lib/store"
 import { ReturnItem, ReturnRequest, ReturnRequestStatus, ReturnType } from "@/lib/types"
 import { toast } from "sonner"
 import {
@@ -18,11 +18,12 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, X } from "lucide-react"
+import { Loader2, X, AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ProcessReturnModalProps {
     open: boolean
@@ -32,6 +33,7 @@ interface ProcessReturnModalProps {
 
 export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessReturnModalProps) {
     const dispatch = useDispatch<AppDispatch>()
+    const error = useSelector((state: RootState) => state.returns?.error)
     const [activeTab, setActiveTab] = useState("details")
     const [loading, setLoading] = useState(false)
     const [currentReturn, setCurrentReturn] = useState<ReturnRequest | null>(null)
@@ -54,10 +56,10 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
             setStaffComments(returnRequest.staffComments || "")
 
             // Initialize items to update
-            if (returnRequest.returnItems) {
+            if (returnRequest.returnItems && Array.isArray(returnRequest.returnItems)) {
                 setItemsToUpdate(
                     returnRequest.returnItems.map((item) => ({
-                        returnItemId: item.id,
+                        returnItemId: item._id || item.id,
                         quantityReceived: item.quantityReceived || 0,
                         itemCondition: item.itemCondition || undefined,
                         disposition: item.disposition || undefined,
@@ -65,6 +67,8 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                         shippingLabelUrl: item.shippingLabelUrl || "",
                     })),
                 )
+            } else {
+                setItemsToUpdate([])
             }
 
             // Initialize resolution form if there's a resolution
@@ -97,11 +101,12 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                 itemsToUpdate,
             }
 
-            await dispatch(updateReturnRequest({ id: currentReturn.id, updateData })).unwrap()
+            console.log("Updating return with data:", updateData)
+            await dispatch(updateReturnRequest({ id: currentReturn._id || currentReturn.id, updateData })).unwrap()
             toast.success("Return request updated successfully")
 
             // Refresh the return data
-            const updatedReturn = await dispatch(fetchReturnById(currentReturn.id)).unwrap()
+            const updatedReturn = await dispatch(fetchReturnById(currentReturn._id || currentReturn.id)).unwrap()
             setCurrentReturn(updatedReturn)
         } catch (error) {
             console.error("Error updating return:", error)
@@ -133,11 +138,12 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                 replacementItems: resolutionType === "Replacement" ? replacementItems : undefined,
             }
 
-            await dispatch(resolveReturnRequest({ id: currentReturn.id, resolutionData })).unwrap()
+            console.log("Resolving return with data:", resolutionData)
+            await dispatch(resolveReturnRequest({ id: currentReturn._id || currentReturn.id, resolutionData })).unwrap()
             toast.success("Return request resolved successfully")
 
             // Refresh the return data
-            const updatedReturn = await dispatch(fetchReturnById(currentReturn.id)).unwrap()
+            const updatedReturn = await dispatch(fetchReturnById(currentReturn._id || currentReturn.id)).unwrap()
             setCurrentReturn(updatedReturn)
 
             // Switch to details tab to show the resolution
@@ -159,6 +165,16 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
         return null
     }
 
+    // Handle nested objects from API response
+    const orderNumber =
+        currentReturn.orderId && typeof currentReturn.orderId === "object"
+            ? currentReturn.orderId.orderNumber
+            : currentReturn.order?.orderNumber || currentReturn.orderId
+
+    const customerName =
+        currentReturn.customerId && typeof currentReturn.customerId === "object"
+            ? currentReturn.customerId.email : 'customer'
+
     const canResolve = ["Approved", "ItemsReceived", "Processing"].includes(currentReturn.status)
     const isResolved = currentReturn.status === "Completed" || !!currentReturn.resolution
 
@@ -173,6 +189,13 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                         </button>
                     </div>
                 </AlertDialogHeader>
+
+                {error && (
+                    <Alert variant="destructive" className="mb-4">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                )}
 
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                     <TabsList className="grid w-full max-w-md grid-cols-3">
@@ -204,7 +227,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                     <CardTitle className="text-sm font-medium">Order</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p>{currentReturn.order?.orderNumber || currentReturn.orderId}</p>
+                                    <p>{orderNumber}</p>
                                 </CardContent>
                             </Card>
 
@@ -213,7 +236,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                     <CardTitle className="text-sm font-medium">Customer</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p>{currentReturn.customer?.name || currentReturn.customerId}</p>
+                                    <p>{customerName}</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -276,15 +299,23 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {currentReturn.returnItems?.map((item: ReturnItem, index: number) => (
-                                                <tr key={index} className="border-b">
-                                                    <td className="py-2">{item.product?.name || item.productId}</td>
-                                                    <td className="text-center py-2">{item.quantityRequested}</td>
-                                                    <td className="text-center py-2">{item.quantityReceived || "Pending"}</td>
-                                                    <td className="text-center py-2">{item.itemCondition || "Pending"}</td>
-                                                    <td className="text-center py-2">{item.disposition || "Pending"}</td>
-                                                </tr>
-                                            ))}
+                                            {currentReturn.returnItems?.map((item: ReturnItem, index: number) => {
+                                                // Handle nested product object
+                                                const productName =
+                                                    item.productId && typeof item.productId === "object"
+                                                        ? item.productId.name
+                                                        : item.product?.name || item.productId
+
+                                                return (
+                                                    <tr key={index} className="border-b">
+                                                        <td className="py-2">{productName}</td>
+                                                        <td className="text-center py-2">{item.quantityRequested}</td>
+                                                        <td className="text-center py-2">{item.quantityReceived || "Pending"}</td>
+                                                        <td className="text-center py-2">{item.itemCondition || "Pending"}</td>
+                                                        <td className="text-center py-2">{item.disposition || "Pending"}</td>
+                                                    </tr>
+                                                )
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
@@ -388,10 +419,16 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                 <div className="space-y-4">
                                     {currentReturn.returnItems?.map((item: ReturnItem, index: number) => {
                                         const itemToUpdate = itemsToUpdate[index]
+                                        // Handle nested product object
+                                        const productName =
+                                            item.productId && typeof item.productId === "object"
+                                                ? item.productId.name
+                                                : item.product?.name || item.productId
+
                                         return (
                                             <div key={index} className="border rounded-md p-4 space-y-3">
                                                 <div className="flex justify-between items-center">
-                                                    <h4 className="font-medium">{item.product?.name || item.productId}</h4>
+                                                    <h4 className="font-medium">{productName}</h4>
                                                     <p>Requested: {item.quantityRequested}</p>
                                                 </div>
 
@@ -545,13 +582,21 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                             select specific replacement items here.
                                         </p>
                                         <div className="border rounded-md p-3">
-                                            {currentReturn.returnItems?.map((item: ReturnItem, index: number) => (
-                                                <div key={index} className="py-2 border-b last:border-b-0">
-                                                    <p>
-                                                        {item.product?.name || item.productId} - Qty: {item.quantityRequested}
-                                                    </p>
-                                                </div>
-                                            ))}
+                                            {currentReturn.returnItems?.map((item: ReturnItem, index: number) => {
+                                                // Handle nested product object
+                                                const productName =
+                                                    item.productId && typeof item.productId === "object"
+                                                        ? item.productId.name
+                                                        : item.product?.name || item.productId
+
+                                                return (
+                                                    <div key={index} className="py-2 border-b last:border-b-0">
+                                                        <p>
+                                                            {productName} - Qty: {item.quantityRequested}
+                                                        </p>
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 )}

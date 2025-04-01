@@ -490,7 +490,7 @@ export interface Order {
 
 export interface OrderItem {
 	id?: string; // Ensure this exists, populated by Mongoose `addIdSupport`
-    _id?: string; // Mongoose ID
+	_id?: string; // Mongoose ID
 	productId: string;
 	quantity: number;
 	price: number;
@@ -967,8 +967,14 @@ export interface ReturnRequest {
 	id: string; // Or ObjectId from Mongoose
 	_id?: string; // Mongoose ID
 	returnRequestNumber: string; // Human-readable unique ID (e.g., RTN00001)
-	orderId: string; // FK to the Order.id
-	customerId: string; // FK to the User.id
+	orderId: {
+		_id: string;
+		orderNumber: string;
+	}; // FK to the Order.id
+	customerId: {
+		_id: string;
+		email: string;
+	}; // FK to the User.id
 	requestDate: string; // ISO timestamp of when the request was submitted
 	status: ReturnRequestStatus; // Overall status of the return request journey
 	returnReason: ReturnReason; // Primary reason selected by customer
@@ -1042,4 +1048,3 @@ export interface ReturnResolution {
 	createdAt: string;
 	updatedAt: string;
 }
-
