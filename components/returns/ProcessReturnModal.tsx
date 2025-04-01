@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { updateReturnRequest, resolveReturnRequest, fetchReturnById } from "@/lib/slices/returnSlice"
 import type { AppDispatch, RootState } from "@/lib/store"
-import { ReturnItem, } from "@/lib/types/returns"
+import type { ReturnItem } from "@/lib/types/returns"
 import { ReturnRequestStatus, ReturnType, type ReturnRequest } from "@/lib/types"
 import { toast } from "sonner"
 import {
@@ -19,12 +19,13 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, X, AlertCircle } from "lucide-react"
+import { Loader2, X, AlertCircle, Plus, Minus } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { fetchInventory } from "@/lib/slices/inventorySlice"
 
 interface ProcessReturnModalProps {
     open: boolean
@@ -32,13 +33,21 @@ interface ProcessReturnModalProps {
     returnRequest: ReturnRequest | null
 }
 
+interface ReplacementItem {
+    productId: string
+    quantity: number
+    price: number // Add price field
+}
+
 export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessReturnModalProps) {
     const dispatch = useDispatch<AppDispatch>()
     const error = useSelector((state: RootState) => state.returns?.error)
+    const inventoryItems = useSelector((state: RootState) => state.inventory?.items || [])
     const [activeTab, setActiveTab] = useState("details")
     const [loading, setLoading] = useState(false)
     const [currentReturn, setCurrentReturn] = useState<ReturnRequest | null>(null)
     const [isLoadingDetails, setIsLoadingDetails] = useState(false)
+    const [isLoadingInventory, setIsLoadingInventory] = useState(false)
 
     // Form state
     const [status, setStatus] = useState<ReturnRequestStatus>(ReturnRequestStatus.PENDING_APPROVAL)
@@ -49,7 +58,9 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
     const [resolutionType, setResolutionType] = useState<ReturnType>(ReturnType.REFUND)
     const [resolutionNotes, setResolutionNotes] = useState("")
     const [refundAmount, setRefundAmount] = useState(0)
-    const [replacementItems, setReplacementItems] = useState<any[]>([])
+    const [replacementItems, setReplacementItems] = useState<ReplacementItem[]>([])
+    const [selectedInventoryItem, setSelectedInventoryItem] = useState<string>("")
+    const [selectedQuantity, setSelectedQuantity] = useState<number>(1)
 
     // Fetch detailed return data when modal opens
     useEffect(() => {
@@ -67,6 +78,43 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
             }
         }
     }, [open, returnRequest])
+
+    // Fetch inventory items when resolution type changes to Replacement
+    useEffect(() => {
+        if (resolutionType === "Replacement" && inventoryItems.length === 0) {
+            fetchInventory()
+        }
+    }, [resolutionType, inventoryItems.length])
+
+    // Initialize replacement items based on return items
+    useEffect(() => {
+        if (resolutionType === "Replacement" && currentReturn?.returnItems && replacementItems.length === 0) {
+            // Auto-populate replacement items based on the return items
+            const initialReplacements = currentReturn.returnItems.map((item: ReturnItem) => {
+                const productId = typeof item.productId === "object" ? item.productId._id : item.productId
+                const name = typeof item.productId === "object" ? item.productId.name : "Unknown Product"
+                return {
+                    productId,
+                    quantity: item.quantityRequested,
+                    name,
+                    price: 0, // Placeholder price
+                }
+            })
+            setReplacementItems(initialReplacements)
+        }
+    }, [resolutionType, currentReturn?.returnItems, replacementItems.length])
+
+    const fetchInventoryData = async () => {
+        setIsLoadingInventory(true)
+        try {
+            await dispatch(fetchInventory()).unwrap()
+        } catch (error) {
+            console.error("Error fetching inventory items:", error)
+            toast.error("Failed to load inventory items")
+        } finally {
+            setIsLoadingInventory(false)
+        }
+    }
 
     const fetchDetailedReturnData = async (returnId: string) => {
         setIsLoadingDetails(true)
@@ -160,11 +208,25 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
 
         setLoading(true)
         try {
+            // Format replacement items to include all required fields for creating an order
+            const formattedReplacementItems =
+                resolutionType === "Replacement"
+                    ? replacementItems.map((item) => {
+                        // Find the inventory item to get its price
+                        const inventoryItem = inventoryItems.find((invItem) => invItem.id === item.productId)
+                        return {
+                            productId: item.productId,
+                            quantity: item.quantity,
+                            price: inventoryItem?.price || 0, // Get price from inventory
+                        }
+                    })
+                    : undefined
+
             const resolutionData = {
                 resolutionType,
                 notes: resolutionNotes,
                 refundAmount: resolutionType === "Refund" ? refundAmount : undefined,
-                replacementItems: resolutionType === "Replacement" ? replacementItems : undefined,
+                replacementItems: formattedReplacementItems,
             }
 
             console.log("Resolving return with data:", resolutionData)
@@ -183,6 +245,51 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
         } finally {
             setLoading(false)
         }
+    }
+
+    const addReplacementItem = () => {
+        if (!selectedInventoryItem) {
+            toast.error("Please select a product")
+            return
+        }
+
+        if (selectedQuantity <= 0) {
+            toast.error("Quantity must be greater than 0")
+            return
+        }
+
+        // Find the selected inventory item to get its name
+        const inventoryItem = inventoryItems.find((item) => item.id === selectedInventoryItem)
+
+        setReplacementItems([
+            ...replacementItems,
+            {
+                productId: selectedInventoryItem,
+                quantity: selectedQuantity,
+                price: inventoryItem?.price || 0,
+            },
+        ])
+
+        // Reset selection
+        setSelectedInventoryItem("")
+        setSelectedQuantity(1)
+    }
+
+    const removeReplacementItem = (index: number) => {
+        const updatedItems = [...replacementItems]
+        updatedItems.splice(index, 1)
+        setReplacementItems(updatedItems)
+    }
+
+    const updateReplacementItemQuantity = (index: number, quantity: number) => {
+        if (quantity <= 0) return
+
+        const updatedItems = [...replacementItems]
+        updatedItems[index] = {
+            ...updatedItems[index],
+            quantity,
+        }
+        setReplacementItems(updatedItems)
     }
 
     const formatDate = (dateString?: string) => {
@@ -213,7 +320,8 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
             <AlertDialogContent
                 id="return-process-modal"
                 aria-describedby="return-process-modal"
-                className="w-full max-w-4xl rounded-2xl mx-auto max-h-[80vh] overflow-y-auto">
+                className="w-full max-w-4xl rounded-2xl mx-auto max-h-[80vh] overflow-y-auto"
+            >
                 <AlertDialogHeader>
                     <div className="flex justify-between items-center">
                         <AlertDialogTitle>Process Return #{currentReturn.returnRequestNumber}</AlertDialogTitle>
@@ -336,15 +444,10 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                     <div className="grid gap-4 sm:hidden">
                                         {currentReturn.returnItems?.map((item: ReturnItem, index: number) => {
                                             const productName =
-                                                item.productId && typeof item.productId === "object"
-                                                    ? item.productId.name
-                                                    : "Unknown Product";
+                                                item.productId && typeof item.productId === "object" ? item.productId.name : "Unknown Product"
 
                                             return (
-                                                <div
-                                                    key={index}
-                                                    className="p-4 rounded-2xl shadow-md border"
-                                                >
+                                                <div key={index} className="p-4 rounded-2xl shadow-md border">
                                                     <h3 className="text-lg font-semibold mb-2">{productName}</h3>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-sm ">Requested Qty:</span>
@@ -363,7 +466,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                                         <span className="text-sm font-medium">{item.disposition || "Pending"}</span>
                                                     </div>
                                                 </div>
-                                            );
+                                            )
                                         })}
                                     </div>
 
@@ -384,7 +487,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                                     const productName =
                                                         item.productId && typeof item.productId === "object"
                                                             ? item.productId.name
-                                                            : "Unknown Product";
+                                                            : "Unknown Product"
 
                                                     return (
                                                         <tr key={index} className="border-b">
@@ -394,13 +497,12 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                                             <td className="text-center py-2">{item.itemCondition || "Pending"}</td>
                                                             <td className="text-center py-2">{item.disposition || "Pending"}</td>
                                                         </tr>
-                                                    );
+                                                    )
                                                 })}
                                             </tbody>
                                         </table>
                                     </div>
                                 </CardContent>
-
                             </Card>
 
                             {/* Resolution Details (if available) */}
@@ -439,7 +541,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                         {currentReturn.resolution.refundAmount && (
                                             <div>
                                                 <h4 className="text-sm font-medium mb-1">Refund Amount</h4>
-                                                <p>${currentReturn.resolution.refundAmount.toFixed(2)}</p>
+                                                <p>${(currentReturn?.resolution?.refundAmount ?? 0).toFixed(2)}</p>
                                             </div>
                                         )}
 
@@ -502,9 +604,7 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                             const itemToUpdate = itemsToUpdate[index]
                                             // Handle nested product object
                                             const productName =
-                                                item.productId && typeof item.productId === "object"
-                                                    ? item.productId.name
-                                                    : null
+                                                item.productId && typeof item.productId === "object" ? item.productId.name : "Unknown Product"
 
                                             return (
                                                 <div key={index} className="border rounded-md p-4 space-y-3">
@@ -649,34 +749,123 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                                 min={0}
                                                 step={0.01}
                                                 value={refundAmount}
-                                                onChange={(e) => setRefundAmount(Number.parseFloat(e.target.value))}
+                                                onChange={(e) => {
+                                                    const value = Number.parseFloat(e.target.value)
+                                                    setRefundAmount(isNaN(value) ? 0 : value) // Fallback to 0 if NaN
+                                                }}
+                                                placeholder="Enter refund amount"
                                             />
                                         </div>
                                     )}
 
                                     {resolutionType === "Replacement" && (
-                                        <div className="space-y-2">
-                                            <Label>Replacement Items</Label>
-                                            <p className="text-sm text-muted-foreground mb-2">
-                                                For simplicity, we'll use the original items as replacements. In a real implementation, you
-                                                would select specific replacement items here.
-                                            </p>
-                                            <div className="border rounded-md p-3">
-                                                {currentReturn.returnItems?.map((item: ReturnItem, index: number) => {
-                                                    // Handle nested product object
-                                                    const productName =
-                                                        item.productId && typeof item.productId === "object"
-                                                            ? item.productId.name
-                                                            : null
+                                        <div className="space-y-4">
+                                            <div>
+                                                <h4 className="text-sm font-medium mb-2">Replacement Items</h4>
+                                                <p className="text-sm text-muted-foreground mb-4">
+                                                    Items to be sent as replacements for the returned products.
+                                                </p>
 
-                                                    return (
-                                                        <div key={index} className="py-2 border-b last:border-b-0">
-                                                            <p>
-                                                                {productName} - Qty: {item.quantityRequested}
-                                                            </p>
+                                                {/* Current replacement items */}
+                                                <div className="space-y-2 mb-4">
+                                                    {replacementItems.length > 0 ? (
+                                                        <div className="border rounded-md divide-y">
+                                                            {replacementItems.map((item, index) => {
+                                                                const productName = inventoryItems.find((invItem) => invItem.id === item.productId)?.name || "Unknown Product";
+                                                                const sku = inventoryItems.find((invItem) => invItem.id === item.productId)?.sku || "Unknown SKU";
+
+                                                                return (
+                                                                    <div key={index} className="p-3 flex items-center justify-between">
+                                                                        <div className="flex-1">
+                                                                            <p className="font-medium">{productName} - {sku}</p>
+                                                                            <div className="flex items-center mt-1">
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    size="icon"
+                                                                                    className="h-6 w-6 rounded-full"
+                                                                                    onClick={() => updateReplacementItemQuantity(index, item.quantity - 1)}
+                                                                                    disabled={item.quantity <= 1}
+                                                                                >
+                                                                                    <Minus className="h-3 w-3" />
+                                                                                </Button>
+                                                                                <span className="mx-2 text-sm">{item.quantity}</span>
+                                                                                <Button
+                                                                                    variant="outline"
+                                                                                    size="icon"
+                                                                                    className="h-6 w-6 rounded-full"
+                                                                                    onClick={() => updateReplacementItemQuantity(index, item.quantity + 1)}
+                                                                                >
+                                                                                    <Plus className="h-3 w-3" />
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                        <Button
+                                                                            variant="ghost"
+                                                                            size="sm"
+                                                                            onClick={() => removeReplacementItem(index)}
+                                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                        >
+                                                                            Remove
+                                                                        </Button>
+                                                                    </div>
+                                                                );
+                                                            })}
+
                                                         </div>
-                                                    )
-                                                })}
+                                                    ) : (
+                                                        <div className="text-center p-4 border rounded-md bg-muted/50">
+                                                            <p className="text-muted-foreground">No replacement items added yet</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Add new replacement item */}
+                                                <div className="border rounded-md p-3 bg-muted/30">
+                                                    <h5 className="font-medium mb-2">Add Item</h5>
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                        <div className="md:col-span-2">
+                                                            <Label htmlFor="product">Product</Label>
+                                                            <Select value={selectedInventoryItem} onValueChange={setSelectedInventoryItem}>
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select product" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {isLoadingInventory ? (
+                                                                        <SelectItem value="loading" disabled>
+                                                                            Loading inventory...
+                                                                        </SelectItem>
+                                                                    ) : (
+                                                                        inventoryItems.map((item) => (
+                                                                            <SelectItem key={item.id} value={item.id as string}>
+                                                                                {item.name} ({item.sku})
+                                                                            </SelectItem>
+                                                                        ))
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+                                                        <div>
+                                                            <Label htmlFor="quantity">Quantity</Label>
+                                                            <Input
+                                                                id="quantity"
+                                                                type="number"
+                                                                min={1}
+                                                                value={selectedQuantity}
+                                                                onChange={(e) => setSelectedQuantity(Number.parseInt(e.target.value) || 1)}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 flex justify-end">
+                                                        <Button
+                                                            onClick={addReplacementItem}
+                                                            disabled={!selectedInventoryItem || selectedQuantity < 1}
+                                                            size="sm"
+                                                        >
+                                                            <Plus className="mr-1 h-4 w-4" />
+                                                            Add Item
+                                                        </Button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
