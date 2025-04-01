@@ -40,6 +40,9 @@ interface CreateReturnPayload {
     reasonDetails?: string;
     preferredReturnType: ReturnType;
     proofImages?: string[];
+    requestDate?: string;
+    returnRequestNumber: string;
+    customerId: string;
 }
 
 interface UpdateReturnPayload {

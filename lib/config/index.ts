@@ -6,3 +6,4 @@ export const RETURN_WINDOW_DAYS = 30;
 export const RETURNABLE_PRODUCT_CATEGORIES = ['electronics', 'apparel', 'home-goods'];
 export const NON_RETURNABLE_PRODUCT_CATEGORIES = ['final-sale', 'gift-cards'];
 export const NON_RETURNABLE_SKUS = ['FINAL-SALE-ITEM-SKU', 'GIFT-CARD-SKU'];
+export const STORE_CREDIT_AMOUNT = 10;

@@ -26,259 +26,223 @@ export async function POST(req: NextRequest) {
 	return handleRequest(
 		req,
 		async (req, userId) => {
-			const user = (await User.findById(userId)) as unknown as {
-				role: UserRole;
-			};
-			if (!user || user.role !== UserRole.CUSTOMER) {
-				// Only customers can initiate returns this way
-				return NextResponse.json(
-					{ code: "UNAUTHORIZED", message: "Unauthorized" },
-					{ status: 403 }
-				);
-			}
-
-			const body = await req.json();
-			const {
-				orderId,
-				items,
-				returnReason,
-				reasonDetails,
-				preferredReturnType,
-				proofImages,
-			} = body;
-
-			// --- 1. Input Validation ---
-			if (
-				!mongoose.Types.ObjectId.isValid(orderId) ||
-				!items ||
-				!Array.isArray(items) ||
-				items.length === 0 ||
-				!returnReason ||
-				!preferredReturnType
-			) {
-				return NextResponse.json(
-					{
-						code: "INVALID_INPUT",
-						message:
-							"Missing required fields: orderId, items, returnReason, preferredReturnType",
-					},
-					{ status: 400 }
-				);
-			}
-			if (
-				!Object.values(ReturnReason).includes(returnReason) ||
-				!Object.values(ReturnType).includes(preferredReturnType)
-			) {
-				return NextResponse.json(
-					{
-						code: "INVALID_INPUT",
-						message: "Invalid reason or return type value",
-					},
-					{ status: 400 }
-				);
-			}
-
-			// --- 2. Fetch Order & Perform Eligibility Checks ---
-			const order = (await Order.findById(
-				orderId
-			).lean()) as unknown as OrderType;
-			if (!order) {
-				return NextResponse.json(
-					{ code: "ORDER_NOT_FOUND", message: "Order not found" },
-					{ status: 404 }
-				);
-			}
-			if (order.customerId.toString() !== userId) {
-				// Ensure customer owns the order
-				return NextResponse.json(
-					{ code: "FORBIDDEN", message: "You do not own this order" },
-					{ status: 403 }
-				);
-			}
-
-			// --- Dynamic Check: Return Window ---
-			// Base window on order creation date. Could refine to use shipment delivered date if tracked.
-			const orderDate = new Date(order.createdAt);
-			const expiryDate = new Date(
-				orderDate.setDate(orderDate.getDate() + RETURN_WINDOW_DAYS)
-			);
-			if (new Date() > expiryDate) {
-				return NextResponse.json(
-					{
-						code: "RETURN_WINDOW_EXPIRED",
-						message: `Return window closed on ${expiryDate.toLocaleDateString()}`,
-					},
-					{ status: 400 }
-				);
-			}
-
-			// --- Dynamic Checks: Item Returnability & Previously Returned Quantity ---
-			const productIdsToFetch = items
-				.map((item: { orderItemId: string }) => {
-					const orderItem = order.items.find((oi) => {
-						if (!oi._id) {
-							return;
-						}
-						oi._id.toString() === item.orderItemId;
-					});
-					return orderItem?.productId;
-				})
-				.filter(Boolean);
-
-			const [inventoryItems, previousReturnItems] = await Promise.all([
-				Inventory.find({ _id: { $in: productIdsToFetch } })
-					.select("sku category")
-					.lean(), // Fetch SKU/category for returnable check
-				ReturnItem.find({
-					orderItemId: { $in: items.map((i: any) => i.orderItemId) },
-				}) // Find any previous return attempts for these specific order items
-					.populate({ path: "returnRequestId", select: "status" }) // Need parent request status
-					.lean(),
-			]);
-
-			const inventoryMap = new Map(
-				inventoryItems.map((inv) => [inv.id.toString(), inv])
-			);
-
-			for (const requestedItem of items) {
-				const orderItem = order.items.find((oi) => {
-					if (!oi._id) {
-						return;
-					}
-					oi._id.toString() === requestedItem.orderItemId;
-				});
-				if (!orderItem) {
-					return NextResponse.json(
-						{
-							code: "INVALID_INPUT",
-							message: `OrderItem ID ${requestedItem.orderItemId} not found in the specified order.`,
-						},
-						{ status: 400 }
-					);
-				}
-
-				// Check requested quantity validity
-				if (requestedItem.quantity <= 0) {
-					return NextResponse.json(
-						{
-							code: "INVALID_INPUT",
-							message: `Invalid quantity requested for item ${orderItem.productId}.`,
-						},
-						{ status: 400 }
-					);
-				}
-
-				// Dynamic Check: Item Type Returnability (using SKU or Category from Inventory)
-				const inventoryInfo = inventoryMap.get(orderItem.productId.toString());
-				if (inventoryInfo && NON_RETURNABLE_SKUS.includes(inventoryInfo.sku)) {
-					return NextResponse.json(
-						{
-							code: "ITEM_NOT_RETURNABLE",
-							message: `Item with SKU ${inventoryInfo.sku} cannot be returned.`,
-						},
-						{ status: 400 }
-					);
-				}
-				// Add category check if needed:
-				// if (inventoryInfo && !RETURNABLE_PRODUCT_CATEGORIES.includes(inventoryInfo.category)) { ... }
-
-				// Dynamic Check: Calculate previously returned/requested quantity for THIS OrderItem
-				let alreadyReturnedOrApproved = 0;
-				previousReturnItems.forEach((prevItem) => {
-					// Check if it's the same OrderItem and the request wasn't rejected
-					if (prevItem.orderItemId.toString() === requestedItem.orderItemId) {
-						// @ts-ignore // Handle potential TS issue with populated field access
-						const parentStatus = prevItem.returnRequestId?.status;
-						if (parentStatus && parentStatus !== ReturnRequestStatus.REJECTED) {
-							// Count quantity already received OR quantity requested in pending/approved requests
-							alreadyReturnedOrApproved +=
-								prevItem.quantityReceived ?? prevItem.quantityRequested;
-						}
-					}
-				});
-
-				const availableToReturn =
-					orderItem.quantity - alreadyReturnedOrApproved;
-				if (requestedItem.quantity > availableToReturn) {
-					return NextResponse.json(
-						{
-							code: "QUANTITY_EXCEEDS_LIMIT",
-							message: `Cannot return ${requestedItem.quantity} of item ${orderItem.productId}. Only ${availableToReturn} available (Original: ${orderItem.quantity}, Previously Returned/Requested: ${alreadyReturnedOrApproved}).`,
-						},
-						{ status: 400 }
-					);
-				}
-			}
-
-			// --- 3. Create Return Request & Items (Transaction) ---
-			const session = await mongoose.startSession();
-			session.startTransaction();
 			try {
-				const newReturnRequest = new ReturnRequest({
-					orderId: order.id,
-					customerId: userId,
-					status: ReturnRequestStatus.PENDING_APPROVAL,
+				const user = (await User.findById(userId)) as unknown as {
+					role: UserRole;
+				};
+				if (!user) {
+					// Only authenticated users can initiate returns
+					return NextResponse.json(
+						{ code: "UNAUTHORIZED", message: "Unauthorized" },
+						{ status: 403 }
+					);
+				}
+
+				const body = await req.json();
+				const {
+					orderId,
+					items,
 					returnReason,
+					customerId,
 					reasonDetails,
 					preferredReturnType,
-					proofImages: proofImages || [], // Handle optional images
-				});
-				await newReturnRequest.save({ session });
+					proofImages,
+					returnRequestNumber,
+					requestDate
+				} = body;
 
-				const returnItemsData = items.map(
-					(item: { orderItemId: string; quantity: number }) => {
+				console.log("Return request payload:", JSON.stringify(body, null, 2));
+
+				// --- 1. Input Validation ---
+				if (
+					!mongoose.Types.ObjectId.isValid(orderId) ||
+					!items ||
+					!Array.isArray(items) ||
+					items.length === 0 ||
+					!returnReason ||
+					!preferredReturnType
+				) {
+					return NextResponse.json(
+						{
+							code: "INVALID_INPUT",
+							message:
+								"Missing required fields: orderId, items, returnReason, preferredReturnType",
+						},
+						{ status: 400 }
+					);
+				}
+
+				// --- 2. Fetch Order & Perform Eligibility Checks ---
+				const order = (await Order.findById(
+					orderId
+				).lean()) as unknown as OrderType;
+				if (!order) {
+					return NextResponse.json(
+						{ code: "ORDER_NOT_FOUND", message: "Order not found" },
+						{ status: 404 }
+					);
+				}
+
+				// Allow any authenticated user to create a return request
+				// Only check if the user is the customer if they're a customer role
+				if (
+					user.role === UserRole.CUSTOMER &&
+					order.customerId.toString() !== userId
+				) {
+					// Ensure customer owns the order if they're a customer
+					return NextResponse.json(
+						{ code: "FORBIDDEN", message: "You do not own this order" },
+						{ status: 403 }
+					);
+				}
+
+				// --- Dynamic Check: Return Window ---
+				// Base window on order creation date. Could refine to use shipment delivered date if tracked.
+				const orderDate = new Date(order.createdAt);
+				const expiryDate = new Date(
+					orderDate.setDate(orderDate.getDate() + RETURN_WINDOW_DAYS)
+				);
+				if (new Date() > expiryDate) {
+					return NextResponse.json(
+						{
+							code: "RETURN_WINDOW_EXPIRED",
+							message: `Return window closed on ${expiryDate.toLocaleDateString()}`,
+						},
+						{ status: 400 }
+					);
+				}
+
+				// --- Dynamic Checks: Item Returnability & Previously Returned Quantity ---
+				for (const requestedItem of items) {
+					// Find the order item in the order
+					const orderItem = order.items.find((oi) => {
+						// Ensure we're comparing strings to strings
+						const orderItemId = oi._id?.toString() || oi.id?.toString();
+						const requestItemId = requestedItem.orderItemId?.toString();
+						return orderItemId === requestItemId;
+					});
+
+					if (!orderItem) {
+						return NextResponse.json(
+							{
+								code: "INVALID_INPUT",
+								message: `OrderItem ID ${requestedItem.orderItemId} not found in the specified order.`,
+							},
+							{ status: 400 }
+						);
+					}
+
+					// Check requested quantity validity
+					if (requestedItem.quantity <= 0) {
+						return NextResponse.json(
+							{
+								code: "INVALID_INPUT",
+								message: `Invalid quantity requested for item ${orderItem.productId}.`,
+							},
+							{ status: 400 }
+						);
+					}
+
+					// Check if quantity exceeds original order quantity
+					if (requestedItem.quantity > orderItem.quantity) {
+						return NextResponse.json(
+							{
+								code: "QUANTITY_EXCEEDS_LIMIT",
+								message: `Cannot return ${requestedItem.quantity} of item ${orderItem.productId}. Original order quantity: ${orderItem.quantity}.`,
+							},
+							{ status: 400 }
+						);
+					}
+				}
+
+				// --- 3. Create Return Request & Items (Transaction) ---
+				const session = await mongoose.startSession();
+				session.startTransaction();
+				try {
+					// Create the return request
+					const newReturnRequest = new ReturnRequest({
+						orderId,
+						customerId: customerId || userId,
+						status: ReturnRequestStatus.PENDING_APPROVAL,
+						returnReason,
+						reasonDetails,
+						returnRequestNumber,
+						preferredReturnType,
+						proofImages,
+						requestDate
+					});
+
+					await newReturnRequest.save({ session });
+
+					// Create return items
+					const returnItemsData = items.map((item) => {
 						const orderItem = order.items.find((oi) => {
-							if (!oi._id) {
-								return;
-							}
-							oi._id.toString() === item.orderItemId;
-						})!; // We validated it exists
+							const orderItemId = oi._id?.toString() || oi.id?.toString();
+							const requestItemId = item.orderItemId?.toString();
+							return orderItemId === requestItemId;
+						});
+
 						return {
 							returnRequestId: newReturnRequest._id,
-							orderItemId: orderItem._id, // The ID of the sub-document from Order.items
-							productId: orderItem.productId,
+							orderItemId: item.orderItemId,
+							productId: item.productId || orderItem?.productId,
 							quantityRequested: item.quantity,
 						};
+					});
+
+					await ReturnItem.insertMany(returnItemsData, { session });
+					await session.commitTransaction();
+
+					// --- 4. Notification ---
+					try {
+						await createNotification(
+							userId, // Notify customer
+							"GENERAL", // Or a new 'RETURN_UPDATE' type
+							`Return Request Submitted (#${newReturnRequest.returnRequestNumber})`,
+							`Your return request for order #${order.orderNumber} has been submitted and is pending review.`,
+							{
+								returnRequestId: newReturnRequest._id,
+								orderId: order.id,
+							}
+						);
+					} catch (notificationError) {
+						console.error("Failed to create notification:", notificationError);
+						// Don't fail the request if notification fails
 					}
-				);
-				await ReturnItem.insertMany(returnItemsData, { session });
 
-				await session.commitTransaction();
+					// Populate for response
+					const createdRequest = await ReturnRequest.findById(
+						newReturnRequest._id
+					)
+						.populate({
+							path: "returnItems",
+							populate: { path: "productId", select: "name sku" },
+						})
+						.lean();
 
-				// --- 4. Notification ---
-				await createNotification(
-					userId, // Notify customer
-					"GENERAL", // Or a new 'RETURN_UPDATE' type
-					`Return Request Submitted (#${newReturnRequest.returnRequestNumber})`,
-					`Your return request for order #${order.orderNumber} has been submitted and is pending review.`,
-					{ returnRequestId: newReturnRequest._id, orderId: order.id }
-				);
-				// Optional: Notify Admin/Manager
-				// Find Admins/Managers and call createNotification for them
-
-				// Populate for response
-				const createdRequest = await ReturnRequest.findById(
-					newReturnRequest._id
-				)
-					.populate({
-						path: "returnItems",
-						populate: { path: "product", select: "name sku" },
-					})
-					.lean();
-
-				return NextResponse.json(createdRequest, { status: 201 });
-			} catch (error: any) {
-				await session.abortTransaction();
-				console.error("Return creation failed:", error);
+					return NextResponse.json(createdRequest, { status: 201 });
+				} catch (error: any) {
+					await session.abortTransaction();
+					console.error("Return creation failed:", error);
+					return NextResponse.json(
+						{
+							code: "CREATE_ERROR",
+							message: error.message || "Failed to create return request",
+						},
+						{ status: 500 }
+					);
+				} finally {
+					session.endSession();
+				}
+			} catch (error) {
+				console.error("Unexpected error in return request creation:", error);
 				return NextResponse.json(
 					{
-						code: "CREATE_ERROR",
-						message: error.message || "Failed to create return request",
+						code: "SERVER_ERROR",
+						message: "An unexpected error occurred. Please try again later.",
 					},
 					{ status: 500 }
 				);
-			} finally {
-				session.endSession();
 			}
 		},
 		"return_create", // Rate limit key

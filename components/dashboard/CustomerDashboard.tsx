@@ -40,7 +40,7 @@ import { PaymentModal } from "@/components/order/PaymentModal"
 import AreaChartGradient from "../chart/AreaChartGradient"
 import { DataTable } from "../table/DataTable"
 import { toast } from "sonner"
-import { columns, OrderRow } from "@/app/orders/page"
+import { columns, OrderRow } from "@/components/order/OrdersTab"
 import UserStatusAlert from "./UserStatusAlert"
 import { MonthlySpendingChart } from "../chart/MonthlySpendingChart"
 
@@ -396,7 +396,7 @@ const CustomerDashboard: React.FC<CustomerDashboardProps> = ({ user }) => {
                                     ))}
                                 </div>
                             ) : (
-                                <DataTable columns={columns} data={formattedOrders || []} />
+                                <DataTable columns={columns(inventory)} data={formattedOrders || []} />
                             )}
                         </CardContent>
                         <CardFooter className="flex justify-between">

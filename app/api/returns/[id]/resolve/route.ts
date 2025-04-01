@@ -11,12 +11,11 @@ import {
 	ReturnType,
 	ReturnResolutionStatus,
 	ReturnRequestStatus,
-  
 } from "@/lib/types";
 import { createNotification } from "@/app/actions/notifications";
 import { stripe } from "@/app/api/payments/route";
-
-// import { issueStoreCredit } from '@/lib/storeCredit'; // Your store credit logic
+import { issueStoreCredit } from "@/lib/utils";
+import { STORE_CREDIT_AMOUNT } from "@/lib/config";
 
 const RESOLVE_RATE_LIMIT = 10;
 
@@ -35,7 +34,9 @@ export async function POST(
 				);
 			}
 
-			const user = await User.findById(userId).lean() as unknown as { role: UserRole };
+			const user = (await User.findById(userId).lean()) as unknown as {
+				role: UserRole;
+			};
 			// --- Authorization: Only Admin/Manager ---
 			if (!user || ![UserRole.ADMIN, UserRole.MANAGER].includes(user.role)) {
 				return NextResponse.json(
@@ -162,14 +163,17 @@ export async function POST(
 				if (resolutionType === ReturnType.REFUND) {
 					resolutionData.refundAmount = refundAmount;
 					// ** Integrate with Payment Gateway (e.g., Stripe) **
-					const refund = await stripe.refunds.create({ payment_intent: 'pi_...', amount: refundAmount * 100 });
-					if (refund.status === 'succeeded') {
-					    resolutionData.refundTransactionId = refund.id;
-					    resolutionData.status = ReturnResolutionStatus.COMPLETED;
+					const refund = await stripe.refunds.create({
+						payment_intent: "pi_...",
+						amount: refundAmount * 100,
+					});
+					if (refund.status === "succeeded") {
+						resolutionData.refundTransactionId = refund.id;
+						resolutionData.status = ReturnResolutionStatus.COMPLETED;
 					} else {
-					    resolutionData.status = ReturnResolutionStatus.FAILED;
-					    finalReturnStatus = returnRequest.status; // Revert main status if failed
-					    throw new Error(`Stripe refund failed: ${refund.failure_reason}`);
+						resolutionData.status = ReturnResolutionStatus.FAILED;
+						finalReturnStatus = returnRequest.status; // Revert main status if failed
+						throw new Error(`Stripe refund failed: ${refund.failure_reason}`);
 					}
 					// Placeholder for success:
 					resolutionData.refundTransactionId = `SIMULATED_REFUND_${Date.now()}`;
@@ -206,9 +210,13 @@ export async function POST(
 					resolutionData.status = ReturnResolutionStatus.COMPLETED; // Or maybe IN_PROGRESS until shipped? Let's say COMPLETED when order is created.
 				} else if (resolutionType === ReturnType.STORE_CREDIT) {
 					// ** TODO: Integrate with store credit system **
-					// Example: const credit = await issueStoreCredit(returnRequest.customerId, storeCreditAmount);
-					// resolutionData.storeCreditCode = credit.code;
-					// resolutionData.storeCreditAmount = credit.amount;
+					// Example:
+					const credit = await issueStoreCredit(
+						returnRequest.customerId,
+						STORE_CREDIT_AMOUNT
+					);
+					resolutionData.storeCreditCode = credit.code;
+					resolutionData.storeCreditAmount = credit.amount;
 					resolutionData.status = ReturnResolutionStatus.COMPLETED;
 				} else if (resolutionType === ReturnType.EXCHANGE) {
 					// Handle complex exchange logic if needed

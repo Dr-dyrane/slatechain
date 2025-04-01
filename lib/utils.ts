@@ -598,3 +598,39 @@ export function exportToCSV<T extends Record<string, any>>(
 	const csv = convertToCSV(data, columns);
 	downloadCSV(csv, filename);
 }
+
+export interface StoreCredit {
+	code: string;
+	amount: number;
+	issuedAt: Date;
+	customerId: string;
+}
+
+// Function to issue store credit
+export async function issueStoreCredit(
+	customerId: string,
+	amount: number
+): Promise<StoreCredit> {
+	const code = crypto.randomBytes(8).toString("hex"); // Unique 16-char hex code
+	const issuedAt = new Date();
+
+	const storeCredit: StoreCredit = {
+		code,
+		amount,
+		issuedAt,
+		customerId,
+	};
+	// Mock "saving" to the database
+	storeCreditDB.push(storeCredit);
+
+	console.log("Store credit issued:", storeCredit);
+	return storeCredit;
+}
+
+// Mock in-memory store for store credits
+const storeCreditDB: StoreCredit[] = [];
+
+// Function to get all issued store credits
+export async function getAllStoreCredits(): Promise<StoreCredit[]> {
+	return storeCreditDB;
+}
