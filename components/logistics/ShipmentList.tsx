@@ -6,7 +6,6 @@ import { ListCard } from "@/components/table/List-card"
 import type { ColumnDef } from "@tanstack/react-table"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ShipmentDetails } from "./ShipmentDetails"
 import { Button } from "@/components/ui/button"; // Import Button component
 import { PlusIcon, EditIcon, Trash2Icon } from "lucide-react"; // Import icons
 import { AddShipmentModal } from "./AddShipmentModal"; // Import AddShipmentModal

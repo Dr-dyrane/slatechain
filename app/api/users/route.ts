@@ -10,7 +10,7 @@ import bcrypt from "bcryptjs"
 
 // GET /api/users - List all users
 export async function GET(req: Request) {
-  const { headers, limited } = await withRateLimit(req, "list_users", 30)
+  const { headers, limited } = await withRateLimit(req, "list_users", 300)
 
   if (limited) {
     return NextResponse.json(
