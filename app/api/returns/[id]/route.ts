@@ -1,18 +1,19 @@
 // app/api/returns/[id]/route.ts
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
-import { mongoose } from "../..";
 import ReturnRequest from "../../models/ReturnRequest";
+import ReturnItem from "../../models/ReturnItem";
 import User from "../../models/User";
-import { ReturnRequest as ReturnRequestType, UserRole } from "@/lib/types";
+import Inventory from "../../models/Inventory";
+import { type ReturnRequest as ReturnRequestType, UserRole } from "@/lib/types";
 import {
 	ReturnRequestStatus,
 	ItemCondition,
 	ReturnDisposition,
 } from "@/lib/types";
-import Inventory from "../../models/Inventory";
-import ReturnItem from "../../models/ReturnItem";
 import { createNotification } from "@/app/actions/notifications";
+import mongoose from "mongoose";
+import ReturnResolution from "../../models/ReturnResolution";
 
 const GET_DETAILS_RATE_LIMIT = 30;
 
@@ -24,6 +25,7 @@ export async function GET(
 	return handleRequest(
 		req,
 		async (req, userId) => {
+			// Validate and fetch the return
 			if (!mongoose.Types.ObjectId.isValid(id)) {
 				return NextResponse.json(
 					{ code: "INVALID_ID", message: "Invalid return request ID" },
@@ -54,7 +56,7 @@ export async function GET(
 							model: "Inventory",
 							select: "name sku",
 						},
-					}) // Populate deeply
+					})
 					.populate({
 						path: "returnItems",
 						populate: {
@@ -62,22 +64,11 @@ export async function GET(
 							model: "Inventory",
 							select: "name sku supplierId",
 						},
-					}) // Populate product details in items
-					.populate("reviewedBy", "name")
-					.populate("resolution", "resolvedBy replacementOrderId resolutionDate resolutionNotes")
-					.populate({
-						path: "resolution",
-						populate: [
-							// Deep populate resolution fields
-							{ path: "resolvedBy", model: "User", select: "name" },
-							{
-								path: "replacementOrderId",
-								model: "Order",
-								select: "orderNumber",
-							},
-						],
 					})
+					.populate("reviewedBy", "name")
+					.populate({ path: "resolution", model: ReturnResolution })
 					.lean()) as unknown as ReturnRequestType;
+
 				if (!returnRequest) {
 					return NextResponse.json(
 						{ code: "NOT_FOUND", message: "Return request not found" },
@@ -96,8 +87,10 @@ export async function GET(
 					canView = true;
 				} else if (user.role === UserRole.SUPPLIER) {
 					// Check if any return item product belongs to this supplier
-					// @ts-ignore // Handle TS issues with populated types if necessary
-					canView = returnRequest.returnItems?.some(
+					if (!returnRequest.returnItems) {
+						return;
+					}
+					canView = returnRequest?.returnItems.some(
 						(item) => item.productId?.toString() === userId
 					);
 				}
@@ -122,6 +115,9 @@ export async function GET(
 					},
 					{ status: 500 }
 				);
+			} finally {
+				// Optionally: Log the request for auditing
+				console.log("GET request for return details:", id);
 			}
 		},
 		"return_get_details",
@@ -135,7 +131,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = await  params;
+	const { id } = await params;
 	return handleRequest(
 		req,
 		async (req, userId) => {
@@ -407,10 +403,7 @@ export async function PUT(
 					},
 				})
 				.populate("reviewedBy", "name")
-				.populate({
-					path: "resolution",
-					populate: { path: "resolvedBy", select: "name" },
-				})
+				.populate({ path: "resolution", model: ReturnResolution })
 				.lean();
 
 			return NextResponse.json(updatedReturnRequest);

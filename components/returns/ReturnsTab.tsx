@@ -104,10 +104,12 @@ export default function ReturnsTab() {
 
         // For admin/manager, open the process modal
         if (userRole === UserRole.ADMIN || userRole === UserRole.MANAGER) {
-            setProcessModalOpen(true)
+            setViewModalOpen(true)
+            // setProcessModalOpen(true)
         } else {
             // For customer/supplier, open the view-only modal
-            setViewModalOpen(true)
+            // setViewModalOpen(true)
+            setProcessModalOpen(true)
         }
     }
 
