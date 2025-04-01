@@ -657,6 +657,7 @@ export interface Freight {
 			unit: string;
 		};
 	};
+	currentLocation?: GeoLocation;
 	documents?: any[];
 	cost?: {
 		baseRate: number;

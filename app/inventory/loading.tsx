@@ -8,7 +8,7 @@ const LayoutLoader = () => {
   return (
     <div className="space-y-4 pt-6">
      <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
       {[...Array(4)].map((_, i) => (
         <Card key={i}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -28,7 +28,7 @@ const LayoutLoader = () => {
         </Card>
       ))}
     </div>
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7">
       <Card className="col-span-4">
         <CardHeader>
           <CardTitle>

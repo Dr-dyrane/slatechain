@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
-import type { Shipment, Order, Route } from "@/lib/types"
+import type { Shipment, Order, Route, Freight } from "@/lib/types"
 import { toast } from "sonner"
 import { updateShipment, fetchCarriers, fetchRoutes, fetchTransports, fetchFreights } from "@/lib/slices/shipmentSlice"
 import { fetchOrders } from "@/lib/slices/orderSlice"
@@ -158,8 +158,17 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
     const onSubmit = async (data: ShipmentFormValues) => {
         setBackendError(null)
         setUpdating(true)
+
+        // Create a new object by spreading the data and adding currentLocation
+        const updatedData = {
+            ...data,
+            currentLocation: freights.find((f: Freight) => f.id === data.freightId)?.currentLocation || {
+                latitude: 0,
+                longitude: 0,
+            },
+        };
         try {
-            await dispatch(updateShipment(data as Shipment)).unwrap()
+            await dispatch(updateShipment(updatedData as Shipment)).unwrap()
             toast.success("Shipment updated successfully!")
             onClose()
         } catch (error: any) {
@@ -278,7 +287,7 @@ export function EditShipmentModal({ open, onClose, shipment }: EditShipmentModal
 
                     <div>
                         <Label htmlFor="trackingNumber">Tracking Number</Label>
-                        <Input id="trackingNumber" placeholder="Tracking Number" {...register("trackingNumber")} readOnly/>
+                        <Input id="trackingNumber" placeholder="Tracking Number" {...register("trackingNumber")} readOnly />
                         {errors.trackingNumber && <p className="text-sm text-red-500">{errors.trackingNumber.message}</p>}
                     </div>
 

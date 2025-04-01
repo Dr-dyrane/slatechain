@@ -20,7 +20,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { useDispatch, useSelector } from "react-redux"
-import type { Shipment, Order, Route, Carrier } from "@/lib/types"
+import type { Shipment, Order, Route, Carrier, Freight } from "@/lib/types"
 import { toast } from "sonner"
 import { addShipment, fetchCarriers, fetchRoutes, fetchTransports, fetchFreights } from "@/lib/slices/shipmentSlice"
 import { fetchOrders } from "@/lib/slices/orderSlice"
@@ -129,6 +129,11 @@ export function AddShipmentModal({ open, onClose }: AddShipmentModalProps) {
             // Add tracking number to the payload
             const shipmentData = {
                 ...data,
+                // currentLocation is set to the current location of the freight
+                currentLocation: freights.find((f: Freight) => f.id === data.freightId)?.currentLocation || {
+                    latitude: 0,
+                    longitude: 0,
+                },
                 trackingNumber,
             }
 

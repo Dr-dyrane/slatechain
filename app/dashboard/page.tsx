@@ -125,7 +125,7 @@ export default function Dashboard() {
       )}
 
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {kpiCards?.map((card, index) => (
           <DashboardCard key={index} card={card} />
         ))}
@@ -133,7 +133,7 @@ export default function Dashboard() {
 
       {/* Charting and display  logic */}
       {activeTab === "overview" && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {otherChartData?.map((card, index) => (
             <DashboardCard key={index} card={card as OtherChartData} />
           ))}
