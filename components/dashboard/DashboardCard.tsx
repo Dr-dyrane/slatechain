@@ -25,6 +25,8 @@ import {
     Package2,
     Factory,
     ArrowRight,
+    Loader,
+    RefreshCcw,
 } from "lucide-react"
 import type { CardData, OtherChartData } from "@/lib/slices/kpi/kpiSlice"
 
@@ -51,6 +53,8 @@ const iconMap: { [key: string]: LucideIcon } = {
     Package2,
     Factory,
     ArrowRight,
+    Loader,
+    RefreshCcw,
     ShoppingCart: Package,
 }
 
