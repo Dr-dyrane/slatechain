@@ -560,7 +560,6 @@ export function ProcessReturnModal({ open, onClose, returnRequest }: ProcessRetu
                                                                     <SelectValue placeholder="Select disposition" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem value="NotDecided">Not Decided</SelectItem>
                                                                     <SelectItem value="Restock">Restock</SelectItem>
                                                                     <SelectItem value="ReturnToSupplier">Return to Supplier</SelectItem>
                                                                     <SelectItem value="Refurbish">Refurbish</SelectItem>
