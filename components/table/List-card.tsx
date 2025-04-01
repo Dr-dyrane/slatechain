@@ -24,16 +24,19 @@ interface ListCardProps<TData extends DataRow, TValue> {
     data: TData[]
     onEdit?: (item: any) => void;
     onDelete?: (item: any) => void;
+    onClick?: (item: TData) => void;  // New prop to handle click events
 }
 
 export function ListCard<TData extends DataRow, TValue>({
     columns,
     data, onEdit, onDelete
+    , onClick
 }: ListCardProps<TData, TValue>) {
     const [selectedItem, setSelectedItem] = React.useState<TData | null>(null);
 
     const handleItemClick = (item: TData) => {
         setSelectedItem(item);
+        if (onClick) onClick(item);
     };
 
     const handleCloseModal = () => {
@@ -90,5 +93,5 @@ export function ListCard<TData extends DataRow, TValue>({
             <DataDetailsModal open={!!selectedItem} onClose={handleCloseModal} columns={columns} data={selectedItem} title={selectedItem?.name || ''} onEdit={onEdit}
                 onDelete={onDelete} />
         </>
-    )
+    );
 }

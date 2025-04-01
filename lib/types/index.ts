@@ -521,6 +521,8 @@ export interface Shipment {
 	estimatedDeliveryDate: string;
 	actualDeliveryDate?: string;
 	currentLocation?: GeoLocation;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
 export interface Transport {

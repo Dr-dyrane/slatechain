@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import { useSelector, useDispatch } from "react-redux"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { RootState, AppDispatch } from "@/lib/store"
 import type { Shipment } from "@/lib/types"
@@ -10,14 +9,11 @@ import { fetchShipments, simulateShipmentUpdate } from "@/lib/slices/shipmentSli
 
 import { TransportManagement } from "./TransportManagement"
 import DashboardCard from "@/components/dashboard/DashboardCard"
-import { MapComponent } from "@/components/logistics/MapComponent"
-import { ShipmentList } from "@/components/logistics/ShipmentList"
-import { ShipmentDetails } from "@/components/logistics/ShipmentDetails"
+import { ShipmentDashboard } from "@/components/logistics/shipment-dashboard"
 
 export default function LogisticsPage() {
   const dispatch = useDispatch<AppDispatch>()
-  const shipments = useSelector((state: RootState) => state.shipment.items)
-  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(shipments[0] || null)
+  const shipments = useSelector((state: RootState) => state.shipment.items) as Shipment[]
 
   useEffect(() => {
     dispatch(fetchShipments()); // Ensure data is loaded on mount
@@ -102,34 +98,7 @@ export default function LogisticsPage() {
           <TabsTrigger value="transport">Transportation</TabsTrigger>
         </TabsList>
         <TabsContent value="shipments">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Card className="col-span-1 md:col-span-3">
-              <CardHeader>
-                <CardTitle>Shipment Map</CardTitle>
-                <CardDescription>Visual representation of current shipments</CardDescription>
-              </CardHeader>
-              <CardContent className="relative block overflow-hidden">
-                <MapComponent shipments={shipments} />
-              </CardContent>
-
-            </Card>
-            <Card className="col-span-1  md:col-span-2">
-              <CardContent>
-                <ShipmentList shipments={shipments} onSelectShipment={setSelectedShipment} />
-              </CardContent>
-            </Card>
-          </div>
-          <Card className="mt-4">
-            <CardHeader>
-              <CardTitle>Shipment Details</CardTitle>
-              <CardDescription>
-                {selectedShipment ? `Order #${selectedShipment.orderId}` : "Select a shipment to view details"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {selectedShipment ? <ShipmentDetails shipment={selectedShipment} /> : <p>No shipment selected</p>}
-            </CardContent>
-          </Card>
+          <ShipmentDashboard shipments={shipments} />
         </TabsContent>
         <TabsContent value="transport">
           <TransportManagement />

@@ -172,6 +172,7 @@ export function ShipmentList({ shipments, onSelectShipment }: ShipmentListProps)
                     data={filteredAndSortedShipments}
                     onEdit={handleEditShipment}
                     onDelete={handleDeleteShipment}
+                    onClick={(shipment) => onSelectShipment(shipment)}
                 />
             </div>
             <AddShipmentModal open={addModalOpen} onClose={handleCloseAddModal} />
