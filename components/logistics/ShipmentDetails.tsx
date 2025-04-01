@@ -48,7 +48,7 @@ export function ShipmentDetails({ shipment }: ShipmentDetailsProps) {
                     <div>
                         <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
                             <span className="text-sm">{formatDate(shipment.estimatedDeliveryDate)}</span>
-                            <span className="text-xs italic px-4 py-1.5 bg-muted rounded-full items-center justify-center">
+                            <span className="text-xs italic px-4 py-1.5 bg-muted rounded-full items-center justify-center break-words whitespace-normal">
                                 {shipment.destination}
                             </span>
                         </div>
