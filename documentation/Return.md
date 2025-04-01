@@ -1,6 +1,3 @@
-Here’s a cleaned-up and more structured version of your README for the **Return Management Document - Slatechain**:
-
----
 
 ## 📦 Return Management Document - Slatechain
 

@@ -6,7 +6,7 @@ import Stripe from "stripe"
 
 // Initialize Stripe with your secret key
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || ""
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
+export const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: "2025-02-24.acacia", // Use the latest version
 })
 

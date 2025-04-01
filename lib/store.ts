@@ -24,12 +24,13 @@ import customerReducer from "./slices/customerSlice";
 import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
+import returnReducer from "./slices/returnSlice";
 import { useDispatch } from "react-redux";
 import safeStorage from "./helpers/safeStorage";
 
 const createPersistConfig = (userId: string | null) => ({
 	key: userId ? `root-${userId}` : "root-guest",
-	storage : safeStorage,
+	storage: safeStorage,
 	whitelist: [
 		"auth",
 		"onboarding",
@@ -39,11 +40,12 @@ const createPersistConfig = (userId: string | null) => ({
 		"integration",
 		"notifications",
 		"customer",
-		'shopify',
-		'supplier',
-		'inventory',
-		'orders',
-		'shipment',
+		"shopify",
+		"supplier",
+		"inventory",
+		"orders",
+		"shipment",
+		"returns",
 	],
 });
 
@@ -62,6 +64,7 @@ const createRootReducer = () =>
 		integration: integrationReducer,
 		notifications: notificationReducer,
 		customer: customerReducer,
+		returns: returnReducer,
 	});
 
 export const createStore = (userId: string | null) => {
@@ -73,7 +76,7 @@ export const createStore = (userId: string | null) => {
 		reducer: persistedReducer,
 		middleware: (getDefaultMiddleware) =>
 			getDefaultMiddleware({
-				immutableCheck: false, 
+				immutableCheck: false,
 				serializableCheck: {
 					ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
 				},

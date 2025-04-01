@@ -21,6 +21,8 @@ const orderItemSchema = new mongoose.Schema({
 	},
 });
 
+addIdSupport(orderItemSchema); 
+
 // Define shipping address schema
 const shippingAddressSchema = new mongoose.Schema({
 	address1: { type: String },

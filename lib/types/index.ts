@@ -489,6 +489,8 @@ export interface Order {
 }
 
 export interface OrderItem {
+	id?: string; // Ensure this exists, populated by Mongoose `addIdSupport`
+    _id?: string; // Mongoose ID
 	productId: string;
 	quantity: number;
 	price: number;
@@ -901,3 +903,143 @@ export interface NotificationState {
 		delete: string[];
 	};
 }
+
+// Return Management Types
+
+export enum ReturnReason {
+	DAMAGED = "Damaged",
+	WRONG_ITEM = "WrongItem",
+	DOES_NOT_FIT = "DoesNotFit",
+	CHANGED_MIND = "ChangedMind",
+	NOT_AS_DESCRIBED = "NotAsDescribed",
+	DEFECTIVE = "Defective",
+	ARRIVED_LATE = "ArrivedLate",
+	OTHER = "Other",
+}
+
+export enum ReturnType { // Customer's *preferred* outcome
+	REFUND = "Refund",
+	REPLACEMENT = "Replacement",
+	STORE_CREDIT = "StoreCredit",
+	EXCHANGE = "Exchange", // Note: Exchange often complex, might be return+new order flow
+}
+
+export enum ReturnRequestStatus {
+	PENDING_APPROVAL = "PendingApproval", // Initial state, awaiting staff review
+	// PENDING_CUSTOMER_ACTION = "PendingCustomerAction", // Optional: e.g., customer needs to ship
+	APPROVED = "Approved", // Staff approved the request (items can now be sent back)
+	REJECTED = "Rejected", // Staff rejected the request
+	ITEMS_RECEIVED = "ItemsReceived", // Physical items confirmed received by warehouse/staff
+	PROCESSING = "Processing", // Inspection/Disposition in progress
+	RESOLUTION_PENDING = "ResolutionPending", // Items processed, awaiting final action (refund, ship replacement)
+	COMPLETED = "Completed", // Final state - resolution action finished
+}
+
+export enum ItemCondition { // Condition of the *returned* item upon receipt/inspection
+	NEW_IN_BOX = "NewInBox", // Unopened, original packaging
+	LIKE_NEW_OPEN_BOX = "LikeNewOpenBox", // Opened, but appears unused
+	USED_GOOD = "UsedGood", // Minor signs of use, fully functional
+	USED_FAIR = "UsedFair", // Visible use, functional
+	DAMAGED_REPAIRABLE = "DamagedRepairable", // Damaged but potentially fixable
+	DAMAGED_BEYOND_REPAIR = "DamagedBeyondRepair", // Cannot be repaired/resold
+	MISSING_PARTS = "MissingParts", // Incomplete
+}
+
+export enum ReturnDisposition { // Final decision on what to do with the *received* item
+	RESTOCK = "Restock", // Put back into sellable inventory
+	RETURN_TO_SUPPLIER = "ReturnToSupplier", // Send back to the original supplier
+	REFURBISH = "Refurbish", // Attempt repair/refurbishment
+	DISPOSE = "Dispose", // Discard the item
+	QUARANTINE = "Quarantine", // Set aside for further review/decision
+	// ASSET_RECOVERY = "AssetRecovery", // Sell via secondary channels etc.
+}
+
+export enum ReturnResolutionStatus { // Status of the *final action* (refund, replacement shipment)
+	PENDING = "Pending", // Resolution action not yet initiated
+	IN_PROGRESS = "InProgress", // e.g., Refund submitted to Stripe, Replacement order created
+	COMPLETED = "Completed", // Refund confirmed, Replacement shipped & maybe delivered
+	FAILED = "Failed", // e.g., Refund failed, Replacement couldn't be created
+}
+
+// --- NEW Interfaces for Return Management ---
+
+export interface ReturnRequest {
+	id: string; // Or ObjectId from Mongoose
+	_id?: string; // Mongoose ID
+	returnRequestNumber: string; // Human-readable unique ID (e.g., RTN00001)
+	orderId: string; // FK to the Order.id
+	customerId: string; // FK to the User.id
+	requestDate: string; // ISO timestamp of when the request was submitted
+	status: ReturnRequestStatus; // Overall status of the return request journey
+	returnReason: ReturnReason; // Primary reason selected by customer
+	reasonDetails?: string; // Optional text field for more details or 'Other' reason
+	proofImages?: string[]; // Array of URLs to uploaded proof images/docs
+	preferredReturnType: ReturnType; // What the customer ideally wants
+	reviewedBy?: string; // FK to User.id of staff who reviewed (approved/rejected)
+	reviewDate?: string; // ISO timestamp of review
+	staffComments?: string; // Internal notes added by staff during processing
+
+	// Populated fields (Optional, depending on API response needs)
+	order?: Pick<Order, "id" | "orderNumber">; // Minimal order info
+	customer?: Pick<User, "id" | "name" | "email">; // Minimal customer info
+	returnItems?: ReturnItem[]; // Array of items in this request
+	resolution?: ReturnResolution; // The final resolution record
+
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ReturnItem {
+	id: string;
+	_id?: string;
+	returnRequestId: string; // FK to ReturnRequest.id
+	orderItemId: string; // CRITICAL FK to the specific OrderItem.id being returned
+	productId: string; // FK to InventoryItem.id (or Product.id) - Denormalized for convenience
+	quantityRequested: number; // How many units the customer wants to return
+
+	// --- Fields updated during processing ---
+	quantityReceived?: number; // How many units were physically received back
+	receivedDate?: string; // ISO timestamp when received
+	itemCondition?: ItemCondition; // Assessed condition upon receipt
+	conditionAssessedBy?: string; // FK to User.id who assessed condition
+	conditionAssessmentDate?: string; // ISO timestamp of assessment
+	disposition?: ReturnDisposition; // Final decision for this item (Restock, Dispose, etc.)
+	dispositionSetBy?: string; // FK to User.id who set disposition
+	dispositionDate?: string; // ISO timestamp disposition set
+	returnTrackingNumber?: string; // Tracking number for the *inbound* shipment from customer
+	shippingLabelUrl?: string; // URL to a return label provided to the customer (if any)
+
+	// Populated fields (Optional)
+	product?: Pick<InventoryItem, "id" | "name" | "sku">; // Minimal product info
+
+	// Timestamps less critical here unless needed for fine-grained audit
+	// createdAt: string;
+	// updatedAt: string;
+}
+
+export interface ReturnResolution {
+	id: string;
+	_id?: string;
+	returnRequestId: string; // FK to ReturnRequest.id (Should be unique - one resolution per request)
+	status: ReturnResolutionStatus; // Status of the final action (e.g., refund sent, replacement shipped)
+	resolutionType: ReturnType; // The *actual* resolution method applied by staff
+	resolvedBy: string; // FK to User.id of staff who executed the resolution
+	resolutionDate: string; // ISO timestamp when resolution action was completed/initiated
+
+	notes?: string; // Staff notes regarding the resolution action
+
+	// --- Details based on resolutionType ---
+	refundAmount?: number; // Amount refunded (if type is REFUND)
+	refundTransactionId?: string; // e.g., Stripe charge ID, internal ledger ID (if type is REFUND)
+
+	replacementOrderId?: string; // FK to the *new* Order.id created for the replacement (if type is REPLACEMENT)
+
+	storeCreditAmount?: number; // Amount of store credit issued (if type is STORE_CREDIT)
+	storeCreditCode?: string; // Code or ID for the issued store credit (if type is STORE_CREDIT)
+
+	exchangeNotes?: string; // Specific details if handled as an exchange (if type is EXCHANGE)
+
+	createdAt: string;
+	updatedAt: string;
+}
+
