@@ -186,7 +186,9 @@ export async function POST(
 							sum + item.price * item.quantity,
 						0
 					);
+					const orderNumber = `ORD${String(Date.now()).slice(-5).padStart(5, "0")}`;
 					const newOrderData = {
+						orderNumber: orderNumber, 
 						customerId: returnRequest.orderId.customerId, // Customer from original order
 						items: replacementItems, // Use provided replacementItems (ensure price, productId, quantity are present)
 						totalAmount: replacementTotal, // Calculate total
