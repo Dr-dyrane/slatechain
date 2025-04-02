@@ -22,6 +22,9 @@ export default function LogisticsPage() {
   useEffect(() => {
     if (shipments.length === 0) return; // Prevent running if shipments are empty
 
+    let time = 60000; // Initial interval of 1 minute
+    let maxTime = 600000; // Max interval of 10 minutes
+
     const interval = setInterval(() => {
       const randomIndex = Math.floor(Math.random() * shipments.length);
       const shipmentToUpdate = { ...shipments[randomIndex] };
@@ -34,7 +37,10 @@ export default function LogisticsPage() {
       }
 
       dispatch(simulateShipmentUpdate(shipmentToUpdate));
-    }, 5000);
+
+      // Gradually increase the polling interval (double it each time, but don't exceed maxInterval)
+      time = Math.min(time * 2, maxTime)
+    }, time);
 
     return () => clearInterval(interval);
   }, [dispatch, shipments.length]); // Track `shipments.length`, not `shipments`
