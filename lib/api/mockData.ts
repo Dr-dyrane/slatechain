@@ -1609,9 +1609,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			accessToken: "mock-access-token",
 			refreshToken: "mock-refresh-token",
 		},
-		"/returns": mockReturnRequests, // Mocked list of return requests
-		"/returns/:id": (id: string) =>
-			mockReturnRequests.find((item) => item.id === id), // Get single return by ID
+		"/returns": mockReturnRequests,
+		"/returns/:id": (id: string) => {
+			const returnRequest = mockReturnRequests.find((item) => item.id === id);
+			return returnRequest || mockReturnRequests[0];
+		},
+
 		"/users/me": (): User => mockApiResponses.get["/auth/me"].user,
 		"/kyc/status": (): { status: KYCStatus; documents: KYCDocument[] } => ({
 			status: KYCStatus.IN_PROGRESS,
@@ -1980,13 +1983,12 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			console.log("mark notification read", data);
 			return { ...data, read: true };
 		},
-		"/returns/:id": (id: string, updateData: any) => {
-			const returnRequest = mockReturnRequests.find((item) => item.id === id);
+		"/returns/:id": (data: ReturnRequest): ReturnRequest => {
+			const returnRequest = mockReturnRequests[0];
 			if (returnRequest) {
-				Object.assign(returnRequest, updateData);
-				return returnRequest;
+				return { ...returnRequest, ...data };
 			}
-			return null;
+			return data;
 		},
 	},
 	delete: {
