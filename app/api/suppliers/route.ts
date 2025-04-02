@@ -5,8 +5,8 @@ import { handleRequest } from "@/app/api";
 import User from "../models/User";
 import { UserRole } from "@/lib/types";
 
-const LIST_RATE_LIMIT = 30;
-const CREATE_RATE_LIMIT = 10;
+const LIST_RATE_LIMIT = 300;
+const CREATE_RATE_LIMIT = 100;
 
 // GET /api/suppliers - List suppliers with role-based access control
 export async function GET(req: NextRequest) {

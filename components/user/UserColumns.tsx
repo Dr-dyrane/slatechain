@@ -4,31 +4,37 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export const Columns: ColumnDef<User>[] = [
-    // {
-    //     accessorKey: "avatarUrl",
-    //     header: "Avatar",
-    //     cell: ({ row }) => (
-    //         <Avatar>
-    //             <AvatarImage src={row.original.avatarUrl} alt={`${row.original.firstName} ${row.original.lastName}`} />
-    //             <AvatarFallback>
-    //                 {row.original.firstName[0]}
-    //                 {row.original.lastName[0]}
-    //             </AvatarFallback>
-    //         </Avatar>
-    //     ),
-    // },
     {
         accessorKey: "name",
-        header: "Name",
-    },
-    {
-        accessorKey: "email",
-        header: "Email",
-        cell: ({ row }) => (
-            <div className="truncate" title={row.original.email}>
-                {row.original.email}
-            </div>
-        ),
+        header: "User",
+        cell: ({ row }) => {
+            const user = row.original;
+            const firstName = user.firstName || "Unknown";
+            const lastName = user.lastName || "User";
+            const email = user.email || "No email";
+            const avatarUrl = user.avatarUrl;
+
+            return (
+                <div className="flex items-center gap-3">
+                    <Avatar className="flex-shrink-0 hidden sm:block">
+                        <AvatarImage
+                            src={avatarUrl}
+                            alt={`${firstName} ${lastName}`}
+                        />
+                        <AvatarFallback>
+                            {firstName[0]?.toUpperCase() || "U"}
+                            {lastName[0]?.toUpperCase() || "N"}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="font-medium text-sm text-wrap">
+                            {firstName} {lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 text-wrap">{email}</p>
+                    </div>
+                </div>
+            );
+        },
     },
     {
         accessorKey: "phoneNumber",
@@ -42,13 +48,19 @@ export const Columns: ColumnDef<User>[] = [
     {
         accessorKey: "role",
         header: "Role",
-        cell: ({ row }) => <Badge variant={getBadgeVariantForRole(row.original.role)}>{row.original.role}</Badge>,
+        cell: ({ row }) => (
+            <Badge variant={getBadgeVariantForRole(row.original.role)}>
+                {row.original.role?.charAt(0).toUpperCase() + row.original.role?.slice(1) || "N/A"}
+            </Badge>
+        ),
     },
     {
         accessorKey: "kycStatus",
         header: "KYC Status",
         cell: ({ row }) => (
-            <Badge variant={getBadgeVariantForKYCStatus(row.original.kycStatus)}>{row.original.kycStatus}</Badge>
+            <Badge variant={getBadgeVariantForKYCStatus(row.original.kycStatus)}>
+                {row.original.kycStatus || "Unknown"}
+            </Badge>
         ),
     },
     {
@@ -56,11 +68,11 @@ export const Columns: ColumnDef<User>[] = [
         header: "Onboarding Status",
         cell: ({ row }) => (
             <Badge variant={getBadgeVariantForOnboardingStatus(row.original.onboardingStatus)}>
-                {row.original.onboardingStatus}
+                {row.original.onboardingStatus || "Pending"}
             </Badge>
         ),
     },
-]
+];
 
 function getBadgeVariantForRole(role: UserRole) {
     switch (role) {

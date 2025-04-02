@@ -10,7 +10,7 @@ import { UserRole } from "@/lib/types"
 import KYCDocument from "@/app/api/models/KYCDocument"
 
 export async function GET(req: Request) {
-  const { headers, limited } = await withRateLimit(req, "list_users", 30)
+  const { headers, limited } = await withRateLimit(req, "list_users", 300)
 
   if (limited) {
     return NextResponse.json(
