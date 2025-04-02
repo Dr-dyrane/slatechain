@@ -1,3 +1,4 @@
+// @ts-ignore
 import { WalletInfo } from "../blockchain/web3Provider";
 
 // User Roles

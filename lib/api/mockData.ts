@@ -34,6 +34,17 @@ import {
 	OnboardingStatus,
 	OnboardingStep,
 	BillOfMaterials,
+	RouteType,
+	RouteStatus,
+	FreightTypes,
+	FreightStatus,
+	ReturnItem,
+	ReturnReason,
+	ReturnRequestStatus,
+	ReturnRequest,
+	ItemCondition,
+	ReturnDisposition,
+	ReturnResolutionStatus,
 } from "@/lib/types";
 import {
 	ShopifyOrdersResponse,
@@ -459,6 +470,108 @@ const rejectionReasons = [
 
 // ==================== ENHANCED MOCK DATA ====================
 
+// --- Mock Data for Return Requests ---
+export const mockReturnRequests: ReturnRequest[] = Array.from(
+	{ length: 8 },
+	(_, i) => ({
+		id: randomId("return-request"),
+		returnRequestNumber: `RR${String(10000 + i).padStart(5, "0")}`,
+		orderId: {
+			_id: randomId("order"),
+			orderNumber: `ORD-${String(1000 + i).padStart(4, "0")}`,
+		},
+		customerId: {
+			_id: randomId("user"),
+			email: `customer${i + 1}@example.com`,
+		},
+		requestDate: randomDate(new Date(2023, 0, 1), new Date()),
+		status: randomElement([
+			"pending" as ReturnRequestStatus,
+			"approved" as ReturnRequestStatus,
+			"rejected" as ReturnRequestStatus,
+			"completed" as ReturnRequestStatus,
+		]),
+		returnReason: randomElement([
+			"damaged" as ReturnReason,
+			"wrongItem" as ReturnReason,
+			"notSatisfied" as ReturnReason,
+		]),
+		reasonDetails: "Item was not as described.",
+		proofImages: Array.from(
+			{ length: randomNumber(1, 3) },
+			() => `https://picsum.photos/200/300?random=${randomNumber(1, 1000)}`
+		),
+		preferredReturnType: randomElement([
+			"refund" as unknown as ReturnType<any>,
+			"exchange" as unknown as ReturnType<any>,
+			"storeCredit" as unknown as ReturnType<any>,
+		]),
+
+		reviewedBy: randomId("user"),
+		reviewDate: randomDate(new Date(2023, 0, 1), new Date()),
+		staffComments: "Reviewed and processed successfully.",
+		resolution: {
+			id: randomId("resolution"),
+			returnRequestId: randomId("return-request"),
+			status: randomElement([
+				"refundIssued" as ReturnResolutionStatus,
+				"exchangeShipped" as ReturnResolutionStatus,
+				"returnToSupplier" as ReturnResolutionStatus,
+			]),
+			resolutionType: randomElement([
+				"refund" as unknown as ReturnType<any>,
+				"exchange" as unknown as ReturnType<any>,
+				"storeCredit" as unknown as ReturnType<any>,
+			]),
+			resolvedBy: randomId("user"),
+			resolutionDate: randomDate(new Date(2023, 0, 1), new Date()),
+			notes: "Refund processed via original payment method.",
+			refundAmount: randomNumber(1000, 5000),
+			refundTransactionId: randomId("txn"),
+			replacementOrderId: randomId("order"),
+			storeCreditAmount: randomNumber(1000, 3000),
+			storeCreditCode: `SC-${String(1000 + i).padStart(4, "0")}`,
+			exchangeNotes: "Replaced with a new item of the same model.",
+			createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+			updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+		},
+		createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+		updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+	})
+);
+
+// --- Mock Data for Return Items ---
+export const mockReturnItems: ReturnItem[] = mockReturnRequests.flatMap(
+	(request) =>
+		Array.from({ length: randomNumber(1, 3) }, (_, i) => ({
+			id: randomId("return-item"),
+			returnRequestId: request.id,
+			orderItemId: randomId("order-item"),
+			productId: randomId("product"),
+			quantityRequested: randomNumber(1, 5),
+			quantityReceived: randomNumber(0, 5),
+			receivedDate: randomDate(new Date(2023, 0, 1), new Date()),
+			itemCondition: randomElement([
+				"new" as ItemCondition,
+				"used" as ItemCondition,
+				"damaged" as ItemCondition,
+			]),
+			conditionAssessedBy: randomId("user"),
+			conditionAssessmentDate: randomDate(new Date(2023, 0, 1), new Date()),
+			disposition: randomElement([
+				"restock" as ReturnDisposition,
+				"dispose" as ReturnDisposition,
+				"repair" as ReturnDisposition,
+			]),
+			dispositionSetBy: randomId("user"),
+			dispositionDate: randomDate(new Date(2023, 0, 1), new Date()),
+			returnTrackingNumber: `RTN-${String(10000 + i).padStart(5, "0")}`,
+			shippingLabelUrl: `https://example.com/shipping-label-${i}.pdf`,
+			createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+			updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+		}))
+);
+
 // Generate a more comprehensive set of inventory items
 const generateInventoryItems = (count: number): InventoryItem[] => {
 	const items: InventoryItem[] = [];
@@ -539,6 +652,28 @@ const generateOrders = (count: number): Order[] => {
 
 	return orders;
 };
+
+export const mockRoutes: Route[] = Array.from({ length: 8 }, (_, i) => ({
+	id: randomId("route"),
+	name: `Route ${i + 1}`,
+	startLocation: randomId("geo"),
+	endLocation: randomId("geo"),
+	distance: randomNumber(50, 500),
+	estimatedDuration: randomNumber(1, 10),
+	type: randomElement([
+		"LOCAL" as RouteType,
+		"REGIONAL" as RouteType,
+		"INTERNATIONAL" as RouteType,
+	]),
+	status: randomElement([
+		"PLANNED" as RouteStatus,
+		"ACTIVE" as RouteStatus,
+		"INACTIVE" as RouteStatus,
+		"UNDER_MAINTENANCE" as RouteStatus,
+	]),
+	createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+	updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+}));
 
 // Generate more comprehensive warehouses
 const generateWarehouses = (count: number): Warehouse[] => {
@@ -656,6 +791,10 @@ const generateShipments = (count: number): Shipment[] => {
 				latitude: 34.0522 + (Math.random() - 0.5) * 10,
 				longitude: -118.2437 + (Math.random() - 0.5) * 10,
 			},
+			// @ts-ignore
+			createdAt: randomDate(new Date(2020, 0, 1), new Date(2022, 0, 1)),
+			// @ts-ignore
+			updatedAt: randomDate(new Date(2022, 0, 1), new Date()),
 		});
 	}
 
@@ -1470,6 +1609,9 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			accessToken: "mock-access-token",
 			refreshToken: "mock-refresh-token",
 		},
+		"/returns": mockReturnRequests, // Mocked list of return requests
+		"/returns/:id": (id: string) =>
+			mockReturnRequests.find((item) => item.id === id), // Get single return by ID
 		"/users/me": (): User => mockApiResponses.get["/auth/me"].user,
 		"/kyc/status": (): { status: KYCStatus; documents: KYCDocument[] } => ({
 			status: KYCStatus.IN_PROGRESS,
@@ -1562,139 +1704,47 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				status: "INACTIVE",
 			},
 		],
-		"/routes": (): Route[] => [
-			{
-				id: "route-1",
-				name: "LA to NY",
-				startLocation: "Los Angeles, CA",
-				endLocation: "New York, NY",
-				distance: 2448,
-				estimatedDuration: 40,
-			},
-			{
-				id: "route-2",
-				name: "Miami to Chicago",
-				startLocation: "Miami, FL",
-				endLocation: "Chicago, IL",
-				distance: 1387,
-				estimatedDuration: 22,
-			},
-			{
-				id: "route-3",
-				name: "Seattle to Dallas",
-				startLocation: "Seattle, WA",
-				endLocation: "Dallas, TX",
-				distance: 1949,
-				estimatedDuration: 32,
-			},
-			{
-				id: "route-4",
-				name: "Boston to Atlanta",
-				startLocation: "Boston, MA",
-				endLocation: "Atlanta, GA",
-				distance: 1089,
-				estimatedDuration: 18,
-			},
-			{
-				id: "route-5",
-				name: "Denver to San Francisco",
-				startLocation: "Denver, CO",
-				endLocation: "San Francisco, CA",
-				distance: 1254,
-				estimatedDuration: 20,
-			},
-		],
-		"/freights": (): Freight[] => [
-			{
-				id: "freight-1",
-				type: "Electronics",
-				name: "High-Value Electronics",
-				weight: 500,
-				volume: 20,
-				hazardous: false,
-				specialInstructions: "Handle with care; fragile items inside.",
-			},
-			{
-				id: "freight-2",
-				type: "Chemicals",
-				name: "Industrial Chemicals",
-				weight: 1000,
-				volume: 30,
-				hazardous: true,
-				specialInstructions:
-					"Must be kept at specific temperature; handle with caution.",
-			},
-			{
-				id: "freight-3",
-				type: "Food",
-				name: "Perishable Food Items",
-				weight: 300,
-				volume: 15,
-				hazardous: false,
-				specialInstructions: "Keep refrigerated.",
-			},
-			{
-				id: "freight-4",
-				type: "Clothing",
-				name: "Fashion Apparel",
-				weight: 200,
-				volume: 25,
-				hazardous: false,
-				specialInstructions: "Keep dry and clean.",
-			},
-			{
-				id: "freight-5",
-				type: "Machinery",
-				name: "Industrial Equipment",
-				weight: 2000,
-				volume: 40,
-				hazardous: false,
-				specialInstructions:
-					"Heavy machinery; use appropriate lifting equipment.",
-			},
-		],
-		"/transports": (): Transport[] => [
-			{
-				id: "T001",
-				type: "TRUCK",
-				capacity: 1000,
-				currentLocation: { latitude: 34.0522, longitude: -118.2437 },
-				status: "IN_TRANSIT",
-				carrierId: "carrier-1",
-			},
-			{
-				id: "T002",
-				type: "SHIP",
-				capacity: 10000,
-				currentLocation: { latitude: 37.7749, longitude: -122.4194 },
-				status: "AVAILABLE",
-				carrierId: "carrier-2",
-			},
-			{
-				id: "T003",
-				type: "PLANE",
-				capacity: 500,
-				currentLocation: { latitude: 40.7128, longitude: -74.006 },
-				status: "IN_TRANSIT",
-				carrierId: "carrier-3",
-			},
-			{
-				id: "T004",
-				type: "TRUCK",
-				capacity: 1500,
-				currentLocation: { latitude: 33.4484, longitude: -112.074 },
-				status: "AVAILABLE",
-				carrierId: "carrier-4",
-			},
-			{
-				id: "T005",
-				type: "TRUCK",
-				capacity: 800,
-				currentLocation: { latitude: 29.7604, longitude: -95.3698 },
-				status: "MAINTENANCE",
-				carrierId: "carrier-5",
-			},
-		],
+		"/routes": (): Route[] => mockRoutes,
+		"/freights": (): Freight[] =>
+			Array.from({ length: 12 }, (_, i) => ({
+				id: randomId("freight"),
+				name: `Freight ${i + 1}`,
+				routeId: randomId("route"),
+				carrierId: randomId("carrier"),
+				weight: randomNumber(100, 1000),
+				volume: randomNumber(1, 10),
+				type: randomElement([
+					"CONTAINER" as FreightTypes,
+					"STANDARD" as FreightTypes,
+					"FRAGILE" as FreightTypes,
+				]),
+				status: randomElement([
+					"IN_TRANSIT" as FreightStatus,
+					"PENDING" as FreightStatus,
+					"DELIVERED" as FreightStatus,
+				]),
+				createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+				updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+			})),
+		"/transports": (): Transport[] =>
+			Array.from({ length: 6 }, (_, i) => ({
+				id: randomId("transport"),
+				name: `Transport ${i + 1}`,
+				type: randomElement(["TRUCK", "SHIP", "PLANE"]),
+				capacity: randomNumber(1000, 5000),
+				currentLocation: {
+					latitude: randomNumber(-90 * 1e6, 90 * 1e6) / 1e6,
+					longitude: randomNumber(-180 * 1e6, 180 * 1e6) / 1e6,
+				},
+
+				status: randomElement(["IN_TRANSIT", "MAINTENANCE", "AVAILABLE"]),
+				carrierId: randomId("carrier"),
+				licensePlate: `ABC-${randomNumber(100, 999)}`,
+				routeId: randomId("route"),
+				driverId: randomId("user"),
+				createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+				updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+			})),
 		// Special handler for paginated users endpoint
 		"/users": (params: any) => {
 			// Parse pagination parameters
@@ -1930,6 +1980,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			console.log("mark notification read", data);
 			return { ...data, read: true };
 		},
+		"/returns/:id": (id: string, updateData: any) => {
+			const returnRequest = mockReturnRequests.find((item) => item.id === id);
+			if (returnRequest) {
+				Object.assign(returnRequest, updateData);
+				return returnRequest;
+			}
+			return null;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
@@ -2141,6 +2199,20 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			mockPaymentResponses["/payments/create-intent"](data),
 		"/orders/:id/payment": (data: any) =>
 			mockPaymentResponses["/orders/:id/payment"](data),
+		"/returns": (data: any) => {
+			const newReturn = { ...data, id: `return-${Date.now()}` };
+			mockReturnRequests.push(newReturn);
+			return newReturn;
+		},
+		"/returns/:id/resolve": (id: string, resolutionData: any) => {
+			const returnRequest = mockReturnRequests.find((item) => item.id === id);
+			if (returnRequest) {
+				returnRequest.status = resolutionData.resolutionType;
+				returnRequest.returnReason = resolutionData.notes;
+				return returnRequest;
+			}
+			return null;
+		},
 		// KYC verification endpoint
 		"/admin/kyc/verify": (data: any) => {
 			const { submissionId, status, rejectionReason } = data;
