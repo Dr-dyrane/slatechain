@@ -51,6 +51,10 @@ const avatarSlice = createSlice({
 		setAvatarUrl: (state, action) => {
 			state.avatarUrl = action.payload;
 		},
+		// Action to manually set the loading state
+		setIsLoading: (state, action) => {
+			state.isUploading = action.payload;
+		},
 	},
 	extraReducers: (builder) => {
 		builder
@@ -69,5 +73,6 @@ const avatarSlice = createSlice({
 	},
 });
 
-export const { clearAvatarError, setAvatarUrl } = avatarSlice.actions;
+export const { clearAvatarError, setAvatarUrl, setIsLoading } =
+	avatarSlice.actions;
 export default avatarSlice.reducer;

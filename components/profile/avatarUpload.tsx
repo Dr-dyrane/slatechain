@@ -1,11 +1,11 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import type { User } from "@/lib/types"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/store"
-import { uploadAvatar } from "@/lib/slices/avatarSlice"
+import { setIsLoading, uploadAvatar } from "@/lib/slices/avatarSlice"
 import { updateUser } from "@/lib/slices/authSlice"
 import { toast } from "sonner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
@@ -24,6 +24,10 @@ export default function AvatarUpload({ user, refetch }: AvatarUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(user?.avatarUrl || null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    dispatch(setIsLoading(false))
+  }, [])
 
   const getInitials = () => {
     if (!user) return "U"
