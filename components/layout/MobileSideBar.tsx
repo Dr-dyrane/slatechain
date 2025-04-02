@@ -133,7 +133,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
             <div className="flex items-center cursor-pointer gap-4 rounded-2xl border hover:bg-accent/35 bg-accent/25 border-border px-3 py-4" onClick={() => handleNavigation("/profile")} >
               <Avatar className="h-14 w-14 ring-4 ring-background/50">
                 <AvatarImage src={user?.avatarUrl} />
-                <AvatarFallback className="text-lg">{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
+                <AvatarFallback className="text-lg">{user?.name ? getInitials(user?.name) : "U"}</AvatarFallback>
               </Avatar>
               <div className="space-y-1.5 overflow-scroll scrollbar-hide">
                 <h3 className="text-lg font-semibold tracking-tight">{user?.name}</h3>
@@ -141,9 +141,9 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
               </div>
             </div>
             <div className="flex w-full justify-end gap-4 items-center overflow-scroll scrollbar-hide">
-              {getKycStatusBadge(user.kycStatus)}
+              {getKycStatusBadge(user?.kycStatus)}
               <Badge variant="secondary" className="font-normal">
-                {user?.role.charAt(0).toUpperCase() + user?.role.slice(1)}
+                {(user?.role ?? "unknown").charAt(0).toUpperCase() + (user?.role ?? "unknown").slice(1)}
               </Badge>
             </div>
           </div>
