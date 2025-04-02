@@ -1,9 +1,10 @@
-"use client";
+"use client"
 
-import { UserPreferences } from "@/components/settings/UserPreferences";
-import { Integrations } from "@/components/settings/Integrations";
-import { AccountActions } from "@/components/settings/AccountActions";
-import { HelpSupportCard } from "@/components/settings/HelpSupportCard";
+import { UserPreferences } from "@/components/settings/UserPreferences"
+import { Integrations } from "@/components/settings/Integrations"
+import { AccountActions } from "@/components/settings/AccountActions"
+import { HelpSupportCard } from "@/components/settings/HelpSupportCard"
+import { TwoFactorAuthCard } from "@/components/settings/TwoFactorAuthCard"
 
 export default function SettingsPage() {
   return (
@@ -17,6 +18,9 @@ export default function SettingsPage() {
           <UserPreferences />
         </div>
         <div className="col-span-1">
+          <TwoFactorAuthCard />
+        </div>
+        <div className="col-span-1">
           <HelpSupportCard />
         </div>
         <div className="col-span-1">
@@ -26,3 +30,4 @@ export default function SettingsPage() {
     </div>
   )
 }
+

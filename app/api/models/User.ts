@@ -8,14 +8,14 @@ import {
 import bcrypt from "bcryptjs";
 import { mongoose } from "..";
 
-// Add supplier metadata interface
+// supplier metadata interface
 interface SupplierMetadata {
 	address?: string;
 	rating?: number;
 	status?: string;
 }
 
-// Add address interface
+// address interface
 interface UserAddress {
 	address1: string;
 	address2?: string;
@@ -24,6 +24,15 @@ interface UserAddress {
 	country: string;
 	postalCode?: string;
 	phone?: string;
+}
+
+// 2FA interface
+interface TwoFactorAuth {
+	enabled: boolean;
+	phoneNumber?: string;
+	secret?: string;
+	backupCodes?: string[];
+	lastVerified?: Date;
 }
 
 export interface IUser {
@@ -43,6 +52,7 @@ export interface IUser {
 	assignedManagers?: string[];
 	supplierMetadata?: SupplierMetadata;
 	address?: UserAddress;
+	twoFactorAuth?: TwoFactorAuth;
 	createdAt: Date;
 	updatedAt: Date;
 	blockchain?: {
@@ -59,6 +69,14 @@ const userAddressSchema = new mongoose.Schema({
 	country: { type: String, required: true },
 	postalCode: { type: String },
 	phone: { type: String },
+});
+
+const twoFactorAuthSchema = new mongoose.Schema({
+	enabled: { type: Boolean, default: false },
+	phoneNumber: { type: String },
+	secret: { type: String },
+	backupCodes: [{ type: String }],
+	lastVerified: { type: Date },
 });
 
 const userSchema = new mongoose.Schema<IUser>(
@@ -115,6 +133,12 @@ const userSchema = new mongoose.Schema<IUser>(
 			type: userAddressSchema,
 			required: false,
 		},
+		twoFactorAuth: {
+			type: twoFactorAuthSchema,
+			default: () => ({
+				enabled: false,
+			}),
+		},
 		blockchain: {
 			walletAddress: { type: String, sparse: true, unique: true },
 			registeredAt: Date,
@@ -170,6 +194,10 @@ userSchema.methods.toAuthJSON = function () {
 			country: "Unknown",
 			postalCode: "",
 			phone: "",
+		},
+		twoFactorAuth: {
+			enabled: this.twoFactorAuth?.enabled || false,
+			phoneNumber: this.twoFactorAuth?.phoneNumber || null,
 		},
 		createdAt: this.createdAt,
 		updatedAt: this.updatedAt,

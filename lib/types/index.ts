@@ -63,12 +63,59 @@ export interface User {
 		postalCode?: string;
 		phone?: string;
 	};
+	twoFactorAuth?: {
+		enabled: boolean;
+		phoneNumber?: string;
+	};
 	blockchain?: {
 		walletAddress?: string;
 		registeredAt?: string;
 	};
 	createdAt: string;
 	updatedAt: string;
+}
+
+// 2FA related types
+export enum TwoFactorMethod {
+	WHATSAPP = "WHATSAPP",
+	SMS = "SMS",
+	EMAIL = "EMAIL",
+}
+
+export interface TwoFactorAuthData {
+	enabled: boolean;
+	phoneNumber?: string;
+	method?: TwoFactorMethod;
+}
+
+export interface AuthError {
+	message: string;
+}
+
+export interface WalletInfo {
+	address: string;
+	balance: number;
+}
+
+// LoginRequest interface
+export interface LoginRequest {
+	email: string;
+	password: string;
+	phoneNumber?: string; // Add this for phone login
+	otp?: string; // Add this for OTP verification
+}
+
+//  verification request
+export interface TwoFactorVerifyRequest {
+	token: string; // Temporary token from first login step
+	code: string; // Verification code
+}
+
+// Add 2FA setup request
+export interface TwoFactorSetupRequest {
+	phoneNumber: string;
+	method: TwoFactorMethod;
+	enable: boolean;
 }
 
 // User Integrations (Only One Service Enabled Per Category)
@@ -164,6 +211,8 @@ export interface AuthState {
 	onboardingStatus: OnboardingStatus;
 	wallet: WalletInfo | null;
 	isWalletConnecting: boolean;
+	twoFactorPending?: boolean;
+	twoFactorToken?: string;
 }
 
 export interface AuthError {
@@ -902,6 +951,7 @@ export interface NotificationState {
 		markAsRead: string[];
 		delete: string[];
 	};
+	isDeletingAll: boolean;
 }
 
 // Return Management Types

@@ -7,6 +7,8 @@ import {
 	LoginRequest,
 	RegisterRequest,
 	PasswordChangeFormData,
+	TwoFactorVerifyRequest,
+	TwoFactorSetupRequest,
 } from "@/lib/types";
 import { apiClient } from "./apiClient/[...live]";
 
@@ -72,3 +74,34 @@ export const resetPassword = async (
 export const getUserData = async (): Promise<AuthResponse> => {
 	return apiClient.get<AuthResponse>("/auth/me");
 };
+
+// Login with phone number
+export async function loginWithPhone(credentials: {
+	phoneNumber: string;
+	otp?: string;
+}): Promise<{ token: string } | AuthResponse> {
+	const response = await apiClient.post<{ token: string } | AuthResponse>(
+		"/auth/phone-login",
+		credentials
+	);
+	return response;
+}
+
+// Verify 2FA code
+export async function verifyTwoFactor(
+	verifyData: TwoFactorVerifyRequest
+): Promise<AuthResponse> {
+	const response = await apiClient.post<AuthResponse>(
+		"/auth/verify-2fa",
+		verifyData
+	);
+	return response;
+}
+
+// Setup 2FA
+export async function setupTwoFactor(
+	setupData: TwoFactorSetupRequest
+): Promise<User> {
+	const response = await apiClient.post<User>("/auth/setup-2fa", setupData);
+	return response;
+}

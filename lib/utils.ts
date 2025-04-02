@@ -6,6 +6,10 @@ import type { NextRequest } from "next/server";
 import crypto from "crypto";
 import type mongoose from "mongoose";
 import type { Supplier, UserRole } from "./types";
+import {
+	parsePhoneNumberFromString,
+	type CountryCode,
+} from "libphonenumber-js";
 
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
@@ -636,4 +640,68 @@ const storeCreditDB: StoreCredit[] = [];
 // Function to get all issued store credits
 export async function getAllStoreCredits(): Promise<StoreCredit[]> {
 	return storeCreditDB;
+}
+
+/**
+ * Validates a phone number
+ * @param phoneNumber - The phone number to validate
+ * @param countryCode - Optional country code for validation
+ * @returns Boolean indicating if the phone number is valid
+ */
+export function isValidPhoneNumber(
+	phoneNumber: string,
+	countryCode?: CountryCode
+): boolean {
+	try {
+		const parsedNumber = parsePhoneNumberFromString(phoneNumber, countryCode);
+		return parsedNumber ? parsedNumber.isValid() : false;
+	} catch (error) {
+		return false;
+	}
+}
+
+/**
+ * Formats a phone number to E.164 format
+ * @param phoneNumber - The phone number to format
+ * @param countryCode - Optional country code for formatting
+ * @returns Formatted phone number or null if invalid
+ */
+export function formatPhoneNumber(
+	phoneNumber: string,
+	countryCode?: CountryCode
+): string | null {
+	try {
+		const parsedNumber = parsePhoneNumberFromString(phoneNumber, countryCode);
+		return parsedNumber ? parsedNumber.format("E.164") : null;
+	} catch (error) {
+		return null;
+	}
+}
+
+/**
+ * Gets the country code from a phone number
+ * @param phoneNumber - The phone number
+ * @returns The country code or null if not detectable
+ */
+export function getCountryFromPhone(phoneNumber: string): CountryCode | null {
+	try {
+		const parsedNumber = parsePhoneNumberFromString(phoneNumber);
+		return parsedNumber ? (parsedNumber.country as CountryCode) : null;
+	} catch (error) {
+		return null;
+	}
+}
+
+/**
+ * Gets the national number without country code
+ * @param phoneNumber - The phone number
+ * @returns The national number or null if invalid
+ */
+export function getNationalNumber(phoneNumber: string): string | null {
+	try {
+		const parsedNumber = parsePhoneNumberFromString(phoneNumber);
+		return parsedNumber ? parsedNumber.nationalNumber : null;
+	} catch (error) {
+		return null;
+	}
 }

@@ -1,5 +1,3 @@
-// src/lib/slices/notificationSlice.ts
-
 import {
 	createSlice,
 	createAsyncThunk,
@@ -18,6 +16,7 @@ const initialState: NotificationState = {
 		markAsRead: [],
 		delete: [],
 	},
+	isDeletingAll: false,
 };
 
 // Async Thunks
@@ -78,6 +77,22 @@ export const markAllNotificationsAsRead = createAsyncThunk<
 	} catch (error: any) {
 		return rejectWithValue(
 			error.message || "Failed to mark all notifications as read"
+		);
+	}
+});
+
+export const deleteAllNotifications = createAsyncThunk<
+	{ success: boolean; count: number },
+	void,
+	{ rejectValue: string }
+>("notifications/deleteAllNotifications", async (_, { rejectWithValue }) => {
+	try {
+		const result = await notificationApiClient.deleteAllNotifications();
+
+		return result;
+	} catch (error: any) {
+		return rejectWithValue(
+			error.message || "Failed to delete all notifications"
 		);
 	}
 });
@@ -260,6 +275,22 @@ const notificationSlice = createSlice({
 			})
 			.addCase(markAllNotificationsAsRead.rejected, (state, action) => {
 				state.loading = false;
+				state.error = action.payload as string;
+			})
+
+			// Add cases for deleteAllNotifications
+			.addCase(deleteAllNotifications.pending, (state) => {
+				state.isDeletingAll = true;
+				state.error = null;
+			})
+			.addCase(deleteAllNotifications.fulfilled, (state) => {
+				state.isDeletingAll = false;
+				state.notifications = [];
+				state.unreadCount = 0;
+				state.error = null;
+			})
+			.addCase(deleteAllNotifications.rejected, (state, action) => {
+				state.isDeletingAll = false;
 				state.error = action.payload as string;
 			})
 

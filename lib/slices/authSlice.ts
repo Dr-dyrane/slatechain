@@ -14,6 +14,8 @@ import {
 	type AuthResponse,
 	type User,
 	type PasswordChangeFormData,
+	TwoFactorVerifyRequest,
+	TwoFactorSetupRequest,
 } from "@/lib/types";
 import {
 	loginUser,
@@ -24,6 +26,9 @@ import {
 	sendPasswordResetEmail,
 	resetPassword,
 	updateUserProfile,
+	verifyTwoFactor,
+	setupTwoFactor,
+	loginWithPhone,
 } from "@/lib/api/auth";
 import { tokenManager } from "../helpers/tokenManager";
 import { toast } from "sonner";
@@ -46,7 +51,66 @@ const initialState: AuthState = {
 	onboardingStatus: OnboardingStatus.NOT_STARTED,
 	wallet: null,
 	isWalletConnecting: false,
+	twoFactorPending: false,
+	twoFactorToken: undefined,
 };
+
+// Login with phone number
+export const loginWithPhoneNumber = createAsyncThunk<
+	{ token: string } | AuthResponse,
+	{ phoneNumber: string; otp?: string },
+	{ rejectValue: AuthError }
+>("auth/loginWithPhoneNumber", async (credentials, { rejectWithValue }) => {
+	try {
+		const response = await loginWithPhone(credentials);
+		return response;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: error.response?.status || "UNKNOWN_ERROR",
+			message:
+				error.response?.data?.message || error.message || "An error occurred",
+		};
+		return rejectWithValue(authError);
+	}
+});
+
+// Verify 2FA code
+export const verifyTwoFactorCode = createAsyncThunk<
+	AuthResponse,
+	TwoFactorVerifyRequest,
+	{ rejectValue: AuthError }
+>("auth/verifyTwoFactorCode", async (verifyData, { rejectWithValue }) => {
+	try {
+		const response = await verifyTwoFactor(verifyData);
+		return response;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: error.response?.status || "UNKNOWN_ERROR",
+			message:
+				error.response?.data?.message || error.message || "An error occurred",
+		};
+		return rejectWithValue(authError);
+	}
+});
+
+// Setup 2FA
+export const setupTwoFactorAuth = createAsyncThunk<
+	User,
+	TwoFactorSetupRequest,
+	{ rejectValue: AuthError }
+>("auth/setupTwoFactorAuth", async (setupData, { rejectWithValue }) => {
+	try {
+		const response = await setupTwoFactor(setupData);
+		return response;
+	} catch (error: any) {
+		const authError: AuthError = {
+			code: error.response?.status || "UNKNOWN_ERROR",
+			message:
+				error.response?.data?.message || error.message || "An error occurred",
+		};
+		return rejectWithValue(authError);
+	}
+});
 
 export const connectBlockchainWallet = createAsyncThunk<
 	WalletInfo,
@@ -270,13 +334,24 @@ export const changePassword = createAsyncThunk<
 	}
 });
 
+// Modify the login thunk to handle 2FA
 export const login = createAsyncThunk<
-	AuthResponse,
+	AuthResponse | { token: string; requireTwoFactor: true },
 	LoginRequest,
 	{ rejectValue: AuthError }
 >("auth/login", async (credentials, { rejectWithValue }) => {
 	try {
 		const response = await loginUser(credentials);
+
+		// If the response includes a token but no user, it means 2FA is required
+		if (response.token && !response.user) {
+			return {
+				token: response.token,
+				requireTwoFactor: true,
+			};
+		}
+
+		// Regular login response (includes user and tokens)
 		return response;
 	} catch (error: any) {
 		const authError: AuthError = {
@@ -344,6 +419,12 @@ const authSlice = createSlice({
 	name: "auth",
 	initialState,
 	reducers: {
+		setTwoFactorPending: (state, action: PayloadAction<boolean>) => {
+			state.twoFactorPending = action.payload;
+		},
+		setTwoFactorToken: (state, action: PayloadAction<string | undefined>) => {
+			state.twoFactorToken = action.payload;
+		},
 		clearError: (state) => {
 			state.error = null;
 		},
@@ -410,6 +491,83 @@ const authSlice = createSlice({
 	},
 	extraReducers: (builder) => {
 		builder
+			// Add cases for the new 2FA thunks
+			.addCase(loginWithPhoneNumber.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(loginWithPhoneNumber.fulfilled, (state, action) => {
+				state.loading = false;
+
+				// Type guard to check for 2FA response
+				if ("token" in action.payload) {
+					// 2FA required
+					state.twoFactorPending = true;
+					state.twoFactorToken = action.payload.token;
+				} else if ("accessToken" in action.payload) {
+					// Regular login successful
+					state.user = action.payload.user as User;
+					state.accessToken = action.payload.accessToken;
+					state.refreshToken = action.payload.refreshToken;
+					state.isAuthenticated = true;
+					state.kycStatus = action.payload.user.kycStatus;
+					state.onboardingStatus = action.payload.user.onboardingStatus;
+					state.twoFactorPending = false;
+					state.twoFactorToken = undefined;
+				}
+			})
+			.addCase(loginWithPhoneNumber.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "UNKNOWN_ERROR",
+					message: "An unknown error occurred",
+				};
+			})
+			.addCase(verifyTwoFactorCode.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(verifyTwoFactorCode.fulfilled, (state, action) => {
+				state.loading = false;
+				state.user = action.payload.user;
+				state.accessToken = action.payload.accessToken;
+				state.refreshToken = action.payload.refreshToken;
+				state.isAuthenticated = true;
+				state.kycStatus = action.payload.user.kycStatus;
+				state.onboardingStatus = action.payload.user.onboardingStatus;
+				state.twoFactorPending = false;
+				state.twoFactorToken = undefined;
+			})
+			.addCase(verifyTwoFactorCode.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "UNKNOWN_ERROR",
+					message: "Invalid verification code",
+				};
+			})
+			.addCase(setupTwoFactorAuth.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(setupTwoFactorAuth.fulfilled, (state, action) => {
+				state.loading = false;
+				if (state.user) {
+					state.user = {
+						...state.user,
+						twoFactorAuth: {
+							enabled: action.payload.twoFactorAuth?.enabled || false,
+							phoneNumber: action.payload.twoFactorAuth?.phoneNumber,
+						},
+					};
+				}
+			})
+			.addCase(setupTwoFactorAuth.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload || {
+					code: "UNKNOWN_ERROR",
+					message: "Failed to set up two-factor authentication",
+				};
+			})
 			.addCase(fetchUser.pending, (state) => {
 				state.loading = true;
 				state.error = null;
@@ -484,13 +642,21 @@ const authSlice = createSlice({
 				state.error = null;
 			})
 			.addCase(login.fulfilled, (state, action) => {
-				state.user = action.payload.user;
-				state.accessToken = action.payload.accessToken;
-				state.refreshToken = action.payload.refreshToken;
-				state.isAuthenticated = true;
 				state.loading = false;
-				state.kycStatus = action.payload.user.kycStatus;
-				state.onboardingStatus = action.payload.user.onboardingStatus;
+
+				// Check if this is a 2FA required response
+				if ("requireTwoFactor" in action.payload) {
+					state.twoFactorPending = true;
+					state.twoFactorToken = action.payload.token;
+				} else {
+					// Regular login success
+					state.user = action.payload.user;
+					state.accessToken = action.payload.accessToken;
+					state.refreshToken = action.payload.refreshToken;
+					state.isAuthenticated = true;
+					state.kycStatus = action.payload.user.kycStatus;
+					state.onboardingStatus = action.payload.user.onboardingStatus;
+				}
 			})
 			.addCase(login.rejected, (state, action) => {
 				state.loading = false;
@@ -610,5 +776,7 @@ export const {
 	updateOnboardingStatus,
 	disconnectWallet,
 	setWallet,
+	setTwoFactorPending,
+	setTwoFactorToken,
 } = authSlice.actions;
 export default authSlice.reducer;

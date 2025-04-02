@@ -58,3 +58,32 @@ export const verifyRefreshToken = (token: string) => {
 		return null;
 	}
 };
+
+export function generateTempToken(userId: string): string {
+	const payload = {
+		userId,
+		exp: Math.floor(Date.now() / 1000) + 10 * 60, // 10 minutes
+		type: "2fa_temp",
+	};
+
+	return jwt.sign(payload, JWT_SECRET || "your-secret-key");
+}
+
+// Verify a temporary token
+export function verifyTempToken(token: string): { userId: string } | null {
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET || "your-secret-key") as {
+			userId: string;
+			exp: number;
+			type: string;
+		};
+
+		if (decoded.type !== "2fa_temp") {
+			return null;
+		}
+
+		return { userId: decoded.userId };
+	} catch (error) {
+		return null;
+	}
+}
