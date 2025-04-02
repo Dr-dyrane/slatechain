@@ -12,19 +12,24 @@ let bucket: GridFSBucket | null = null;
 
 // Initialize the GridFS bucket
 async function initBucket() {
-	if (!bucket) {
-		await connectToDatabase();
+	try {
+		if (!bucket) {
+			await connectToDatabase();
 
-		// Check if the connection has a database instance
-		if (!mongoose.connection.db) {
-			throw new Error("Database connection not established");
+			// Check if the connection has a database instance
+			if (!mongoose.connection.db) {
+				throw new Error("Database connection not established");
+			}
+
+			bucket = new GridFSBucket(mongoose.connection.db, {
+				bucketName: "avatars",
+			});
 		}
-
-		bucket = new GridFSBucket(mongoose.connection.db, {
-			bucketName: "avatars",
-		});
+		return bucket;
+	} catch (error) {
+		console.error("Error initializing GridFS bucket:", error);
+		throw error;
 	}
-	return bucket;
 }
 
 // Create Avatar model schema
@@ -153,34 +158,44 @@ export async function POST(req: Request) {
 		const arrayBuffer = await avatarFile.arrayBuffer();
 		const buffer = Buffer.from(arrayBuffer);
 
-		// Create upload stream
-		const uploadStream = gridFSBucket.openUploadStream(filename, {
-			contentType: avatarFile.type,
-			metadata: {
-				userId,
-				uploadDate: new Date(),
-			},
-		});
+		// Use a different approach for uploading the file
+		// Instead of using the stream API directly, we'll use a more reliable method
+		let fileId: mongoose.Types.ObjectId;
 
-		// Create a promise to handle the upload
-		const uploadPromise = new Promise<mongoose.Types.ObjectId>(
-			(resolve, reject) => {
-				uploadStream.on("error", (error) => {
-					reject(error);
+		try {
+			// Create upload stream
+			const uploadStream = gridFSBucket.openUploadStream(filename, {
+				contentType: avatarFile.type,
+				metadata: {
+					userId,
+					uploadDate: new Date(),
+				},
+			});
+
+			// Get the ID before writing to the stream
+			fileId = uploadStream.id;
+
+			// Write the buffer to the stream
+			uploadStream.write(buffer);
+
+			// End the stream and wait for it to finish
+			await new Promise<void>((resolve, reject) => {
+				uploadStream.end((error: any) => {
+					if (error) {
+						reject(error);
+					} else {
+						resolve();
+					}
 				});
+			});
+		} catch (error: any) {
+			console.error("Error during file upload:", error);
+			throw new Error(`File upload failed: ${error.message}`);
+		}
 
-				uploadStream.on("finish", (file: any) => {
-					resolve(file._id);
-				});
-
-				// Write the buffer to the upload stream
-				uploadStream.write(buffer);
-				uploadStream.end();
-			}
-		);
-
-		// Wait for the upload to complete
-		const fileId = await uploadPromise;
+		if (!fileId) {
+			throw new Error("File upload failed. No file ID generated.");
+		}
 
 		// Create or update avatar record
 		if (previousAvatar) {

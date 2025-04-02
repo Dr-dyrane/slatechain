@@ -26,8 +26,16 @@ export default function AvatarUpload({ user, refetch }: AvatarUploadProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
+    // Reset loading state when component mounts
     dispatch(setIsLoading(false))
-  }, [])
+  }, [dispatch])
+
+  // Update preview URL when user avatar changes
+  useEffect(() => {
+    if (user?.avatarUrl) {
+      setPreviewUrl(user.avatarUrl)
+    }
+  }, [user?.avatarUrl])
 
   const getInitials = () => {
     if (!user) return "U"

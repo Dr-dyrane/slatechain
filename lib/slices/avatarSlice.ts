@@ -35,6 +35,10 @@ export const uploadAvatar = createAsyncThunk<
 			formData
 		);
 
+		if (response.code !== "SUCCESS" || !response.avatarUrl) {
+			throw new Error(response.message || "Failed to upload avatar");
+		}
+
 		return { avatarUrl: response.avatarUrl };
 	} catch (error: any) {
 		return rejectWithValue(error.message || "Failed to upload avatar");
