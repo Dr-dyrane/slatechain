@@ -111,12 +111,12 @@ export async function PUT(req: Request) {
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Profile Update Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to update profile",
+				message: error.message || "Failed to update profile",
 			},
 			{ status: 500, headers }
 		);
@@ -183,12 +183,12 @@ export async function GET(req: Request) {
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Get Profile Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to get profile",
+				message: error.message || "Failed to get profile",
 			},
 			{ status: 500, headers }
 		);

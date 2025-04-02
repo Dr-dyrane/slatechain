@@ -79,12 +79,11 @@ export async function POST(req: Request) {
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Password Reset Error:", error);
 		return NextResponse.json(
 			{
-				code: "SERVER_ERROR",
-				message: "Failed to reset password",
+				message: error.message || "Failed to reset password",
 			},
 			{ status: 500, headers }
 		);

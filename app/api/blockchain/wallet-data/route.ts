@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
 			}
 		},
 		"wallet_data",
-		100
+		1
 	);
 }
 

@@ -101,12 +101,11 @@ export async function POST(req: Request) {
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Password Change Error:", error);
 		return NextResponse.json(
 			{
-				code: "SERVER_ERROR",
-				message: "Failed to change password",
+				message: error.message || "Failed to change password",
 			},
 			{ status: 500, headers }
 		);

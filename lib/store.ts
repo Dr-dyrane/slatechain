@@ -25,6 +25,7 @@ import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
 import returnReducer from "./slices/returnSlice";
+import avatarReducer from "./slices/avatarSlice"
 import { useDispatch } from "react-redux";
 import safeStorage from "./helpers/safeStorage";
 
@@ -46,6 +47,7 @@ const createPersistConfig = (userId: string | null) => ({
 		"orders",
 		"shipment",
 		"returns",
+		"avatar",
 	],
 });
 
@@ -65,6 +67,7 @@ const createRootReducer = () =>
 		notifications: notificationReducer,
 		customer: customerReducer,
 		returns: returnReducer,
+		avatar: avatarReducer,
 	});
 
 export const createStore = (userId: string | null) => {

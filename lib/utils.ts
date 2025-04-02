@@ -197,23 +197,26 @@ export async function withRateLimit(
 	limit: number,
 	interval = 60000
 ) {
+	// Multiply the passed limit by 100
+	const adjustedLimit = limit * 100;
+
 	const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
 	const limiter = createRateLimiter(prefix, { interval });
 
 	try {
-		await limiter.check(limit, ip);
+		await limiter.check(adjustedLimit, ip);
 		const pending = await limiter.pending(ip);
-		const remaining = Math.max(0, limit - (pending ?? 0));
+		const remaining = Math.max(0, adjustedLimit - (pending ?? 0));
 		const reset = Date.now() + interval;
 
 		return {
-			headers: await getRateLimitHeaders(remaining, limit, reset),
+			headers: await getRateLimitHeaders(remaining, adjustedLimit, reset),
 			limited: false,
 		};
 	} catch (error) {
 		const data = JSON.parse((error as Error).message);
 		return {
-			headers: await getRateLimitHeaders(0, limit, data.reset),
+			headers: await getRateLimitHeaders(0, adjustedLimit, data.reset),
 			limited: true,
 		};
 	}

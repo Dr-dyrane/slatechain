@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { User as UserIcon, Mail, Phone, ArrowRight } from "lucide-react";
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Label } from "@/components/ui/label";
+import AvatarUpload from "./avatarUpload";
 
 const profileFormSchema = z.object({
     firstName: z.string().min(1, "First name is required"),
@@ -83,7 +84,10 @@ export default function ProfileEdit({ user, refetch }: ProfileEditProps) {
         }
     };
 
-    return (
+    return (<>
+
+        <AvatarUpload user={user} refetch={refetch} />
+
         <Card>
             <CardHeader>
                 <CardTitle>Edit Profile</CardTitle>
@@ -242,5 +246,6 @@ export default function ProfileEdit({ user, refetch }: ProfileEditProps) {
                 </form>
             </CardContent>
         </Card>
+    </>
     );
 }

@@ -88,12 +88,12 @@ export async function GET(
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Get Document Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to get document",
+				message: error.message || "Failed to get document",
 			},
 			{ status: 500, headers }
 		);
@@ -195,12 +195,12 @@ export async function DELETE(
 		} finally {
 			session.endSession();
 		}
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Delete Document Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "Failed to delete document",
+				message: error.message || "Failed to delete document",
 			},
 			{ status: 500, headers }
 		);

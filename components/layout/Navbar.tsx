@@ -34,10 +34,16 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
     // Initial fetch
     dispatch(fetchNotifications())
 
-    // Set up polling interval - every 30 seconds
+    let interval = 60000; // Initial interval of 1 minute
+    let maxInterval = 600000; // Max interval of 10 minutes
+
     const notificationInterval = setInterval(() => {
-      dispatch(fetchNotifications())
-    }, 30000)
+      dispatch(fetchNotifications());
+
+      // Gradually increase the polling interval (double it each time, but don't exceed maxInterval)
+      interval = Math.min(interval * 2, maxInterval);
+    }, interval);
+
 
     return () => {
       clearInterval(notificationInterval)

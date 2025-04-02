@@ -145,6 +145,14 @@ class ApiClient {
 				if (token) {
 					config.headers["Authorization"] = `Bearer ${token}`;
 				}
+
+				// IMPORTANT: Check if we're sending FormData and remove Content-Type header
+				// This allows the browser to set the correct multipart/form-data with boundary
+				if (config.data instanceof FormData) {
+					// Delete the Content-Type header to let the browser set it automatically
+					delete config.headers["Content-Type"];
+				}
+
 				return config;
 			},
 			(error) => Promise.reject(error)

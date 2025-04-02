@@ -113,12 +113,13 @@ export async function POST(req: Request) {
 				{ status: 500, headers }
 			);
 		}
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Password Reset Request Error:", error);
 		return NextResponse.json(
 			{
-				code: "SERVER_ERROR",
-				message: "An unexpected error occurred. Please try again later.",
+				message:
+					error.message ||
+					"An unexpected error occurred. Please try again later.",
 			},
 			{ status: 500, headers }
 		);

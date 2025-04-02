@@ -117,12 +117,14 @@ export async function handleRequest(
 		}
 
 		return await handler(req, userId);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Server Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "An unexpected error occurred. Please try again later.",
+				message:
+					error.message ||
+					"An unexpected error occurred. Please try again later.",
 			},
 			{ status: 500 }
 		);

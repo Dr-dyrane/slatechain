@@ -95,12 +95,14 @@ export async function POST(req: Request) {
 			},
 			{ headers }
 		);
-	} catch (error) {
+	} catch (error: any) {
 		console.error("Login Error:", error);
 		return NextResponse.json(
 			{
 				code: "SERVER_ERROR",
-				message: "An unexpected error occurred. Please try again later.",
+				message:
+					error.message ||
+					"An unexpected error occurred. Please try again later.",
 			},
 			{
 				status: 500,
