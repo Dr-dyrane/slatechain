@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/store";
 import { User } from "@/lib/types";
 import {
     Tabs,
@@ -17,11 +17,26 @@ import ProfileSkeleton from "./loading";
 import { ErrorState } from "@/components/ui/error";
 import { OnboardingHistory } from "./OnboardingHistory";
 import WalletConnection from "./WalletConnection";
+import { fetchUser } from "@/lib/slices/authSlice";
 
 export default function ProfilePage() {
     const user = useSelector((state: RootState) => state.auth?.user) as User;
     const { loading: authLoading, error: authError } = useSelector((state: RootState) => state.auth);
     const [activeTab, setActiveTab] = useState("dashboard");
+    const dispatch = useDispatch<AppDispatch>();
+
+    useEffect(() => {
+        dispatch(
+            fetchUser()
+        )
+    }
+        , [dispatch]);
+
+    const refetch = () => {
+        dispatch(
+            fetchUser()
+        )
+    }
 
     if (authLoading) {
         return <ProfileSkeleton />;
@@ -56,7 +71,7 @@ export default function ProfilePage() {
                     <ProfileDashboard user={user} />
                 </TabsContent>
                 <TabsContent value="edit">
-                    <ProfileEdit user={user} />
+                    <ProfileEdit user={user} refetch={refetch} />
                 </TabsContent>
                 <TabsContent value="password">
                     <PasswordChange />

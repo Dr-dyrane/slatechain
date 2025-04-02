@@ -56,7 +56,10 @@ export default function ProfileDashboard({ user }: ProfileDashboardProps) {
             <CardHeader className="flex flex-col items-center space-y-2">
                 <Avatar className="h-32 w-32">
                     <AvatarImage src={user.avatarUrl || "https://placekitten.com/200/200"} alt={user?.name || "Avatar"} />
-                    <AvatarFallback>{user?.firstName[0]}{user?.lastName[0]}</AvatarFallback>
+                    <AvatarFallback>
+                        {user?.firstName?.[0] || "U"}
+                        {user?.lastName?.[0] || "N"}
+                    </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col items-center">
                     <CardTitle className="text-2xl font-semibold">{user.name}</CardTitle>

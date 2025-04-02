@@ -75,6 +75,8 @@ export async function PUT(req: Request) {
 			"phoneNumber",
 			"avatarUrl",
 			"integrations",
+			"address",
+			"email",
 		];
 
 		// Filter out non-allowed fields

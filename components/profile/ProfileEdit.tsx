@@ -41,9 +41,10 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 interface ProfileEditProps {
     user: User;
+    refetch: () => void;
 }
 
-export default function ProfileEdit({ user }: ProfileEditProps) {
+export default function ProfileEdit({ user, refetch }: ProfileEditProps) {
     const dispatch = useDispatch<AppDispatch>();
     const {
         register,
@@ -74,6 +75,7 @@ export default function ProfileEdit({ user }: ProfileEditProps) {
             toast.success('Profile updated successfully', {
                 duration: 5000
             });
+            refetch();
         } catch (error: any) {
             toast.error('Failed to update profile, please try again later', {
                 duration: 5000

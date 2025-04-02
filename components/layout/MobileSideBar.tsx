@@ -143,7 +143,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
             <div className="flex w-full justify-end gap-4 items-center overflow-scroll scrollbar-hide">
               {getKycStatusBadge(user?.kycStatus)}
               <Badge variant="secondary" className="font-normal">
-                {(user?.role ?? "unknown").charAt(0).toUpperCase() + (user?.role ?? "unknown").slice(1)}
+                {((user?.role || "unknown").charAt(0).toUpperCase() + (user?.role || "unknown").slice(1))}
               </Badge>
             </div>
           </div>
