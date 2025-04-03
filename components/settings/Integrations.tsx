@@ -79,7 +79,7 @@ export function Integrations() {
           <Plug className="h-6 w-6" />
           <span>Integrations</span>
         </CardTitle>
-        <CardDescription>Connect SlateChain with your existing systems.</CardDescription>
+        <CardDescription>Connect SupplyCycles with your existing systems.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <AnimatePresence mode="wait">

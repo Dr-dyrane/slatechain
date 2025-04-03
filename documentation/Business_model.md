@@ -1,6 +1,6 @@
-**Business Model: SlateChain - A Collaborative Supply Chain Management Platform**
+**Business Model: SupplyCycles - A Collaborative Supply Chain Management Platform**
 
-SlateChain is a cloud-based platform designed to streamline and optimize supply chain operations for businesses of all sizes. It facilitates collaboration, enhances transparency, and improves efficiency across the entire supply chain lifecycle, from inventory management and order placement to logistics tracking and payment processing.
+SupplyCycles is a cloud-based platform designed to streamline and optimize supply chain operations for businesses of all sizes. It facilitates collaboration, enhances transparency, and improves efficiency across the entire supply chain lifecycle, from inventory management and order placement to logistics tracking and payment processing.
 
 **Key Features:**
 
@@ -28,7 +28,7 @@ SlateChain is a cloud-based platform designed to streamline and optimize supply 
 
 **User Flows (Text-Based Diagrams)**
 
-Here are the user flows for each role, outlining how they interact with SlateChain:
+Here are the user flows for each role, outlining how they interact with SupplyCycles:
 
 **1. Administrator (Admin)**
 

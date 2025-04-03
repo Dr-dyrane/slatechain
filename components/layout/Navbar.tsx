@@ -72,7 +72,7 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
       <div className="mx-auto flex items-center justify-between p-4">
         <Link href="/" className="flex flex-row space-x-2">
           <Logo />
-          <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
+          <div className="text-2xl hidden sm:block font-bold">SupplyCycles</div>
         </Link>
         <div className="flex items-center space-x-4">
           {isAuthenticated ? (

@@ -133,8 +133,8 @@ export default function InvoicesTab() {
                 // }
 
                 // Use the supplier from Redux state if available
-                const supplierName = supplier?.name || "SlateChain Supply"
-                const supplierEmail = supplier?.email || "supply@slatechain.com"
+                const supplierName = supplier?.name || "SupplyCycles Supply"
+                const supplierEmail = supplier?.email || "supply@supplycycles.com"
                 const supplierAddress = supplier?.address || ""
 
                 return {
@@ -143,7 +143,7 @@ export default function InvoicesTab() {
                     name: `INV-${order.orderNumber.replace("ORD", "")}`,
                     date: orderDate.toISOString().split("T")[0],
                     dueDate: dueDate.toISOString().split("T")[0],
-                    companyName: "SlateChain Supply",
+                    companyName: "SupplyCycles Supply",
                     companyLogo: "/logo.png",
                     companyDetails: "123 Business Street\nMetropolis, CA 90210\nTax ID: 123-45-6789",
                     fromName: supplierName,

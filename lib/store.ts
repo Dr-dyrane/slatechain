@@ -25,7 +25,8 @@ import { combineReducers } from "redux";
 import integrationReducer from "./slices/integrationSlice";
 import notificationReducer from "./slices/notificationSlice";
 import returnReducer from "./slices/returnSlice";
-import avatarReducer from "./slices/avatarSlice"
+import avatarReducer from "./slices/avatarSlice";
+import searchReducer from "./slices/searchSlice";
 import { useDispatch } from "react-redux";
 import safeStorage from "./helpers/safeStorage";
 
@@ -48,6 +49,7 @@ const createPersistConfig = (userId: string | null) => ({
 		"shipment",
 		"returns",
 		"avatar",
+		"search",
 	],
 });
 
@@ -68,6 +70,7 @@ const createRootReducer = () =>
 		customer: customerReducer,
 		returns: returnReducer,
 		avatar: avatarReducer,
+		search: searchReducer,
 	});
 
 export const createStore = (userId: string | null) => {

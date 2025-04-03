@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 		try {
 			// Send email
 			await transporter.sendMail({
-				from: `"Slate Chain" <${process.env.NEXT_PUBLIC_GMAIL_USER}>`,
+				from: `"Supply Cycles" <${process.env.NEXT_PUBLIC_GMAIL_USER}>`,
 				to: email,
 				subject: "Reset Your Password",
 				html: PasswordResetEmail({
@@ -103,12 +103,12 @@ export async function POST(req: Request) {
 			});
 
 			return NextResponse.json(genericResponse, { headers });
-		} catch (emailError) {
-			console.error("Email Send Error:", emailError);
+		} catch (error: any) {
+			console.error("Email Send Error:", error);
 			return NextResponse.json(
 				{
 					code: "EMAIL_SEND_ERROR",
-					message: "Failed to send reset email. Please try again later.",
+					message: error.message || "Failed to send reset email. Please try again later.",
 				},
 				{ status: 500, headers }
 			);

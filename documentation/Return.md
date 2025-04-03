@@ -1,23 +1,23 @@
 
-## 📦 Return Management Document - Slatechain
+## 📦 Return Management Document - Supplycycles
 
-This document outlines the data model design, UI flows, and business rules for implementing a **return management system** within the Slatechain ecosystem. The primary objective is to **reuse and extend existing models** wherever possible, while ensuring a **streamlined, traceable, and scalable return process**.
+This document outlines the data model design, UI flows, and business rules for implementing a **return management system** within the Supplycycles ecosystem. The primary objective is to **reuse and extend existing models** wherever possible, while ensuring a **streamlined, traceable, and scalable return process**.
 
 ---
 
 ### 🧠 **Guiding Principles**
 
-1. **Reusability:** Extend existing Slatechain data models to minimize code duplication and maintain consistency.  
-2. **Simplicity:** Design the system to be straightforward for both customers and Slatechain staff.  
+1. **Reusability:** Extend existing Supplycycles data models to minimize code duplication and maintain consistency.  
+2. **Simplicity:** Design the system to be straightforward for both customers and Supplycycles staff.  
 3. **Traceability:** Maintain a clear audit trail of all actions taken during the return process.  
 4. **Flexibility:** Accommodate different types of returns (refunds, replacements, store credit, exchanges) and scenarios (e.g., damaged goods, wrong item shipped).  
-5. **Scalability:** Design for future growth and integration with other Slatechain modules.  
+5. **Scalability:** Design for future growth and integration with other Supplycycles modules.  
 
 ---
 
 ### 🗃️ **Data Model Modifications**
 
-#### **1. Existing Slatechain Models**
+#### **1. Existing Supplycycles Models**
 
 ##### **A. Order**
 - **Objective:** Track order eligibility for returns and link to related return requests.  
@@ -50,7 +50,7 @@ This document outlines the data model design, UI flows, and business rules for i
 
 ---
 
-#### **2. New Slatechain Models**
+#### **2. New Supplycycles Models**
 
 ##### **A. Return Request**
 - **Objective:** Represent a customer's request to return items.  

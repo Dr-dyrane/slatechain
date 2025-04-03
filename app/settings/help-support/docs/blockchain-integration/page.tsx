@@ -83,12 +83,12 @@ export default function BlockchainIntegrationPage() {
                 <section id="introduction" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Introduction to Blockchain Integration</h2>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain leverages blockchain technology to enhance security, transparency, and traceability in
+                    SupplyCycles leverages blockchain technology to enhance security, transparency, and traceability in
                     supply chain operations. This guide provides comprehensive information on integrating blockchain
-                    capabilities into your SlateChain implementation.
+                    capabilities into your SupplyCycles implementation.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    Blockchain integration in SlateChain enables secure authentication, immutable record-keeping, smart
+                    Blockchain integration in SupplyCycles enables secure authentication, immutable record-keeping, smart
                     contract automation, and verifiable tracking of goods throughout the supply chain.
                   </p>
                   <div className="bg-muted p-4 rounded-lg">
@@ -107,7 +107,7 @@ export default function BlockchainIntegrationPage() {
                 <section id="getting-started" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Getting Started with Blockchain Integration</h2>
                   <p className="text-muted-foreground mb-4">
-                    Before implementing blockchain features in SlateChain, it's important to understand the
+                    Before implementing blockchain features in SupplyCycles, it's important to understand the
                     prerequisites and setup requirements.
                   </p>
 
@@ -116,13 +116,13 @@ export default function BlockchainIntegrationPage() {
                     <li>Basic understanding of blockchain technology and concepts</li>
                     <li>Ethereum-compatible wallet (MetaMask, WalletConnect, etc.)</li>
                     <li>Access to blockchain networks (Ethereum, Polygon, etc.)</li>
-                    <li>SlateChain Enterprise plan or higher</li>
+                    <li>SupplyCycles Enterprise plan or higher</li>
                     <li>API access with blockchain permissions enabled</li>
                   </ul>
 
                   <h3 className="text-xl font-medium mt-6 mb-3">Configuration Steps</h3>
                   <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-6">
-                    <li>Enable blockchain features in your SlateChain account settings</li>
+                    <li>Enable blockchain features in your SupplyCycles account settings</li>
                     <li>Configure the blockchain network settings (Mainnet, Testnet, etc.)</li>
                     <li>Set up wallet integration for authentication</li>
                     <li>Configure smart contract settings if using custom contracts</li>
@@ -155,7 +155,7 @@ export default function BlockchainIntegrationPage() {
                 <section id="authentication" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Blockchain Authentication</h2>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain supports blockchain-based authentication, allowing users to sign in using their
+                    SupplyCycles supports blockchain-based authentication, allowing users to sign in using their
                     blockchain wallets instead of traditional username and password.
                   </p>
 
@@ -172,11 +172,11 @@ export default function BlockchainIntegrationPage() {
                     Wallet Connect Integration
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    WalletConnect provides a secure connection between your SlateChain application and blockchain
+                    WalletConnect provides a secure connection between your SupplyCycles application and blockchain
                     wallets. It supports a wide range of wallets and is ideal for mobile users.
                   </p>
                   <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-4">
-                    <li>Enable WalletConnect in your SlateChain settings</li>
+                    <li>Enable WalletConnect in your SupplyCycles settings</li>
                     <li>Configure the WalletConnect bridge URL</li>
                     <li>Customize the connection modal (optional)</li>
                     <li>Implement the connection flow in your application</li>
@@ -190,7 +190,7 @@ export default function BlockchainIntegrationPage() {
                     for web applications.
                   </p>
                   <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-4">
-                    <li>Enable MetaMask integration in your SlateChain settings</li>
+                    <li>Enable MetaMask integration in your SupplyCycles settings</li>
                     <li>Configure the network settings (chain ID, RPC URL)</li>
                     <li>Implement the connection button in your application</li>
                     <li>Handle connection events and state management</li>
@@ -216,7 +216,7 @@ export default function BlockchainIntegrationPage() {
                   <h2 className="text-2xl font-bold mb-4">Smart Contracts</h2>
                   <p className="text-muted-foreground mb-4">
                     Smart contracts enable automated, trustless execution of business logic on the blockchain.
-                    SlateChain provides tools for deploying and interacting with smart contracts for supply chain
+                    SupplyCycles provides tools for deploying and interacting with smart contracts for supply chain
                     operations.
                   </p>
 
@@ -224,11 +224,11 @@ export default function BlockchainIntegrationPage() {
                     Contract Deployment
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain offers several options for deploying smart contracts:
+                    SupplyCycles offers several options for deploying smart contracts:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                     <li>
-                      <span className="font-medium">Pre-built Contracts:</span> Use SlateChain's library of supply chain
+                      <span className="font-medium">Pre-built Contracts:</span> Use SupplyCycles's library of supply chain
                       smart contracts
                     </li>
                     <li>
@@ -247,11 +247,11 @@ export default function BlockchainIntegrationPage() {
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                     <li>
-                      <span className="font-medium">SlateChain UI:</span> Built-in interface for common contract
+                      <span className="font-medium">SupplyCycles UI:</span> Built-in interface for common contract
                       interactions
                     </li>
                     <li>
-                      <span className="font-medium">API:</span> Programmatic interaction via the SlateChain API
+                      <span className="font-medium">API:</span> Programmatic interaction via the SupplyCycles API
                     </li>
                     <li>
                       <span className="font-medium">Direct Web3:</span> Use Web3.js or ethers.js for custom interactions
@@ -265,7 +265,7 @@ export default function BlockchainIntegrationPage() {
                     Smart contracts emit events that can be monitored to trigger actions in your application:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
-                    <li>Configure event listeners in SlateChain settings</li>
+                    <li>Configure event listeners in SupplyCycles settings</li>
                     <li>Set up webhooks to be triggered by contract events</li>
                     <li>Implement real-time updates based on blockchain events</li>
                     <li>Create automated workflows triggered by contract events</li>
@@ -287,7 +287,7 @@ export default function BlockchainIntegrationPage() {
               <TabsContent value="code" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Code Examples</h2>
                 <p className="text-muted-foreground mb-6">
-                  These examples demonstrate how to implement blockchain features in your SlateChain integration.
+                  These examples demonstrate how to implement blockchain features in your SupplyCycles integration.
                 </p>
 
                 <Tabs defaultValue="authentication">
@@ -331,7 +331,7 @@ function WalletAuth() {
       
       // Generate a nonce for the user to sign
       const nonce = Math.floor(Math.random() * 1000000).toString();
-      const message = \`Sign this message to authenticate with SlateChain: \${nonce}\`;
+      const message = \`Sign this message to authenticate with SupplyCycles: \${nonce}\`;
       
       // Request signature from the user
       const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -517,7 +517,7 @@ export { registerProduct, updateProductStatus, getProductHistory };`}
                         <code className="block bg-background p-4 rounded border text-sm font-mono whitespace-pre overflow-x-auto">
                           {`// Server-side implementation of blockchain tracking
 import { ethers } from 'ethers';
-import { SlateChainAPI } from '@/lib/api';
+import { SupplyCyclesAPI } from '@/lib/api';
 
 // Contract configuration
 const contractABI = [...]; // Your contract ABI
@@ -534,15 +534,15 @@ async function setupEventListeners() {
   contract.on("ProductRegistered", async (productId, registeredBy, timestamp) => {
     console.log(\`Product \${productId} registered on blockchain by \${registeredBy}\`);
     
-    // Update SlateChain with blockchain verification
+    // Update SupplyCycles with blockchain verification
     try {
-      await SlateChainAPI.updateProduct(productId, {
+      await SupplyCyclesAPI.updateProduct(productId, {
         blockchainVerified: true,
         blockchainTimestamp: new Date(timestamp.toNumber() * 1000).toISOString(),
         blockchainTxHash: event.transactionHash
       });
     } catch (error) {
-      console.error("Error updating SlateChain:", error);
+      console.error("Error updating SupplyCycles:", error);
     }
   });
   
@@ -550,9 +550,9 @@ async function setupEventListeners() {
   contract.on("ProductUpdated", async (productId, status, location, updatedBy, timestamp) => {
     console.log(\`Product \${productId} updated to status: \${status} at \${location}\`);
     
-    // Update SlateChain with the new status
+    // Update SupplyCycles with the new status
     try {
-      await SlateChainAPI.updateProductStatus(productId, {
+      await SupplyCyclesAPI.updateProductStatus(productId, {
         status,
         location,
         blockchainVerified: true,
@@ -560,7 +560,7 @@ async function setupEventListeners() {
         blockchainTxHash: event.transactionHash
       });
     } catch (error) {
-      console.error("Error updating SlateChain status:", error);
+      console.error("Error updating SupplyCycles status:", error);
     }
   });
 }
@@ -602,7 +602,7 @@ export async function registerProductOnBlockchain(req, res) {
               <TabsContent value="architecture" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Blockchain Architecture</h2>
                 <p className="text-muted-foreground mb-6">
-                  These diagrams illustrate the architecture of SlateChain's blockchain integration.
+                  These diagrams illustrate the architecture of SupplyCycles's blockchain integration.
                 </p>
 
                 <div className="space-y-8">

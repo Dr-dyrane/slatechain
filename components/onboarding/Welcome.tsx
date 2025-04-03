@@ -37,14 +37,14 @@ export function Welcome({ role, name, onComplete }: WelcomeProps) {
       case UserRole.CUSTOMER:
         return "Browse, shop, and track orders seamlessly."
       default:
-        return "Welcome to SlateChain!"
+        return "Welcome to SupplyCycles!"
     }
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Welcome to SlateChain, {name}!</CardTitle>
+        <CardTitle>Welcome to SupplyCycles, {name}!</CardTitle>
         <CardDescription>Let's get you set up and ready to go.</CardDescription>
       </CardHeader>
       <CardContent>

@@ -35,7 +35,7 @@ export function Completion({ role, name, onComplete }: CompletionProps) {
             case UserRole.CUSTOMER:
                 return "You're all set to browse products, place orders, and track your shipments through your customer dashboard."
             default:
-                return "Your SlateChain account is now fully set up and ready to use."
+                return "Your SupplyCycles account is now fully set up and ready to use."
         }
     }
 
@@ -49,7 +49,7 @@ export function Completion({ role, name, onComplete }: CompletionProps) {
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    <p>Thank you for setting up your SlateChain account, {name}.</p>
+                    <p>Thank you for setting up your SupplyCycles account, {name}.</p>
 
                     <div className="bg-green-50 p-4 rounded-lg">
                         <h3 className="font-medium text-green-800 mb-2">What's Next?</h3>

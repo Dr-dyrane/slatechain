@@ -27,7 +27,7 @@ export default function SupplierManagementGuidePage() {
         <CardHeader>
           <CardTitle className="text-xl flex items-center space-x-2">
             <FileText className="h-5 w-5" />
-            <span>Managing Suppliers in SlateChain</span>
+            <span>Managing Suppliers in SupplyCycles</span>
           </CardTitle>
           <CardDescription>
             Learn how to effectively manage your suppliers and optimize your supply chain
@@ -54,7 +54,7 @@ export default function SupplierManagementGuidePage() {
 
               <h2 className="text-2xl font-semibold mt-6">Supplier Management Overview</h2>
               <p className="text-muted-foreground">
-                SlateChain's supplier management system helps you maintain relationships with your suppliers, track
+                SupplyCycles's supplier management system helps you maintain relationships with your suppliers, track
                 performance metrics, and streamline communication. This guide will walk you through the key features and
                 best practices for managing suppliers effectively.
               </p>
@@ -86,7 +86,7 @@ export default function SupplierManagementGuidePage() {
             <TabsContent value="adding" className="space-y-6">
               <h2 className="text-2xl font-semibold">Adding and Managing Suppliers</h2>
               <p className="text-muted-foreground mb-6">
-                Learn how to add new suppliers to your SlateChain account and manage their information effectively.
+                Learn how to add new suppliers to your SupplyCycles account and manage their information effectively.
               </p>
 
               <div className="space-y-8">
@@ -139,7 +139,7 @@ export default function SupplierManagementGuidePage() {
               <h2 className="text-2xl font-semibold">Supplier Communication</h2>
               <p className="text-muted-foreground mb-6">
                 Effective communication with suppliers is essential for maintaining a smooth supply chain operation.
-                SlateChain provides several tools to help you communicate with your suppliers.
+                SupplyCycles provides several tools to help you communicate with your suppliers.
               </p>
 
               <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
@@ -155,7 +155,7 @@ export default function SupplierManagementGuidePage() {
               <div className="space-y-4 mt-4">
                 <FeatureItem
                   title="In-App Messaging"
-                  description="Send and receive messages directly within SlateChain. All communication is logged and searchable for future reference."
+                  description="Send and receive messages directly within SupplyCycles. All communication is logged and searchable for future reference."
                 />
                 <FeatureItem
                   title="Email Notifications"
@@ -196,7 +196,7 @@ export default function SupplierManagementGuidePage() {
               <h2 className="text-2xl font-semibold">Supplier Document Management</h2>
               <p className="text-muted-foreground mb-6">
                 Managing supplier documents efficiently is crucial for compliance, risk management, and smooth
-                operations. SlateChain provides robust document management capabilities for your supplier relationships.
+                operations. SupplyCycles provides robust document management capabilities for your supplier relationships.
               </p>
 
               <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
@@ -259,7 +259,7 @@ export default function SupplierManagementGuidePage() {
               <div className="bg-muted p-4 rounded-lg mt-6">
                 <h3 className="font-semibold mb-2">Security Note</h3>
                 <p className="text-sm text-muted-foreground">
-                  All documents stored in SlateChain are encrypted and accessible only to users with appropriate
+                  All documents stored in SupplyCycles are encrypted and accessible only to users with appropriate
                   permissions. Regular backups ensure your important supplier documents are never lost.
                 </p>
               </div>

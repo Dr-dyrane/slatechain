@@ -77,7 +77,7 @@ export function InvoiceModal({ open, onClose, invoiceData }: InvoiceModalProps) 
                                                         </Avatar>
                                                     )}
                                                     <div>
-                                                        <div className="text-2xl font-bold">SlateChain Supply</div>
+                                                        <div className="text-2xl font-bold">SupplyCycles Supply</div>
                                                         <div className="text-muted-foreground text-sm mt-1">
                                                             <Building className="h-3 w-3 inline mr-1" />
                                                             Supply Chain Management

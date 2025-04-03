@@ -8,7 +8,7 @@ import MouseMoveEffect from './mouse-move-effect';
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'SlateChain',
+  title: 'SupplyCycles',
   description: 'Modern supply chain management platform',
   manifest: '/manifest.json',
   icons: {

@@ -17,7 +17,7 @@ export default function PasswordResetEmail({ resetLink, userName }: PasswordRese
             src="/logo.svg" // Update with your actual logo URL
             width="150"
             height="50"
-            alt="SlateChain Logo"
+            alt="SupplyCycles Logo"
             style={logo}
           />
           

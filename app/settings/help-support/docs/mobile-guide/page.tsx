@@ -80,14 +80,14 @@ export default function MobileAppGuidePage() {
 
               <TabsContent value="content" className="space-y-8">
                 <section id="introduction" className="scroll-mt-16">
-                  <h2 className="text-2xl font-bold mb-4">Introduction to the SlateChain Mobile App</h2>
+                  <h2 className="text-2xl font-bold mb-4">Introduction to the SupplyCycles Mobile App</h2>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain mobile app brings the power of our supply chain management platform to your mobile
+                    The SupplyCycles mobile app brings the power of our supply chain management platform to your mobile
                     device. Whether you're on the warehouse floor, visiting suppliers, or working remotely, the mobile
                     app keeps you connected to your supply chain operations.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    Available for both iOS and Android devices, the SlateChain mobile app provides a streamlined
+                    Available for both iOS and Android devices, the SupplyCycles mobile app provides a streamlined
                     interface optimized for on-the-go access to critical supply chain information and functions.
                   </p>
                   <div className="bg-muted p-4 rounded-lg">
@@ -109,7 +109,7 @@ export default function MobileAppGuidePage() {
                   <h3 id="installation" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">
                     Installation
                   </h3>
-                  <p className="text-muted-foreground mb-4">To install the SlateChain mobile app:</p>
+                  <p className="text-muted-foreground mb-4">To install the SupplyCycles mobile app:</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <Card>
                       <CardContent className="p-6">
@@ -119,7 +119,7 @@ export default function MobileAppGuidePage() {
                             <h3 className="font-medium mb-2">iOS Installation</h3>
                             <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                               <li>Open the App Store on your iOS device</li>
-                              <li>Search for "SlateChain"</li>
+                              <li>Search for "SupplyCycles"</li>
                               <li>Tap "Get" or the download icon</li>
                               <li>Authenticate with Face ID, Touch ID, or your Apple ID password</li>
                               <li>Wait for the app to download and install</li>
@@ -137,7 +137,7 @@ export default function MobileAppGuidePage() {
                             <h3 className="font-medium mb-2">Android Installation</h3>
                             <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
                               <li>Open the Google Play Store on your Android device</li>
-                              <li>Search for "SlateChain"</li>
+                              <li>Search for "SupplyCycles"</li>
                               <li>Tap "Install"</li>
                               <li>Review and accept the permissions</li>
                               <li>Wait for the app to download and install</li>
@@ -151,10 +151,10 @@ export default function MobileAppGuidePage() {
                   <h3 id="login" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">
                     Login & Authentication
                   </h3>
-                  <p className="text-muted-foreground mb-4">To log in to the SlateChain mobile app:</p>
+                  <p className="text-muted-foreground mb-4">To log in to the SupplyCycles mobile app:</p>
                   <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-4">
-                    <li>Launch the SlateChain app on your device</li>
-                    <li>Enter your SlateChain email address and password</li>
+                    <li>Launch the SupplyCycles app on your device</li>
+                    <li>Enter your SupplyCycles email address and password</li>
                     <li>Alternatively, use biometric authentication if enabled (Face ID, Touch ID, or fingerprint)</li>
                     <li>You can also use "Sign in with Google" or "Sign in with Apple" if your account is linked</li>
                     <li>For enhanced security, you may be prompted for two-factor authentication</li>
@@ -177,7 +177,7 @@ export default function MobileAppGuidePage() {
                     Navigation
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain mobile app uses a tab-based navigation system for easy access to key features:
+                    The SupplyCycles mobile app uses a tab-based navigation system for easy access to key features:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
@@ -291,7 +291,7 @@ export default function MobileAppGuidePage() {
               <TabsContent value="screenshots" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Mobile App Screenshots</h2>
                 <p className="text-muted-foreground mb-6">
-                  These screenshots demonstrate key features of the SlateChain mobile app.
+                  These screenshots demonstrate key features of the SupplyCycles mobile app.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

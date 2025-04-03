@@ -27,7 +27,7 @@ export default function BlockchainAuthGuidePage() {
         <CardHeader>
           <CardTitle className="text-xl flex items-center space-x-2">
             <Shield className="h-5 w-5" />
-            <span>Using Blockchain Authentication in SlateChain</span>
+            <span>Using Blockchain Authentication in SupplyCycles</span>
           </CardTitle>
           <CardDescription>Learn how to securely authenticate using your blockchain wallet</CardDescription>
         </CardHeader>
@@ -52,7 +52,7 @@ export default function BlockchainAuthGuidePage() {
 
               <h2 className="text-2xl font-semibold mt-6">Blockchain Authentication Overview</h2>
               <p className="text-muted-foreground">
-                SlateChain offers blockchain-based authentication as a secure alternative to traditional username and
+                SupplyCycles offers blockchain-based authentication as a secure alternative to traditional username and
                 password login. This method uses cryptographic signatures from your blockchain wallet to verify your
                 identity, providing enhanced security and convenience.
               </p>
@@ -98,7 +98,7 @@ export default function BlockchainAuthGuidePage() {
                   <div>
                     <h4 className="font-medium">Sign a Message</h4>
                     <p className="text-sm text-muted-foreground">
-                      SlateChain generates a unique message that you sign with your wallet to prove ownership.
+                      SupplyCycles generates a unique message that you sign with your wallet to prove ownership.
                     </p>
                   </div>
                 </div>
@@ -110,7 +110,7 @@ export default function BlockchainAuthGuidePage() {
                   <div>
                     <h4 className="font-medium">Verification</h4>
                     <p className="text-sm text-muted-foreground">
-                      SlateChain verifies the signature against your wallet address to authenticate you.
+                      SupplyCycles verifies the signature against your wallet address to authenticate you.
                     </p>
                   </div>
                 </div>
@@ -122,7 +122,7 @@ export default function BlockchainAuthGuidePage() {
                   <div>
                     <h4 className="font-medium">Access Granted</h4>
                     <p className="text-sm text-muted-foreground">
-                      Upon successful verification, you're logged in and can access your SlateChain account.
+                      Upon successful verification, you're logged in and can access your SupplyCycles account.
                     </p>
                   </div>
                 </div>
@@ -143,7 +143,7 @@ export default function BlockchainAuthGuidePage() {
             <TabsContent value="setup" className="space-y-6">
               <h2 className="text-2xl font-semibold">Setting Up Blockchain Authentication</h2>
               <p className="text-muted-foreground mb-6">
-                Follow these steps to set up blockchain authentication for your SlateChain account.
+                Follow these steps to set up blockchain authentication for your SupplyCycles account.
               </p>
 
               <div className="space-y-8">
@@ -161,8 +161,8 @@ export default function BlockchainAuthGuidePage() {
 
                 <SetupStepCard
                   number={2}
-                  title="Register or Login to SlateChain"
-                  description="Navigate to the SlateChain login page and click on 'Sign in with Blockchain' or 'Register with Blockchain'."
+                  title="Register or Login to SupplyCycles"
+                  description="Navigate to the SupplyCycles login page and click on 'Sign in with Blockchain' or 'Register with Blockchain'."
                   image="/placeholder.svg?height=300&width=600"
                   tips={[
                     "You can find this option on both the login and registration pages",
@@ -178,7 +178,7 @@ export default function BlockchainAuthGuidePage() {
                   tips={[
                     "Ensure your wallet is unlocked before attempting to connect",
                     "You may need to approve the connection request in your wallet",
-                    "Only connect your wallet on the official SlateChain website",
+                    "Only connect your wallet on the official SupplyCycles website",
                   ]}
                 />
 
@@ -215,7 +215,7 @@ export default function BlockchainAuthGuidePage() {
                   <div>
                     <p className="font-medium">Wrong network?</p>
                     <p>
-                      Ensure your wallet is connected to the Ethereum mainnet or the network specified by SlateChain.
+                      Ensure your wallet is connected to the Ethereum mainnet or the network specified by SupplyCycles.
                     </p>
                   </div>
                 </div>
@@ -225,7 +225,7 @@ export default function BlockchainAuthGuidePage() {
             <TabsContent value="login" className="space-y-6">
               <h2 className="text-2xl font-semibold">Blockchain Login Process</h2>
               <p className="text-muted-foreground mb-6">
-                Once you've set up blockchain authentication, follow these steps to log in to your SlateChain account.
+                Once you've set up blockchain authentication, follow these steps to log in to your SupplyCycles account.
               </p>
 
               <div className="relative w-full h-64 rounded-lg overflow-hidden mb-8">
@@ -241,7 +241,7 @@ export default function BlockchainAuthGuidePage() {
                 <LoginStepCard
                   number={1}
                   title="Navigate to Login Page"
-                  description="Go to the SlateChain login page and click on 'Sign in with Blockchain'."
+                  description="Go to the SupplyCycles login page and click on 'Sign in with Blockchain'."
                 />
 
                 <LoginStepCard
@@ -259,7 +259,7 @@ export default function BlockchainAuthGuidePage() {
                 <LoginStepCard
                   number={4}
                   title="Access Your Account"
-                  description="Once the signature is verified, you'll be automatically logged in to your SlateChain account."
+                  description="Once the signature is verified, you'll be automatically logged in to your SupplyCycles account."
                 />
               </div>
 
@@ -269,14 +269,14 @@ export default function BlockchainAuthGuidePage() {
                   When logging in, you'll be asked to sign a message that looks something like this:
                 </p>
                 <div className="bg-background p-4 rounded border text-sm font-mono mb-4">
-                  Sign this message to authenticate with SlateChain: 123456
+                  Sign this message to authenticate with SupplyCycles: 123456
                 </div>
                 <div className="space-y-3 text-sm text-muted-foreground">
                   <div className="flex items-start space-x-3">
                     <CheckCircle className="h-5 w-5 text-primary mt-0.5" />
                     <div>
-                      <p className="font-medium">The message should always mention SlateChain</p>
-                      <p>Never sign messages claiming to be from SlateChain on other websites</p>
+                      <p className="font-medium">The message should always mention SupplyCycles</p>
+                      <p>Never sign messages claiming to be from SupplyCycles on other websites</p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-3">
@@ -319,7 +319,7 @@ export default function BlockchainAuthGuidePage() {
                 <SecurityCard
                   icon={<AlertTriangle className="h-8 w-8" />}
                   title="Beware of Phishing"
-                  description="Always check the URL before connecting your wallet. Use bookmarks for SlateChain to avoid phishing sites."
+                  description="Always check the URL before connecting your wallet. Use bookmarks for SupplyCycles to avoid phishing sites."
                 />
 
                 <SecurityCard
@@ -332,8 +332,8 @@ export default function BlockchainAuthGuidePage() {
               <h3 className="text-xl font-medium mt-8">Frequently Asked Security Questions</h3>
               <div className="space-y-4 mt-4">
                 <SecurityQuestion
-                  question="Can SlateChain access my funds?"
-                  answer="No. SlateChain only verifies signatures to authenticate you. The application never has access to your private keys or funds. Authentication uses message signing, not transaction signing."
+                  question="Can SupplyCycles access my funds?"
+                  answer="No. SupplyCycles only verifies signatures to authenticate you. The application never has access to your private keys or funds. Authentication uses message signing, not transaction signing."
                 />
 
                 <SecurityQuestion
@@ -348,7 +348,7 @@ export default function BlockchainAuthGuidePage() {
 
                 <SecurityQuestion
                   question="Can I use multiple wallets with my account?"
-                  answer="Yes, you can connect multiple wallets to your SlateChain account for added convenience and security. This can be managed in your account settings."
+                  answer="Yes, you can connect multiple wallets to your SupplyCycles account for added convenience and security. This can be managed in your account settings."
                 />
               </div>
 
@@ -358,7 +358,7 @@ export default function BlockchainAuthGuidePage() {
                   Security Commitment
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  SlateChain is committed to maintaining the highest security standards for blockchain authentication.
+                  SupplyCycles is committed to maintaining the highest security standards for blockchain authentication.
                   We regularly audit our authentication systems, use industry best practices for cryptographic
                   verification, and never store private keys or sensitive wallet information.
                 </p>

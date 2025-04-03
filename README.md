@@ -1,4 +1,4 @@
-### **SlateChain**  
+### **SupplyCycles**  
 A modern, responsive, and fully functional **supply chain management platform** with real-time inventory tracking, order management, and logistics, designed with **Slate, Gray, and Black** as the core UI colors. The app will feature **light and dark modes**, implement **state management** for seamless user experience, and follow a modular, scalable design inspired by **Apple’s UI philosophy**.
 
 ---

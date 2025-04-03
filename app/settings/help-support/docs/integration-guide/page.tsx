@@ -84,10 +84,10 @@ export default function IntegrationGuidePage() {
                                 <section id="introduction" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">Integration Guide Introduction</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        SlateChain is designed to integrate seamlessly with your existing systems and workflows. This guide provides comprehensive information on integrating SlateChain with various enterprise systems, e-commerce platforms, and third-party services.
+                                        SupplyCycles is designed to integrate seamlessly with your existing systems and workflows. This guide provides comprehensive information on integrating SupplyCycles with various enterprise systems, e-commerce platforms, and third-party services.
                                     </p>
                                     <p className="text-muted-foreground mb-4">
-                                        Whether you're looking to connect SlateChain with your ERP system, e-commerce platform, or warehouse management system, this guide will help you understand the integration options and best practices.
+                                        Whether you're looking to connect SupplyCycles with your ERP system, e-commerce platform, or warehouse management system, this guide will help you understand the integration options and best practices.
                                     </p>
                                     <div className="bg-muted p-4 rounded-lg">
                                         <h3 className="font-medium mb-2">Integration Methods</h3>
@@ -104,13 +104,13 @@ export default function IntegrationGuidePage() {
                                 <section id="getting-started" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">Getting Started with Integration</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        Before beginning any integration project with SlateChain, it's important to plan and prepare properly. This section covers the key steps to get started with your integration.
+                                        Before beginning any integration project with SupplyCycles, it's important to plan and prepare properly. This section covers the key steps to get started with your integration.
                                     </p>
 
                                     <h3 className="text-xl font-medium mt-6 mb-3">Integration Planning</h3>
                                     <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-6">
                                         <li>Identify your integration requirements and goals</li>
-                                        <li>Determine which systems need to be integrated with SlateChain</li>
+                                        <li>Determine which systems need to be integrated with SupplyCycles</li>
                                         <li>Map out the data flows between systems</li>
                                         <li>Identify the integration method for each system</li>
                                         <li>Establish a timeline and resource allocation for the integration project</li>
@@ -118,10 +118,10 @@ export default function IntegrationGuidePage() {
 
                                     <h3 className="text-xl font-medium mt-6 mb-3">API Access Setup</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        To use the SlateChain API for integration:
+                                        To use the SupplyCycles API for integration:
                                     </p>
                                     <ol className="list-decimal list-inside space-y-2 text-muted-foreground mb-6">
-                                        <li>Log in to your SlateChain account</li>
+                                        <li>Log in to your SupplyCycles account</li>
                                         <li>Navigate to Settings {`>`} API & Integrations</li>
                                         <li>Generate an API key with appropriate permissions</li>
                                         <li>Store your API key securely</li>
@@ -131,7 +131,7 @@ export default function IntegrationGuidePage() {
                                     <div className="bg-muted p-4 rounded-lg">
                                         <h3 className="font-medium mb-2">Integration Environment</h3>
                                         <p className="text-sm text-muted-foreground mb-2">
-                                            SlateChain provides separate environments for testing and production:
+                                            SupplyCycles provides separate environments for testing and production:
                                         </p>
                                         <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
                                             <li><span className="font-medium">Sandbox Environment:</span> Use for testing integrations without affecting production data</li>
@@ -146,7 +146,7 @@ export default function IntegrationGuidePage() {
                                 <section id="api-integration" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">API Integration</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        The SlateChain API is the most flexible way to integrate with external systems. This section covers the key aspects of API integration.
+                                        The SupplyCycles API is the most flexible way to integrate with external systems. This section covers the key aspects of API integration.
                                     </p>
 
                                     <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
@@ -205,12 +205,12 @@ export default function IntegrationGuidePage() {
                                 <section id="erp-integration" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">ERP Integration</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        Integrating SlateChain with your Enterprise Resource Planning (ERP) system allows for seamless data flow between your core business processes and supply chain management.
+                                        Integrating SupplyCycles with your Enterprise Resource Planning (ERP) system allows for seamless data flow between your core business processes and supply chain management.
                                     </p>
 
                                     <h3 id="sap-integration" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">SAP Integration</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        SlateChain offers several options for integrating with SAP systems:
+                                        SupplyCycles offers several options for integrating with SAP systems:
                                     </p>
                                     <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                                         <li><span className="font-medium">SAP Connector:</span> Pre-built connector for SAP ERP and S/4HANA</li>
@@ -221,7 +221,7 @@ export default function IntegrationGuidePage() {
 
                                     <h3 id="oracle-integration" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">Oracle Integration</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        For Oracle ERP systems, SlateChain provides these integration options:
+                                        For Oracle ERP systems, SupplyCycles provides these integration options:
                                     </p>
                                     <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                                         <li><span className="font-medium">Oracle Connector:</span> Pre-built connector for Oracle ERP Cloud and E-Business Suite</li>
@@ -232,7 +232,7 @@ export default function IntegrationGuidePage() {
 
                                     <h3 id="microsoft-dynamics" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">Microsoft Dynamics Integration</h3>
                                     <p className="text-muted-foreground">
-                                        SlateChain integrates with Microsoft Dynamics through:
+                                        SupplyCycles integrates with Microsoft Dynamics through:
                                     </p>
                                     <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                                         <li><span className="font-medium">Dynamics Connector:</span> Pre-built connector for Dynamics 365</li>
@@ -257,14 +257,14 @@ export default function IntegrationGuidePage() {
                             <TabsContent value="diagrams" className="space-y-6">
                                 <h2 className="text-2xl font-bold mb-4">Integration Diagrams</h2>
                                 <p className="text-muted-foreground mb-6">
-                                    These diagrams illustrate the integration architecture and data flows between SlateChain and external systems.
+                                    These diagrams illustrate the integration architecture and data flows between SupplyCycles and external systems.
                                 </p>
 
                                 <div className="space-y-8">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>API Integration Architecture</CardTitle>
-                                            <CardDescription>Overview of SlateChain API integration architecture</CardDescription>
+                                            <CardDescription>Overview of SupplyCycles API integration architecture</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="relative h-80 w-full rounded-lg overflow-hidden">
@@ -281,7 +281,7 @@ export default function IntegrationGuidePage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>ERP Integration Flow</CardTitle>
-                                            <CardDescription>Data flow between SlateChain and ERP systems</CardDescription>
+                                            <CardDescription>Data flow between SupplyCycles and ERP systems</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="relative h-80 w-full rounded-lg overflow-hidden">
@@ -298,7 +298,7 @@ export default function IntegrationGuidePage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>E-commerce Integration</CardTitle>
-                                            <CardDescription>Integration between SlateChain and e-commerce platforms</CardDescription>
+                                            <CardDescription>Integration between SupplyCycles and e-commerce platforms</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="relative h-80 w-full rounded-lg overflow-hidden">
@@ -334,36 +334,36 @@ export default function IntegrationGuidePage() {
                             <TabsContent value="examples" className="space-y-6">
                                 <h2 className="text-2xl font-bold mb-4">Integration Examples</h2>
                                 <p className="text-muted-foreground mb-6">
-                                    These examples demonstrate common integration scenarios with SlateChain.
+                                    These examples demonstrate common integration scenarios with SupplyCycles.
                                 </p>
 
                                 <div className="space-y-6">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Example 1: Order Synchronization</CardTitle>
-                                            <CardDescription>Synchronizing orders between SlateChain and an ERP system</CardDescription>
+                                            <CardDescription>Synchronizing orders between SupplyCycles and an ERP system</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <div className="space-y-4">
                                                 <h3 className="font-medium">Integration Scenario</h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    This example demonstrates how to synchronize orders between SlateChain and an ERP system in real-time, ensuring that order data is consistent across both systems.
+                                                    This example demonstrates how to synchronize orders between SupplyCycles and an ERP system in real-time, ensuring that order data is consistent across both systems.
                                                 </p>
 
                                                 <h3 className="font-medium mt-4">Implementation Steps</h3>
                                                 <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
-                                                    <li>Configure webhook in SlateChain to trigger on new order creation</li>
+                                                    <li>Configure webhook in SupplyCycles to trigger on new order creation</li>
                                                     <li>Set up an API endpoint in your integration service to receive the webhook</li>
                                                     <li>Process the order data and transform it to match your ERP's format</li>
                                                     <li>Use your ERP's API to create the order in the ERP system</li>
-                                                    <li>Update the order in SlateChain with the ERP order reference</li>
+                                                    <li>Update the order in SupplyCycles with the ERP order reference</li>
                                                     <li>Implement error handling and retry logic for failed synchronizations</li>
                                                 </ol>
 
                                                 <h3 className="font-medium mt-4">Code Example</h3>
                                                 <code className="block bg-background p-3 rounded border text-sm font-mono overflow-x-auto">
                                                     {`// Example webhook handler for order synchronization
-app.post('/webhooks/slatechain/orders', async (req, res) => {
+app.post('/webhooks/supplycycles/orders', async (req, res) => {
   try {
     // Validate webhook signature
     const isValid = validateWebhookSignature(req);
@@ -380,8 +380,8 @@ app.post('/webhooks/slatechain/orders', async (req, res) => {
     // Send order to ERP
     const erpResponse = await sendOrderToERP(erpOrderData);
     
-    // Update SlateChain with ERP reference
-    await updateSlateChainOrder(order.id, {
+    // Update SupplyCycles with ERP reference
+    await updateSupplyCyclesOrder(order.id, {
       erpOrderId: erpResponse.orderId,
       erpSyncStatus: 'SYNCED'
     });
@@ -411,15 +411,15 @@ app.post('/webhooks/slatechain/orders', async (req, res) => {
                                             <div className="space-y-4">
                                                 <h3 className="font-medium">Integration Scenario</h3>
                                                 <p className="text-sm text-muted-foreground">
-                                                    This example shows how to implement bidirectional inventory synchronization between SlateChain and a warehouse management system (WMS).
+                                                    This example shows how to implement bidirectional inventory synchronization between SupplyCycles and a warehouse management system (WMS).
                                                 </p>
 
                                                 <h3 className="font-medium mt-4">Implementation Steps</h3>
                                                 <ol className="list-decimal list-inside space-y-2 text-sm text-muted-foreground">
                                                     <li>Set up scheduled inventory sync job to run every 15 minutes</li>
                                                     <li>Fetch updated inventory from WMS since last sync</li>
-                                                    <li>Update inventory levels in SlateChain via API</li>
-                                                    <li>Fetch inventory updates from SlateChain since last sync</li>
+                                                    <li>Update inventory levels in SupplyCycles via API</li>
+                                                    <li>Fetch inventory updates from SupplyCycles since last sync</li>
                                                     <li>Update inventory in WMS via its API</li>
                                                     <li>Log sync results and handle any conflicts</li>
                                                 </ol>

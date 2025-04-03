@@ -325,10 +325,10 @@ export interface PasswordChangeFormData {
 ```
 
 
-USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
+USER@Dyrane MINGW64 ~/Documents/GitHub/supplycycles (master)
 $
 
-USER@Dyrane MINGW64 ~/Documents/GitHub/slatechain (master)
+USER@Dyrane MINGW64 ~/Documents/GitHub/supplycycles (master)
 $ curl -X POST \
   http://localhost:3000/api/auth/register \
   -H 'Content-Type: application/json' \

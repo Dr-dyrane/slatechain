@@ -35,7 +35,7 @@ export default function GettingStartedGuidePage() {
             <ChevronLeft className="h-5 w-5" />
           </Link>
         </Button>
-        <h1 className="text-2xl sm:text-3xl font-bold">Getting Started with SlateChain</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Getting Started with SupplyCycles</h1>
       </div>
 
       <Card>
@@ -46,26 +46,26 @@ export default function GettingStartedGuidePage() {
               Step {currentStep} of {totalSteps}
             </span>
           </CardTitle>
-          <CardDescription>Follow this guide to learn the basics of SlateChain</CardDescription>
+          <CardDescription>Follow this guide to learn the basics of SupplyCycles</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {currentStep === 1 && (
             <StepContent
-              title="Welcome to SlateChain"
+              title="Welcome to SupplyCycles"
               content={
                 <>
                   <p className="mb-4">
-                    SlateChain is a comprehensive supply chain management platform designed to help you manage
+                    SupplyCycles is a comprehensive supply chain management platform designed to help you manage
                     inventory, track orders, and optimize logistics with ease.
                   </p>
                   <p className="mb-4">
-                    This guide will walk you through the basic features and functionality of SlateChain to help you get
+                    This guide will walk you through the basic features and functionality of SupplyCycles to help you get
                     started quickly.
                   </p>
                   <div className="relative w-full h-64 my-6 rounded-lg overflow-hidden">
                     <Image
                       src="/placeholder.svg?height=400&width=800"
-                      alt="SlateChain Dashboard"
+                      alt="SupplyCycles Dashboard"
                       fill
                       className="object-cover"
                     />
@@ -82,7 +82,7 @@ export default function GettingStartedGuidePage() {
               content={
                 <>
                   <p className="mb-4">
-                    The SlateChain dashboard provides a quick overview of your supply chain operations with key metrics
+                    The SupplyCycles dashboard provides a quick overview of your supply chain operations with key metrics
                     and actionable insights.
                   </p>
                   <div className="space-y-4 my-6">
@@ -106,7 +106,7 @@ export default function GettingStartedGuidePage() {
                   <div className="relative w-full h-64 my-6 rounded-lg overflow-hidden">
                     <Image
                       src="/placeholder.svg?height=400&width=800"
-                      alt="SlateChain Navigation"
+                      alt="SupplyCycles Navigation"
                       fill
                       className="object-cover"
                     />
@@ -122,7 +122,7 @@ export default function GettingStartedGuidePage() {
               content={
                 <>
                   <p className="mb-4">
-                    SlateChain's inventory management system helps you track stock levels, manage product information,
+                    SupplyCycles's inventory management system helps you track stock levels, manage product information,
                     and optimize inventory across multiple locations.
                   </p>
                   <div className="space-y-4 my-6">
@@ -202,7 +202,7 @@ export default function GettingStartedGuidePage() {
               content={
                 <>
                   <p className="mb-4">
-                    Congratulations! You've completed the getting started guide for SlateChain. Here are some next steps
+                    Congratulations! You've completed the getting started guide for SupplyCycles. Here are some next steps
                     to help you get the most out of the platform:
                   </p>
                   <div className="space-y-4 my-6">
@@ -212,7 +212,7 @@ export default function GettingStartedGuidePage() {
                     />
                     <FeatureItem
                       title="Set Up Integrations"
-                      description="Connect SlateChain with your existing systems through our integration options."
+                      description="Connect SupplyCycles with your existing systems through our integration options."
                     />
                     <FeatureItem
                       title="Customize Your Workspace"

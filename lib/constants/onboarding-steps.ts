@@ -16,8 +16,8 @@ export const ONBOARDING_STEPS = {
 // Define step titles and descriptions
 export const STEP_DETAILS = {
 	[ONBOARDING_STEPS.WELCOME]: {
-		title: "Welcome to SlateChain",
-		description: "Get started with your SlateChain account",
+		title: "Welcome to SupplyCycles",
+		description: "Get started with your SupplyCycles account",
 		isSkippable: false,
 	},
 	[ONBOARDING_STEPS.PROFILE_SETUP]: {
@@ -37,12 +37,12 @@ export const STEP_DETAILS = {
 	},
 	[ONBOARDING_STEPS.PREFERENCES]: {
 		title: "Set Your Preferences",
-		description: "Customize your SlateChain experience",
+		description: "Customize your SupplyCycles experience",
 		isSkippable: true,
 	},
 	[ONBOARDING_STEPS.COMPLETION]: {
 		title: "All Set!",
-		description: "You're ready to use SlateChain",
+		description: "You're ready to use SupplyCycles",
 		isSkippable: false,
 	},
 };

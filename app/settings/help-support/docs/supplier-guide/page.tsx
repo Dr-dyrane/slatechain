@@ -82,12 +82,12 @@ export default function SupplierGuidePage() {
                 <section id="introduction" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Introduction to the Supplier Portal</h2>
                   <p className="text-muted-foreground mb-4">
-                    Welcome to the SlateChain Supplier Guide. This comprehensive resource is designed to help suppliers
-                    effectively use the SlateChain platform to manage orders, inventory, documents, and communication
+                    Welcome to the SupplyCycles Supplier Guide. This comprehensive resource is designed to help suppliers
+                    effectively use the SupplyCycles platform to manage orders, inventory, documents, and communication
                     with buyers.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    As a supplier on SlateChain, you have access to powerful tools that streamline collaboration,
+                    As a supplier on SupplyCycles, you have access to powerful tools that streamline collaboration,
                     increase visibility, and improve efficiency in your supply chain operations.
                   </p>
                   <div className="bg-muted p-4 rounded-lg">
@@ -106,7 +106,7 @@ export default function SupplierGuidePage() {
                 <section id="getting-started" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Getting Started</h2>
                   <p className="text-muted-foreground mb-4">
-                    To get started as a supplier on SlateChain, you'll need to complete the onboarding process and set
+                    To get started as a supplier on SupplyCycles, you'll need to complete the onboarding process and set
                     up your account.
                   </p>
 
@@ -134,7 +134,7 @@ export default function SupplierGuidePage() {
 
                   <h3 className="text-xl font-medium mt-6 mb-3">Navigation Basics</h3>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain supplier portal consists of several key areas:
+                    The SupplyCycles supplier portal consists of several key areas:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
@@ -162,7 +162,7 @@ export default function SupplierGuidePage() {
                   <h2 className="text-2xl font-bold mb-4">Supplier Portal</h2>
                   <p className="text-muted-foreground mb-4">
                     The supplier portal is your central hub for managing all aspects of your relationship with buyers on
-                    SlateChain.
+                    SupplyCycles.
                   </p>
 
                   <h3 id="dashboard" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">
@@ -258,7 +258,7 @@ export default function SupplierGuidePage() {
               <TabsContent value="examples" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Supplier Examples</h2>
                 <p className="text-muted-foreground mb-6">
-                  These examples demonstrate common supplier tasks in SlateChain.
+                  These examples demonstrate common supplier tasks in SupplyCycles.
                 </p>
 
                 <div className="space-y-6">

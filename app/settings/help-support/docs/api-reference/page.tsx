@@ -82,7 +82,7 @@ export default function ApiReferencePage() {
                 <section id="introduction" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">API Introduction</h2>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain API provides programmatic access to the SlateChain platform, allowing you to
+                    The SupplyCycles API provides programmatic access to the SupplyCycles platform, allowing you to
                     integrate supply chain management capabilities into your own applications and systems.
                   </p>
                   <p className="text-muted-foreground mb-4">
@@ -92,7 +92,7 @@ export default function ApiReferencePage() {
                   <div className="bg-muted p-4 rounded-lg">
                     <h3 className="font-medium mb-2">Base URL</h3>
                     <code className="block bg-background p-3 rounded border text-sm font-mono">
-                      https://api.slatechain.com/v1
+                      https://api.supplycycles.com/v1
                     </code>
                     <p className="text-sm text-muted-foreground mt-2">
                       All API requests must use HTTPS. HTTP requests will be rejected.
@@ -103,7 +103,7 @@ export default function ApiReferencePage() {
                 <section id="authentication" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Authentication</h2>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain API uses API keys for authentication. You can generate API keys in your SlateChain
+                    The SupplyCycles API uses API keys for authentication. You can generate API keys in your SupplyCycles
                     account settings.
                   </p>
 
@@ -124,7 +124,7 @@ export default function ApiReferencePage() {
                         For user-based authentication, we also support OAuth 2.0:
                       </p>
                       <ol className="list-decimal list-inside text-sm text-muted-foreground">
-                        <li>Register your application in the SlateChain Developer Portal</li>
+                        <li>Register your application in the SupplyCycles Developer Portal</li>
                         <li>Implement the OAuth 2.0 authorization flow</li>
                         <li>Use the access token in the Authorization header</li>
                       </ol>
@@ -250,7 +250,7 @@ export default function ApiReferencePage() {
                 <section id="endpoints" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">API Endpoints</h2>
                   <p className="text-muted-foreground mb-4">
-                    The SlateChain API is organized around RESTful resources. Here are the main endpoint categories:
+                    The SupplyCycles API is organized around RESTful resources. Here are the main endpoint categories:
                   </p>
 
                   <Accordion type="single" collapsible className="w-full">
@@ -439,7 +439,7 @@ export default function ApiReferencePage() {
               <TabsContent value="examples" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Code Examples</h2>
                 <p className="text-muted-foreground mb-6">
-                  These examples demonstrate how to use the SlateChain API in different programming languages.
+                  These examples demonstrate how to use the SupplyCycles API in different programming languages.
                 </p>
 
                 <Tabs defaultValue="javascript">
@@ -462,7 +462,7 @@ async function getSuppliers() {
   const apiKey = 'YOUR_API_KEY';
   
   try {
-    const response = await fetch('https://api.slatechain.com/v1/suppliers', {
+    const response = await fetch('https://api.supplycycles.com/v1/suppliers', {
       method: 'GET',
       headers: {
         'Authorization': \`Bearer \${apiKey}\`,
@@ -488,7 +488,7 @@ async function createSupplier(supplierData) {
   const apiKey = 'YOUR_API_KEY';
   
   try {
-    const response = await fetch('https://api.slatechain.com/v1/suppliers', {
+    const response = await fetch('https://api.supplycycles.com/v1/suppliers', {
       method: 'POST',
       headers: {
         'Authorization': \`Bearer \${apiKey}\`,
@@ -526,7 +526,7 @@ async function createSupplier(supplierData) {
 import json
 
 # API configuration
-API_BASE_URL = 'https://api.slatechain.com/v1'
+API_BASE_URL = 'https://api.supplycycles.com/v1'
 API_KEY = 'YOUR_API_KEY'
 
 # Get all suppliers
@@ -583,19 +583,19 @@ def create_supplier(supplier_data):
                         <code className="block bg-background p-4 rounded border text-sm font-mono whitespace-pre overflow-x-auto">
                           {`# Get all suppliers
 curl -X GET \\
-  https://api.slatechain.com/v1/suppliers \\
+  https://api.supplycycles.com/v1/suppliers \\
   -H 'Authorization: Bearer YOUR_API_KEY' \\
   -H 'Content-Type: application/json'
 
 # Get a specific supplier
 curl -X GET \\
-  https://api.slatechain.com/v1/suppliers/12345 \\
+  https://api.supplycycles.com/v1/suppliers/12345 \\
   -H 'Authorization: Bearer YOUR_API_KEY' \\
   -H 'Content-Type: application/json'
 
 # Create a new supplier
 curl -X POST \\
-  https://api.slatechain.com/v1/suppliers \\
+  https://api.supplycycles.com/v1/suppliers \\
   -H 'Authorization: Bearer YOUR_API_KEY' \\
   -H 'Content-Type: application/json' \\
   -d '{
@@ -609,7 +609,7 @@ curl -X POST \\
 
 # Update a supplier
 curl -X PUT \\
-  https://api.slatechain.com/v1/suppliers/12345 \\
+  https://api.supplycycles.com/v1/suppliers/12345 \\
   -H 'Authorization: Bearer YOUR_API_KEY' \\
   -H 'Content-Type: application/json' \\
   -d '{
@@ -619,7 +619,7 @@ curl -X PUT \\
 
 # Delete a supplier
 curl -X DELETE \\
-  https://api.slatechain.com/v1/suppliers/12345 \\
+  https://api.supplycycles.com/v1/suppliers/12345 \\
   -H 'Authorization: Bearer YOUR_API_KEY'`}
                         </code>
                       </CardContent>
@@ -630,7 +630,7 @@ curl -X DELETE \\
 
               <TabsContent value="changelog" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">API Changelog</h2>
-                <p className="text-muted-foreground mb-6">Track changes to the SlateChain API over time.</p>
+                <p className="text-muted-foreground mb-6">Track changes to the SupplyCycles API over time.</p>
 
                 <div className="space-y-6">
                   <ChangelogEntry

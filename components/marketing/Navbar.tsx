@@ -13,7 +13,7 @@ const Navbar: React.FC = () => {
         <header className="w-full rounded-xl p-4 md:container md:mx-auto flex justify-between items-center sticky top-4 z-40 bg-background/15 backdrop-blur-sm">
             <Link href="/" className="flex flex-row space-x-2">
                 <Logo />
-                <div className="text-2xl hidden sm:block font-bold">SlateChain</div>
+                <div className="text-2xl hidden sm:block font-bold">SupplyCycles</div>
             </Link>
             <div className="flex flex-row gap-2">
                 <Button

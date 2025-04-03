@@ -21,7 +21,7 @@ const sections = [
         icon: Shield,
         title: "1. Platform Terms",
         content:
-            "By accessing SlateChain's supply chain management platform, you agree to these terms. Our platform provides inventory management, order tracking, and logistics optimization services.",
+            "By accessing SupplyCycles's supply chain management platform, you agree to these terms. Our platform provides inventory management, order tracking, and logistics optimization services.",
         highlights: [
             "Access to supply chain management tools",
             "Real-time inventory tracking system",
@@ -45,7 +45,7 @@ const sections = [
         icon: Users,
         title: "3. User Roles & Access",
         content:
-            "SlateChain supports multiple user roles including administrators, warehouse managers, suppliers, and customers. Each role has specific access permissions and responsibilities.",
+            "SupplyCycles supports multiple user roles including administrators, warehouse managers, suppliers, and customers. Each role has specific access permissions and responsibilities.",
         highlights: [
             "Role-based access control",
             "User permission management",
@@ -71,7 +71,7 @@ const sections = [
         icon: Globe,
         title: "6. International Operations",
         content:
-            "SlateChain operates globally and complies with international trade and data protection regulations. Users must ensure compliance with local laws.",
+            "SupplyCycles operates globally and complies with international trade and data protection regulations. Users must ensure compliance with local laws.",
         highlights: [
             "International data transfers",
             "Regulatory compliance",
@@ -107,7 +107,7 @@ const sections = [
         icon: Truck,
         title: "9. Shipping & Logistics",
         content:
-            "Users must provide accurate shipping information and comply with carrier requirements. SlateChain is not liable for carrier delays or errors.",
+            "Users must provide accurate shipping information and comply with carrier requirements. SupplyCycles is not liable for carrier delays or errors.",
         highlights: ["Shipping requirements", "Carrier compliance", "Delivery timeframes", "Insurance requirements"],
     },
     {
@@ -121,14 +121,14 @@ const sections = [
         icon: FileWarning,
         title: "11. Liability & Indemnification",
         content:
-            "SlateChain's liability is limited to the terms specified in your subscription agreement. Users indemnify SlateChain against third-party claims.",
+            "SupplyCycles's liability is limited to the terms specified in your subscription agreement. Users indemnify SupplyCycles against third-party claims.",
         highlights: ["Liability limitations", "Indemnification terms", "Dispute resolution", "Insurance requirements"],
     },
     {
         icon: ScrollText,
         title: "12. Terms Updates",
         content:
-            "SlateChain may update these terms with 30 days notice. Continued use of the platform constitutes acceptance of updated terms.",
+            "SupplyCycles may update these terms with 30 days notice. Continued use of the platform constitutes acceptance of updated terms.",
         highlights: ["Update notification process", "Change acceptance", "Prior version access", "Opt-out rights"],
     },
 ]

@@ -154,7 +154,7 @@ export const loginWithWallet = createAsyncThunk<
 
 			// Generate a nonce for the user to sign
 			const nonce = Math.floor(Math.random() * 1000000).toString();
-			const message = `Sign this message to authenticate with SlateChain: ${nonce}`;
+			const message = `Sign this message to authenticate with SupplyCycles: ${nonce}`;
 
 			// Ask user to sign the message
 			const signature = await signMessage(message);
@@ -209,7 +209,7 @@ export const registerWithWallet = createAsyncThunk<
 
 			// Generate a nonce for the user to sign
 			const nonce = Math.floor(Math.random() * 1000000).toString();
-			const message = `Sign this message to register with SlateChain: ${nonce}`;
+			const message = `Sign this message to register with SupplyCycles: ${nonce}`;
 
 			// Ask user to sign the message
 			const signature = await signMessage(message);

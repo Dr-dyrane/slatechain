@@ -107,7 +107,7 @@ const LandingPage: React.FC = () => {
                     data-aos-delay="200"
                     className="text-xl font-light font-sans md:text-2xl text-gray-800 dark:text-gray-200 leading-relaxed max-w-3xl mb-8"
                 >
-                    SlateChain helps you manage your
+                    SupplyCycles helps you manage your
                     <strong
                         className={cn("italic text-4xl font-sans bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-transparent bg-clip-text transition-all duration-300 hover:scale-105 hover:brightness-125 dark:from-blue-400 dark:via-teal-400 dark:to-green-400 animate-glow", pacifico.className,)}
                     >

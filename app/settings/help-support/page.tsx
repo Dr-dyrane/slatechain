@@ -30,7 +30,7 @@ export default function HelpSupportPage() {
         {
             question: "How do I integrate with my existing ERP system?",
             answer:
-                "Go to Settings > Integrations and select 'ERP & CRM' from the categories. Choose your ERP provider from the list and enter your API credentials. Once connected, SlateChain will automatically sync data with your ERP system.",
+                "Go to Settings > Integrations and select 'ERP & CRM' from the categories. Choose your ERP provider from the list and enter your API credentials. Once connected, SupplyCycles will automatically sync data with your ERP system.",
         },
         {
             question: "Can I manage user permissions?",
@@ -113,7 +113,7 @@ export default function HelpSupportPage() {
                                 <HelpCircle className="h-6 w-6" />
                                 <span>Frequently Asked Questions</span>
                             </CardTitle>
-                            <CardDescription>Find answers to common questions about using SlateChain.</CardDescription>
+                            <CardDescription>Find answers to common questions about using SupplyCycles.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <Accordion type="single" collapsible className="w-full">
@@ -146,13 +146,13 @@ export default function HelpSupportPage() {
                                 <BookOpen className="h-6 w-6" />
                                 <span>User Guides</span>
                             </CardTitle>
-                            <CardDescription>Step-by-step guides to help you get the most out of SlateChain.</CardDescription>
+                            <CardDescription>Step-by-step guides to help you get the most out of SupplyCycles.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <GuideCard
-                                    title="Getting Started with SlateChain"
-                                    description="Learn the basics of navigating and using SlateChain."
+                                    title="Getting Started with SupplyCycles"
+                                    description="Learn the basics of navigating and using SupplyCycles."
                                     icon={<BookOpen className="h-8 w-8" />}
                                     href="/settings/help-support/guides/getting-started"
                                 />
@@ -194,9 +194,9 @@ export default function HelpSupportPage() {
                                     title="Email Support"
                                     description="Send us an email and we'll respond within 24 hours."
                                     icon={<Mail className="h-8 w-8" />}
-                                    contactInfo="support@slatechain.com"
+                                    contactInfo="support@supplycycles.com"
                                     actionLabel="Send Email"
-                                    actionHref="mailto:support@slatechain.com"
+                                    actionHref="mailto:support@supplycycles.com"
                                 />
                                 <ContactCard
                                     title="Phone Support"
@@ -226,7 +226,7 @@ export default function HelpSupportPage() {
                                 <FileText className="h-6 w-6" />
                                 <span>Documentation</span>
                             </CardTitle>
-                            <CardDescription>Comprehensive documentation for all SlateChain features and APIs.</CardDescription>
+                            <CardDescription>Comprehensive documentation for all SupplyCycles features and APIs.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

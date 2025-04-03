@@ -15,11 +15,11 @@ export function HelpSupportCard() {
                     <HelpCircle className="h-6 w-6" />
                     <span>Help & Support</span>
                 </CardTitle>
-                <CardDescription>Get help with using SlateChain.</CardDescription>
+                <CardDescription>Get help with using SupplyCycles.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
-                    Need assistance with SlateChain? Our comprehensive help center provides guides, FAQs, and direct support
+                    Need assistance with SupplyCycles? Our comprehensive help center provides guides, FAQs, and direct support
                     options.
                 </p>
                 <Button asChild className="w-full">

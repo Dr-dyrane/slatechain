@@ -86,11 +86,11 @@ export default function SecurityWhitepaperPage() {
                   <h2 className="text-2xl font-bold mb-4">Introduction</h2>
                   <p className="text-muted-foreground mb-4">
                     This security whitepaper provides a comprehensive overview of the security measures implemented in
-                    SlateChain to protect your supply chain data and operations. It outlines our security architecture,
+                    SupplyCycles to protect your supply chain data and operations. It outlines our security architecture,
                     data protection mechanisms, access controls, and compliance certifications.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    At SlateChain, security is a core principle that guides our product development and operations. We
+                    At SupplyCycles, security is a core principle that guides our product development and operations. We
                     employ industry-leading security practices and technologies to ensure the confidentiality,
                     integrity, and availability of your data.
                   </p>
@@ -110,7 +110,7 @@ export default function SecurityWhitepaperPage() {
                 <section id="security-architecture" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Security Architecture</h2>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain's security architecture is designed with multiple layers of protection to safeguard your
+                    SupplyCycles's security architecture is designed with multiple layers of protection to safeguard your
                     data and ensure secure operations.
                   </p>
 
@@ -162,7 +162,7 @@ export default function SecurityWhitepaperPage() {
                 <section id="data-protection" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Data Protection</h2>
                   <p className="text-muted-foreground mb-4">
-                    Protecting your data is our highest priority. SlateChain implements comprehensive data protection
+                    Protecting your data is our highest priority. SupplyCycles implements comprehensive data protection
                     measures to ensure the confidentiality, integrity, and availability of your supply chain
                     information.
                   </p>
@@ -171,7 +171,7 @@ export default function SecurityWhitepaperPage() {
                     Encryption
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain employs strong encryption to protect your data:
+                    SupplyCycles employs strong encryption to protect your data:
                   </p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                     <li>
@@ -195,7 +195,7 @@ export default function SecurityWhitepaperPage() {
                   <h3 id="data-isolation" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">
                     Data Isolation
                   </h3>
-                  <p className="text-muted-foreground mb-4">SlateChain ensures complete isolation of customer data:</p>
+                  <p className="text-muted-foreground mb-4">SupplyCycles ensures complete isolation of customer data:</p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground mb-4">
                     <li>
                       <span className="font-medium">Multi-tenant Architecture:</span> Logical separation of customer
@@ -218,7 +218,7 @@ export default function SecurityWhitepaperPage() {
                   <h3 id="backup-recovery" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">
                     Backup & Recovery
                   </h3>
-                  <p className="text-muted-foreground">SlateChain implements robust backup and recovery procedures:</p>
+                  <p className="text-muted-foreground">SupplyCycles implements robust backup and recovery procedures:</p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
                       <span className="font-medium">Automated Backups:</span> Regular automated backups of all customer
@@ -258,7 +258,7 @@ export default function SecurityWhitepaperPage() {
               <TabsContent value="diagrams" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Security Diagrams</h2>
                 <p className="text-muted-foreground mb-6">
-                  These diagrams illustrate key aspects of SlateChain's security architecture and controls.
+                  These diagrams illustrate key aspects of SupplyCycles's security architecture and controls.
                 </p>
 
                 <div className="space-y-8">
@@ -335,7 +335,7 @@ export default function SecurityWhitepaperPage() {
               <TabsContent value="certifications" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Compliance & Certifications</h2>
                 <p className="text-muted-foreground mb-6">
-                  SlateChain maintains compliance with industry standards and regulations to ensure the highest level of
+                  SupplyCycles maintains compliance with industry standards and regulations to ensure the highest level of
                   security for our customers.
                 </p>
 
@@ -349,7 +349,7 @@ export default function SecurityWhitepaperPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        SlateChain has successfully completed SOC 2 Type II audits, demonstrating our commitment to
+                        SupplyCycles has successfully completed SOC 2 Type II audits, demonstrating our commitment to
                         security, availability, processing integrity, confidentiality, and privacy.
                       </p>
                       <div className="mt-4 flex justify-center">
@@ -397,7 +397,7 @@ export default function SecurityWhitepaperPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        SlateChain is fully compliant with the General Data Protection Regulation (GDPR), ensuring
+                        SupplyCycles is fully compliant with the General Data Protection Regulation (GDPR), ensuring
                         proper handling of personal data for European users and customers.
                       </p>
                       <div className="mt-4 flex justify-center">
@@ -421,7 +421,7 @@ export default function SecurityWhitepaperPage() {
                     </CardHeader>
                     <CardContent>
                       <p className="text-sm text-muted-foreground">
-                        For payment processing, SlateChain maintains PCI DSS compliance, ensuring that all credit card
+                        For payment processing, SupplyCycles maintains PCI DSS compliance, ensuring that all credit card
                         information is handled according to the strictest security standards.
                       </p>
                       <div className="mt-4 flex justify-center">

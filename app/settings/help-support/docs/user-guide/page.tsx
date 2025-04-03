@@ -82,16 +82,16 @@ export default function UserGuidePage() {
 
               <TabsContent value="content" className="space-y-8">
                 <section id="introduction" className="scroll-mt-16">
-                  <h2 className="text-2xl font-bold mb-4">Introduction to SlateChain</h2>
+                  <h2 className="text-2xl font-bold mb-4">Introduction to SupplyCycles</h2>
                   <p className="text-muted-foreground mb-4">
-                    Welcome to SlateChain, your comprehensive supply chain management platform. This user guide will
-                    help you navigate the various features and functionalities of SlateChain to optimize your supply
+                    Welcome to SupplyCycles, your comprehensive supply chain management platform. This user guide will
+                    help you navigate the various features and functionalities of SupplyCycles to optimize your supply
                     chain operations.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    SlateChain is designed to streamline inventory management, order processing, supplier relationships,
+                    SupplyCycles is designed to streamline inventory management, order processing, supplier relationships,
                     and logistics tracking in one integrated platform. Whether you're a small business or a large
-                    enterprise, SlateChain provides the tools you need to manage your supply chain efficiently.
+                    enterprise, SupplyCycles provides the tools you need to manage your supply chain efficiently.
                   </p>
                   <div className="bg-muted p-4 rounded-lg">
                     <h3 className="font-medium mb-2">Key Features</h3>
@@ -110,7 +110,7 @@ export default function UserGuidePage() {
                 <section id="getting-started" className="scroll-mt-16">
                   <h2 className="text-2xl font-bold mb-4">Getting Started</h2>
                   <p className="text-muted-foreground mb-4">
-                    To get started with SlateChain, you'll need to set up your account and configure your basic
+                    To get started with SupplyCycles, you'll need to set up your account and configure your basic
                     settings. This section will guide you through the initial setup process.
                   </p>
 
@@ -126,7 +126,7 @@ export default function UserGuidePage() {
                   </ol>
 
                   <h3 className="text-xl font-medium mt-6 mb-3">Navigation Basics</h3>
-                  <p className="text-muted-foreground mb-4">The SlateChain interface consists of several key areas:</p>
+                  <p className="text-muted-foreground mb-4">The SupplyCycles interface consists of several key areas:</p>
                   <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                     <li>
                       <span className="font-medium">Navigation Sidebar:</span> Access different sections of the
@@ -199,7 +199,7 @@ export default function UserGuidePage() {
               <TabsContent value="examples" className="space-y-6">
                 <h2 className="text-2xl font-bold mb-4">Example Scenarios</h2>
                 <p className="text-muted-foreground mb-6">
-                  These examples demonstrate how to use SlateChain for common supply chain management tasks.
+                  These examples demonstrate how to use SupplyCycles for common supply chain management tasks.
                 </p>
 
                 <div className="space-y-6">

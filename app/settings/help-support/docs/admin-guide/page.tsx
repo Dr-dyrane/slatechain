@@ -80,10 +80,10 @@ export default function AdminGuidePage() {
                                 <section id="introduction" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">Administrator Guide Introduction</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        Welcome to the SlateChain Administrator Guide. This comprehensive resource is designed for system administrators responsible for configuring, maintaining, and optimizing the SlateChain platform for their organization.
+                                        Welcome to the SupplyCycles Administrator Guide. This comprehensive resource is designed for system administrators responsible for configuring, maintaining, and optimizing the SupplyCycles platform for their organization.
                                     </p>
                                     <p className="text-muted-foreground mb-4">
-                                        As an administrator, you have access to powerful tools and settings that control how SlateChain functions across your organization. This guide will help you understand these capabilities and implement best practices for system administration.
+                                        As an administrator, you have access to powerful tools and settings that control how SupplyCycles functions across your organization. This guide will help you understand these capabilities and implement best practices for system administration.
                                     </p>
                                     <div className="bg-muted p-4 rounded-lg">
                                         <h3 className="font-medium mb-2">Administrator Responsibilities</h3>
@@ -102,7 +102,7 @@ export default function AdminGuidePage() {
                                 <section id="user-management" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">User Management</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        User management is a critical responsibility for SlateChain administrators. This section covers how to add, modify, and manage user accounts, as well as how to configure roles and permissions.
+                                        User management is a critical responsibility for SupplyCycles administrators. This section covers how to add, modify, and manage user accounts, as well as how to configure roles and permissions.
                                     </p>
 
                                     <div className="relative w-full h-64 rounded-lg overflow-hidden mb-6">
@@ -129,7 +129,7 @@ export default function AdminGuidePage() {
 
                                     <h3 id="roles-permissions" className="text-xl font-medium mt-6 mb-3 scroll-mt-16">Roles & Permissions</h3>
                                     <p className="text-muted-foreground mb-4">
-                                        SlateChain uses a role-based access control system to manage permissions:
+                                        SupplyCycles uses a role-based access control system to manage permissions:
                                     </p>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                         <Card>
@@ -196,7 +196,7 @@ export default function AdminGuidePage() {
                                 <section id="system-configuration" className="scroll-mt-16">
                                     <h2 className="text-2xl font-bold mb-4">System Configuration</h2>
                                     <p className="text-muted-foreground mb-4">
-                                        System configuration allows you to customize SlateChain to meet your organization's specific needs.
+                                        System configuration allows you to customize SupplyCycles to meet your organization's specific needs.
                                     </p>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -256,14 +256,14 @@ export default function AdminGuidePage() {
                             <TabsContent value="examples" className="space-y-6">
                                 <h2 className="text-2xl font-bold mb-4">Administrator Examples</h2>
                                 <p className="text-muted-foreground mb-6">
-                                    These examples demonstrate common administrative tasks in SlateChain.
+                                    These examples demonstrate common administrative tasks in SupplyCycles.
                                 </p>
 
                                 <div className="space-y-6">
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Example 1: Setting Up a New Department</CardTitle>
-                                            <CardDescription>How to configure SlateChain for a new department in your organization</CardDescription>
+                                            <CardDescription>How to configure SupplyCycles for a new department in your organization</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
@@ -281,7 +281,7 @@ export default function AdminGuidePage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Example 2: Security Audit Preparation</CardTitle>
-                                            <CardDescription>Steps to prepare SlateChain for a security audit</CardDescription>
+                                            <CardDescription>Steps to prepare SupplyCycles for a security audit</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
@@ -300,7 +300,7 @@ export default function AdminGuidePage() {
                                     <Card>
                                         <CardHeader>
                                             <CardTitle>Example 3: System Performance Optimization</CardTitle>
-                                            <CardDescription>How to improve SlateChain performance</CardDescription>
+                                            <CardDescription>How to improve SupplyCycles performance</CardDescription>
                                         </CardHeader>
                                         <CardContent>
                                             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">

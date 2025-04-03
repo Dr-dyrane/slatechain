@@ -386,7 +386,7 @@ export default function RegisterPage() {
         <CardHeader className='text-center'>
           <Logo />
           <CardTitle className="text-2xl mt-2">Create Account</CardTitle>
-          <CardDescription>Create your SlateChain account</CardDescription>
+          <CardDescription>Create your SupplyCycles account</CardDescription>
           <Button variant='ghost'
             size={'icon'}
             onClick={handleGoBack}

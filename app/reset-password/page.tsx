@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
             <Card className="w-[350px] relative">
                 <CardHeader className="text-center">
                     <Logo />
-                    <CardTitle className="text-2xl mt-2">SlateChain</CardTitle>
+                    <CardTitle className="text-2xl mt-2">SupplyCycles</CardTitle>
                     <CardDescription>Enter your new password to reset your account.</CardDescription>
                     <Button variant='ghost'
                         size={'icon'}

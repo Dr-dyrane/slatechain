@@ -27,7 +27,7 @@ export default function InventoryOptimizationGuidePage() {
         <CardHeader>
           <CardTitle className="text-xl flex items-center space-x-2">
             <BarChart3 className="h-5 w-5" />
-            <span>Optimizing Your Inventory in SlateChain</span>
+            <span>Optimizing Your Inventory in SupplyCycles</span>
           </CardTitle>
           <CardDescription>
             Learn strategies and techniques to optimize your inventory levels and reduce costs
@@ -55,7 +55,7 @@ export default function InventoryOptimizationGuidePage() {
               <h2 className="text-2xl font-semibold mt-6">Inventory Optimization Overview</h2>
               <p className="text-muted-foreground">
                 Inventory optimization is the process of maintaining the right amount of inventory to meet customer
-                demand while minimizing costs. SlateChain provides powerful tools and insights to help you optimize your
+                demand while minimizing costs. SupplyCycles provides powerful tools and insights to help you optimize your
                 inventory levels across your supply chain.
               </p>
 
@@ -81,7 +81,7 @@ export default function InventoryOptimizationGuidePage() {
               <div className="bg-muted p-6 rounded-lg mt-8">
                 <h3 className="font-semibold text-lg mb-3">Getting Started with Inventory Optimization</h3>
                 <p className="text-muted-foreground mb-4">
-                  To begin optimizing your inventory in SlateChain, follow these steps:
+                  To begin optimizing your inventory in SupplyCycles, follow these steps:
                 </p>
                 <ol className="space-y-2 text-muted-foreground">
                   <li className="flex items-start space-x-2">
@@ -111,7 +111,7 @@ export default function InventoryOptimizationGuidePage() {
             <TabsContent value="analysis" className="space-y-6">
               <h2 className="text-2xl font-semibold">Inventory Analysis Tools</h2>
               <p className="text-muted-foreground mb-6">
-                SlateChain provides several powerful analysis tools to help you understand your inventory performance
+                SupplyCycles provides several powerful analysis tools to help you understand your inventory performance
                 and identify optimization opportunities.
               </p>
 
@@ -179,7 +179,7 @@ export default function InventoryOptimizationGuidePage() {
             <TabsContent value="strategies" className="space-y-6">
               <h2 className="text-2xl font-semibold">Inventory Optimization Strategies</h2>
               <p className="text-muted-foreground mb-6">
-                Implement these proven strategies in SlateChain to optimize your inventory and improve your supply chain
+                Implement these proven strategies in SupplyCycles to optimize your inventory and improve your supply chain
                 efficiency.
               </p>
 
@@ -187,7 +187,7 @@ export default function InventoryOptimizationGuidePage() {
                 <StrategyCard
                   number={1}
                   title="Just-in-Time (JIT) Inventory"
-                  description="Minimize inventory levels by scheduling deliveries to arrive just when needed. SlateChain's integration with supplier systems and logistics tracking makes JIT implementation more feasible."
+                  description="Minimize inventory levels by scheduling deliveries to arrive just when needed. SupplyCycles's integration with supplier systems and logistics tracking makes JIT implementation more feasible."
                   steps={[
                     "Identify items suitable for JIT approach",
                     "Configure lead time tracking for accurate delivery predictions",
@@ -202,7 +202,7 @@ export default function InventoryOptimizationGuidePage() {
                   description="Calculate the optimal order quantity that minimizes total inventory costs, including ordering costs and carrying costs."
                   steps={[
                     "Enter cost parameters for ordering and holding inventory",
-                    "Use SlateChain's EOQ calculator to determine optimal order quantities",
+                    "Use SupplyCycles's EOQ calculator to determine optimal order quantities",
                     "Set up automated reordering based on EOQ calculations",
                     "Review and adjust parameters periodically",
                   ]}
@@ -226,7 +226,7 @@ export default function InventoryOptimizationGuidePage() {
                   description="Allow trusted suppliers to manage inventory levels of their products in your facilities, reducing your management burden."
                   steps={[
                     "Identify suitable suppliers for VMI relationships",
-                    "Set up supplier access to inventory data through SlateChain",
+                    "Set up supplier access to inventory data through SupplyCycles",
                     "Establish performance metrics and service level agreements",
                     "Review supplier performance regularly",
                   ]}
@@ -261,7 +261,7 @@ export default function InventoryOptimizationGuidePage() {
             <TabsContent value="automation" className="space-y-6">
               <h2 className="text-2xl font-semibold">Inventory Automation</h2>
               <p className="text-muted-foreground mb-6">
-                Leverage SlateChain's automation capabilities to streamline inventory management and reduce manual
+                Leverage SupplyCycles's automation capabilities to streamline inventory management and reduce manual
                 effort.
               </p>
 
@@ -323,7 +323,7 @@ export default function InventoryOptimizationGuidePage() {
 
               <h3 className="text-xl font-medium mt-8">Integration with Other Systems</h3>
               <p className="text-muted-foreground mb-4">
-                SlateChain can integrate with other systems to automate inventory management across your entire
+                SupplyCycles can integrate with other systems to automate inventory management across your entire
                 operation.
               </p>
 

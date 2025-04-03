@@ -196,7 +196,7 @@ export async function POST(
 						paid: true, // Assume replacement is 'paid' by the return process
 						paymentMethod: PaymentMethod.MANUAL, // Or a specific 'REPLACEMENT' method
 						paymentDetails: {
-							provider: "slatechain_return",
+							provider: "supplycycles_return",
 							status: "replacement",
 							amount: 0,
 						},

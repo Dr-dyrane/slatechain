@@ -63,7 +63,7 @@ export function Preferences({ role, onComplete, data, onSkip }: PreferencesProps
       <CardContent>
         <div className="space-y-6">
           <p className="text-gray-600 mb-4">
-            Customize your SlateChain experience with these preferences. You can always change these settings later.
+            Customize your SupplyCycles experience with these preferences. You can always change these settings later.
           </p>
 
           <Form {...form}>

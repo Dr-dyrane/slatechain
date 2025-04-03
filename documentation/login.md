@@ -64,7 +64,7 @@ Based on the provided code and your question, I'll help you update the authentic
 
 Update your `googleLogin` thunk in `authSlice.ts`:
 
-```typescriptreact project="SlateChain"
+```typescriptreact project="SupplyCycles"
 ...
 ```
 

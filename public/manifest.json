@@ -1,6 +1,6 @@
 {
-    "name": "SlateChain",
-    "short_name": "SlateChain",
+    "name": "SupplyCycles",
+    "short_name": "SupplyCycles",
     "description": "Modern supply chain management platform",
     "start_url": "/login",
     "display": "standalone",

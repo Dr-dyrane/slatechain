@@ -5,7 +5,7 @@ export function Footer() {
     <footer className="bg-background hidden md:block text-center py-4">
       <div className="container">
         <p className="text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} SlateChain. All rights reserved.
+          &copy; {new Date().getFullYear()} SupplyCycles. All rights reserved.
         </p>
       </div>
     </footer>
