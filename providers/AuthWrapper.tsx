@@ -1,4 +1,4 @@
-// src/components/layout/authWrapper.tsx
+// src/providers/AuthWrapper.tsx
 "use client";
 
 import { useEffect, useRef, useState } from "react";
@@ -8,6 +8,7 @@ import { RootState, AppDispatch } from "@/lib/store";
 import LayoutLoader from "@/components/layout/loading";
 import { initializeApp } from "@/lib/helpers/appInitializer";
 import { UserRole } from "@/lib/types";
+import { restrictedPages } from "@/lib/config/getRestrictedPages";
 
 export function AuthWrapper({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -74,10 +75,18 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
             ];
             const isPublicPage = publicPages.includes(pathname);
 
-            if (isAuthenticated && isPublicPage) {
+            // If the user is authenticated but trying to access a restricted page
+            if (isAuthenticated && restrictedPages[role as UserRole]?.includes(pathname)) {
+                // Redirect to the dashboard if the page is restricted
                 router.push("/dashboard");
-            } else if (!isAuthenticated && !isPublicPage) {
+            }
+            // If the user is not authenticated but trying to access a non-public page
+            else if (!isAuthenticated && !isPublicPage) {
                 router.push("/login");
+            }
+            // If authenticated and trying to access a public page, redirect to dashboard
+            else if (isAuthenticated && isPublicPage) {
+                router.push("/dashboard");
             }
 
             setIsChecking(false);
