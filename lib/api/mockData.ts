@@ -1614,7 +1614,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			const returnRequest = mockReturnRequests.find((item) => item.id === id);
 			return returnRequest || mockReturnRequests[0];
 		},
-
+		"/suppliers/:id/invoice": (id: string) => {
+			const supplier = mockSuppliers.find((item) => item.id === id);
+			return supplier || mockSuppliers[0];
+		},
 		"/users/me": (): User => mockApiResponses.get["/auth/me"].user,
 		"/kyc/status": (): { status: KYCStatus; documents: KYCDocument[] } => ({
 			status: KYCStatus.IN_PROGRESS,
