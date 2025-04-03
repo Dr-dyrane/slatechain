@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { useRouter } from "next/navigation"
 import {
@@ -10,6 +10,8 @@ import {
     toggleFilter,
     addRecentSearch,
     setSearchDrawerOpen,
+    getAvailableFiltersForRole,
+    initializeFilters,
     type SearchResult,
 } from "@/lib/slices/searchSlice"
 import type { AppDispatch, RootState } from "@/lib/store"
@@ -18,9 +20,22 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import { Search, X, Package, ShoppingCart, Truck, User, RotateCcw, FileText, Clock, Filter } from "lucide-react"
+import {
+    Search,
+    X,
+    Package,
+    ShoppingCart,
+    Truck,
+    User,
+    RotateCcw,
+    FileText,
+    Clock,
+    Filter,
+    Briefcase,
+    Route,
+    Box,
+} from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
-import { UserRole } from "@/lib/types"
 
 export default function SearchDrawer() {
     const dispatch = useDispatch<AppDispatch>()
@@ -34,8 +49,19 @@ export default function SearchDrawer() {
     // Get current user from auth state
     const { user } = useSelector((state: RootState) => state.auth)
 
+    // Track if filters have been initialized
+    const [filtersInitialized, setFiltersInitialized] = useState(false)
+
     // Use custom debounce hook
     const debouncedQuery = useDebounce(query, 300)
+
+    // Initialize filters based on user role
+    useEffect(() => {
+        if (user && !filtersInitialized) {
+            dispatch(initializeFilters(user.role))
+            setFiltersInitialized(true)
+        }
+    }, [user, filtersInitialized, dispatch])
 
     // Handle input change
     const handleSearchChange = (value: string) => {
@@ -45,9 +71,13 @@ export default function SearchDrawer() {
     // Perform search when debounced query changes
     useEffect(() => {
         if (debouncedQuery.length >= 2) {
-            dispatch(searchAllStores(debouncedQuery))
+            try {
+                dispatch(searchAllStores(debouncedQuery))
+            } catch (error) {
+                console.error("Error dispatching search:", error)
+            }
         }
-    }, [debouncedQuery, dispatch])
+    }, [debouncedQuery, dispatch, selectedFilters])
 
     // Handle result selection
     const handleSelectResult = (result: SearchResult) => {
@@ -60,16 +90,26 @@ export default function SearchDrawer() {
 
     // Handle filter toggle
     const handleFilterToggle = (filter: string) => {
-        dispatch(toggleFilter(filter))
-        if (query.length >= 2) {
-            dispatch(searchAllStores(query))
+        try {
+            dispatch(toggleFilter(filter))
+            if (query.length >= 2) {
+                dispatch(searchAllStores(query))
+            }
+        } catch (error) {
+            console.error("Error toggling filter:", error)
         }
     }
 
     // Handle recent search selection
     const handleSelectRecentSearch = (searchTerm: string) => {
-        dispatch(setSearchQuery(searchTerm))
-        dispatch(searchAllStores(searchTerm))
+        try {
+            dispatch(setSearchQuery(searchTerm))
+            if (searchTerm.length >= 2) {
+                dispatch(searchAllStores(searchTerm))
+            }
+        } catch (error) {
+            console.error("Error selecting recent search:", error)
+        }
     }
 
     // Clear search when drawer closes
@@ -101,7 +141,7 @@ export default function SearchDrawer() {
             case "order":
                 return <ShoppingCart className="h-4 w-4 mr-2" />
             case "supplier":
-                return <Truck className="h-4 w-4 mr-2" />
+                return <Briefcase className="h-4 w-4 mr-2" />
             case "customer":
                 return <User className="h-4 w-4 mr-2" />
             case "shipment":
@@ -110,6 +150,14 @@ export default function SearchDrawer() {
                 return <RotateCcw className="h-4 w-4 mr-2" />
             case "invoice":
                 return <FileText className="h-4 w-4 mr-2" />
+            case "transport":
+                return <Truck className="h-4 w-4 mr-2" />
+            case "carrier":
+                return <Briefcase className="h-4 w-4 mr-2" />
+            case "route":
+                return <Route className="h-4 w-4 mr-2" />
+            case "freight":
+                return <Box className="h-4 w-4 mr-2" />
             default:
                 return <Search className="h-4 w-4 mr-2" />
         }
@@ -124,34 +172,26 @@ export default function SearchDrawer() {
         shipment: "Shipments",
         return: "Returns",
         invoice: "Invoices",
-    }
-
-    // Define available filters based on user role
-    const getAvailableFiltersForRole = (role?: UserRole): string[] => {
-        switch (role) {
-            case UserRole.ADMIN:
-                // Admins can access everything
-                return Object.keys(typeLabels)
-            case UserRole.MANAGER:
-                // Managers can access most things except maybe some sensitive data
-                return ["inventory", "order", "supplier", "customer", "shipment", "return", "invoice"]
-            case UserRole.SUPPLIER:
-                // Suppliers can access their inventory, orders, and shipments
-                return ["inventory", "order", "shipment"]
-            case UserRole.CUSTOMER:
-                // Customers can only access their orders, returns, and invoices
-                return ["order", "return", "invoice"]
-            default:
-                // Default to a restricted set if role is unknown
-                return ["order"]
-        }
+        transport: "Transports",
+        carrier: "Carriers",
+        route: "Routes",
+        freight: "Freights",
     }
 
     // Get available filters for current user
     const availableFilters = getAvailableFiltersForRole(user?.role)
 
-    // Filter results based on user role
-    const filteredResults = results.filter((result: any) => availableFilters.includes(result.type))
+    // Group results by type for better organization
+    const groupedResults = results.reduce(
+        (acc, result) => {
+            if (!acc[result.type]) {
+                acc[result.type] = []
+            }
+            acc[result.type].push(result)
+            return acc
+        },
+        {} as Record<string, SearchResult[]>,
+    )
 
     return (
         <Sheet open={isSearchDrawerOpen} onOpenChange={(open) => dispatch(setSearchDrawerOpen(open))}>
@@ -231,7 +271,7 @@ export default function SearchDrawer() {
                                 </div>
                             )}
 
-                            {query.length >= 2 && filteredResults.length === 0 && (
+                            {query.length >= 2 && results.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <Search className="h-12 w-12 text-muted-foreground mb-4" />
                                     <h3 className="text-lg font-medium">No results found</h3>
@@ -239,18 +279,7 @@ export default function SearchDrawer() {
                                 </div>
                             )}
 
-                            {Object.entries(
-                                filteredResults.reduce(
-                                    (acc, result) => {
-                                        if (!acc[result.type]) {
-                                            acc[result.type] = []
-                                        }
-                                        acc[result.type].push(result)
-                                        return acc
-                                    },
-                                    {} as Record<string, SearchResult[]>,
-                                ),
-                            ).map(([type, typeResults]) => (
+                            {Object.entries(groupedResults).map(([type, typeResults]) => (
                                 <div key={type} className="mb-4 pt-2">
                                     <h3 className="px-2 py-1.5 text-sm font-medium text-muted-foreground">{typeLabels[type] || type}</h3>
                                     <div className="space-y-1">
