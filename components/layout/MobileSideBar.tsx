@@ -166,7 +166,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
               }
               badge={unreadCount}
             />
-            {user?.integrations?.ecommerce?.enabled && (
+            {user?.role !== "customer" && user?.integrations?.ecommerce?.enabled && (
               <MenuItem
                 icon={<LayoutGrid className="h-5 w-5" />}
                 label="Apps"
@@ -174,6 +174,7 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
                 serviceIcon="/icons/shopify.svg"
               />
             )}
+
             <MenuItem
               icon={<Settings className="h-5 w-5" />}
               label="Settings"
