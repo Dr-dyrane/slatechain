@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/store"
-import { resetUserPassword } from "@/lib/slices/authSlice"
+import { resetUserPassword, login } from "@/lib/slices/authSlice"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -57,6 +57,7 @@ export default function ResetPasswordPage() {
     } | null>(null)
     const [passwordsMatch, setPasswordsMatch] = useState(false)
     const [useManualCode, setUseManualCode] = useState(!codeFromUrl)
+    const [autoLoginInProgress, setAutoLoginInProgress] = useState(false)
 
     const {
         register,
@@ -97,13 +98,48 @@ export default function ResetPasswordPage() {
         }
     }, [confirmNewPasswordValue, newPasswordValue, trigger])
 
+    // Function to handle auto-login after password reset
+    const handleAutoLogin = async (password: string) => {
+        if (!email) {
+            toast.error("Email is missing. Please go to the login page.")
+            setTimeout(() => {
+                router.push("/login")
+            }, 2000)
+            return
+        }
+
+        setAutoLoginInProgress(true)
+        try {
+            const result = await dispatch(login({ email, password }))
+
+            if (login.fulfilled.match(result)) {
+                toast.success("Password reset successful. You are now logged in.")
+                router.push("/dashboard")
+            } else {
+                // If login fails for some reason
+                toast.error("Password reset successful, but automatic login failed. Please log in manually.")
+                setTimeout(() => {
+                    router.push("/login")
+                }, 2000)
+            }
+        } catch (error: any) {
+            console.error("Auto-login error:", error)
+            toast.error("Password reset successful, but automatic login failed. Please log in manually.")
+            setTimeout(() => {
+                router.push("/login")
+            }, 2000)
+        } finally {
+            setAutoLoginInProgress(false)
+        }
+    }
+
     const onSubmit = async (data: ResetFormValues) => {
         try {
             await dispatch(resetUserPassword({ code: data.code, newPassword: data.newPassword })).unwrap()
             setResetSuccessful(true)
-            setTimeout(() => {
-                router.push("/login")
-            }, 3000)
+
+            // Auto login after successful password reset
+            handleAutoLogin(data.newPassword)
         } catch (err: any) {
             setResetSuccessful(false)
             toast.error(err.message || "There was an error with the password reset process please try again")
@@ -137,7 +173,7 @@ export default function ResetPasswordPage() {
         return { hasUppercase, hasLowercase, hasNumber, isLongEnough }
     }
 
-    if (loading) {
+    if (loading || autoLoginInProgress) {
         return <LayoutLoader />
     }
 
@@ -148,10 +184,14 @@ export default function ResetPasswordPage() {
                     <CardHeader>
                         <CardTitle>Password Reset Successful</CardTitle>
                         <CardDescription>
-                            Your password has been reset successfully, you will be redirected to login page in 3 seconds
+                            Your password has been reset successfully. Logging you in automatically...
                         </CardDescription>
                     </CardHeader>
-                    <CardContent></CardContent>
+                    <CardContent>
+                        <div className="flex justify-center mt-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                        </div>
+                    </CardContent>
                 </Card>
             </div>
         )
