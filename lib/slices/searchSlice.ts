@@ -4,6 +4,8 @@ import {
 	type PayloadAction,
 } from "@reduxjs/toolkit";
 import type { RootState } from "@/lib/store";
+import { InventoryItem, Order, Supplier } from "../types";
+import { Customer } from "../types/returns";
 
 // Define the types for search results from different stores
 export interface SearchResult {
@@ -74,7 +76,7 @@ export const searchAllStores = createAsyncThunk(
 			const inventoryItems = state.inventory.items;
 			const inventoryResults = inventoryItems
 				.filter(
-					(item) =>
+					(item: InventoryItem) =>
 						item.name?.toLowerCase().includes(searchTerm) ||
 						item.sku?.toLowerCase().includes(searchTerm) ||
 						item.description?.toLowerCase().includes(searchTerm)
@@ -85,7 +87,7 @@ export const searchAllStores = createAsyncThunk(
 					title: item.name || "Unnamed Item",
 					subtitle: `SKU: ${item.sku || "N/A"}`,
 					description: item.description || "",
-					image:  "/logo.png",
+					image: "/logo.png",
 					url: `/inventory/${item.id}`,
 					data: item,
 				}));
@@ -101,16 +103,16 @@ export const searchAllStores = createAsyncThunk(
 			const orders = state.orders.items;
 			const orderResults = orders
 				.filter(
-					(order) =>
+					(order: Order) =>
 						order.orderNumber?.toLowerCase().includes(searchTerm) ||
-						order.customerName?.toLowerCase().includes(searchTerm) ||
+						order.customerId?.toLowerCase().includes(searchTerm) ||
 						order.status?.toLowerCase().includes(searchTerm)
 				)
 				.map((order) => ({
 					id: `order-${order.id}`,
 					type: "order" as const,
 					title: `Order #${order.orderNumber}`,
-					subtitle: `${order.customerName || "Unknown Customer"} - ${order.status || "Unknown Status"}`,
+					subtitle: `${order.customerId || "Unknown Customer"} - ${order.status || "Unknown Status"}`,
 					description: `${order.items?.length || 0} items - $${order.totalAmount?.toFixed(2) || "0.00"}`,
 					url: `/orders?id=${order.id}`,
 					data: order,
@@ -127,13 +129,13 @@ export const searchAllStores = createAsyncThunk(
 							`INV-${order.orderNumber?.replace("ORD", "")}`
 								.toLowerCase()
 								.includes(searchTerm) ||
-							order.customerName?.toLowerCase().includes(searchTerm)
+							order.customerId?.toLowerCase().includes(searchTerm)
 					)
 					.map((order) => ({
 						id: `invoice-${order.id}`,
 						type: "invoice" as const,
 						title: `Invoice #INV-${order.orderNumber?.replace("ORD", "")}`,
-						subtitle: `${order.customerName || "Unknown Customer"} - ${order.paid ? "Paid" : "Unpaid"}`,
+						subtitle: `${order.customerId || "Unknown Customer"} - ${order.paid ? "Paid" : "Unpaid"}`,
 						description: `$${order.totalAmount?.toFixed(2) || "0.00"}`,
 						url: `/orders?tab=invoices&id=${order.id}`,
 						data: order,
@@ -148,10 +150,10 @@ export const searchAllStores = createAsyncThunk(
 			const suppliers = state.supplier.items;
 			const supplierResults = suppliers
 				.filter(
-					(supplier) =>
+					(supplier: Supplier) =>
 						supplier.name?.toLowerCase().includes(searchTerm) ||
 						supplier.email?.toLowerCase().includes(searchTerm) ||
-						supplier.phone?.toLowerCase().includes(searchTerm)
+						supplier.phoneNumber?.toLowerCase().includes(searchTerm)
 				)
 				.map((supplier) => ({
 					id: `supplier-${supplier.id}`,
@@ -171,12 +173,12 @@ export const searchAllStores = createAsyncThunk(
 			const customers = state.customer.items;
 			const customerResults = customers
 				.filter(
-					(customer) =>
-						customer.name?.toLowerCase().includes(searchTerm) ||
+					(customer: Customer) =>
+						customer._id?.toLowerCase().includes(searchTerm) ||
 						customer.email?.toLowerCase().includes(searchTerm) ||
-						customer.phone?.toLowerCase().includes(searchTerm)
+						customer.role?.toLowerCase().includes(searchTerm)
 				)
-				.map((customer) => ({
+				.map((customer: any) => ({
 					id: `customer-${customer.id}`,
 					type: "customer" as const,
 					title: customer.name || "Unnamed Customer",
@@ -199,7 +201,7 @@ export const searchAllStores = createAsyncThunk(
 						shipment.carrier?.toLowerCase().includes(searchTerm) ||
 						shipment.status?.toLowerCase().includes(searchTerm)
 				)
-				.map((shipment) => ({
+				.map((shipment: any) => ({
 					id: `shipment-${shipment.id}`,
 					type: "shipment" as const,
 					title: `Shipment #${shipment.trackingNumber || "No Tracking"}`,
@@ -217,12 +219,12 @@ export const searchAllStores = createAsyncThunk(
 			const returns = state.returns.items;
 			const returnResults = returns
 				.filter(
-					(returnItem) =>
+					(returnItem: any) =>
 						returnItem.returnNumber?.toLowerCase().includes(searchTerm) ||
 						returnItem.customerName?.toLowerCase().includes(searchTerm) ||
 						returnItem.status?.toLowerCase().includes(searchTerm)
 				)
-				.map((returnItem) => ({
+				.map((returnItem: any) => ({
 					id: `return-${returnItem.id}`,
 					type: "return" as const,
 					title: `Return #${returnItem.returnNumber || "No Number"}`,

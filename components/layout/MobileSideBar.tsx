@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
-import { LogOut, MoonIcon, Settings, SunIcon, User, ChevronRight, Bell, LayoutGrid } from "lucide-react"
+import { LogOut, MoonIcon, Settings, SunIcon, User, ChevronRight, Bell, LayoutGrid, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
@@ -13,12 +13,15 @@ import type { KYCStatus, User as UserType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import Image from "next/image"
+import { useDispatch } from "react-redux"
+import { setSearchDrawerOpen } from "@/lib/slices/searchSlice"
+import type { AppDispatch } from "@/lib/store"
 
 interface ProfileSheetProps {
   user: UserType
   onLogout: () => Promise<void>
   unreadCount?: number
-  setIsMobileNotificationDrawerOpen: (open: boolean) => void;
+  setIsMobileNotificationDrawerOpen: (open: boolean) => void
 }
 
 interface MenuItemProps {
@@ -46,15 +49,20 @@ export const MenuItem = ({ icon, label, onClick, variant = "default", badge, ser
     <div className="flex items-center gap-2">
       {serviceIcon && (
         <div className="relative bg-muted/35 w-8 h-8 rounded-full overflow-clip">
-          <Image src={serviceIcon || "/placeholder.svg"} alt={`${label} service`} fill className="object-cover h-8 w-8 p-1" />
+          <Image
+            src={serviceIcon || "/placeholder.svg"}
+            alt={`${label} service`}
+            fill
+            className="object-cover h-8 w-8 p-1"
+          />
         </div>
       )}
       {badge && (
-        <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0 w-7 h-7 flex items-center justify-center leading-none aspect-square rounded-full">{badge}</span>
+        <span className="bg-primary text-primary-foreground text-xs font-medium px-2 py-0 w-7 h-7 flex items-center justify-center leading-none aspect-square rounded-full">
+          {badge}
+        </span>
       )}
-      <ChevronRight className={cn('h-4 w-4 text-muted-foreground',
-        variant === "danger" && "text-destructive"
-      )} />
+      <ChevronRight className={cn("h-4 w-4 text-muted-foreground", variant === "danger" && "text-destructive")} />
     </div>
   </button>
 )
@@ -79,9 +87,15 @@ export const getKycStatusBadge = (status: KYCStatus) => {
   return <Badge variant={variants[status]}>{labels[status]}</Badge>
 }
 
-export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotificationDrawerOpen }: ProfileSheetProps) {
+export function ProfileSheet({
+  user,
+  onLogout,
+  unreadCount = 0,
+  setIsMobileNotificationDrawerOpen,
+}: ProfileSheetProps) {
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+  const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
 
   const getInitials = (name: string) => {
@@ -96,8 +110,14 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
     router.push(path)
     setOpen(false)
   }
+
   const handleNotificationNavigation = () => {
     setIsMobileNotificationDrawerOpen(true)
+    setOpen(false)
+  }
+
+  const handleSearchNavigation = () => {
+    dispatch(setSearchDrawerOpen(true))
     setOpen(false)
   }
 
@@ -111,10 +131,11 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="relative md:hidden">
           <Avatar className="h-8 w-8">
-            {user?.avatarUrl ? <AvatarImage src={user?.avatarUrl} />
-              :
+            {user?.avatarUrl ? (
+              <AvatarImage src={user?.avatarUrl} />
+            ) : (
               <AvatarFallback>{user?.name ? getInitials(user.name) : "U"}</AvatarFallback>
-            }
+            )}
           </Avatar>
         </Button>
       </SheetTrigger>
@@ -130,7 +151,10 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
         <div className="relative px-2 py-6 ">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-background/0" />
           <div className="relative px-2 mt-6 space-y-4">
-            <div className="flex items-center cursor-pointer gap-4 rounded-2xl border hover:bg-accent/35 bg-accent/25 border-border px-3 py-4" onClick={() => handleNavigation("/profile")} >
+            <div
+              className="flex items-center cursor-pointer gap-4 rounded-2xl border hover:bg-accent/35 bg-accent/25 border-border px-3 py-4"
+              onClick={() => handleNavigation("/profile")}
+            >
               <Avatar className="h-14 w-14 ring-4 ring-background/50">
                 <AvatarImage src={user?.avatarUrl} />
                 <AvatarFallback className="text-lg">{user?.name ? getInitials(user?.name) : "U"}</AvatarFallback>
@@ -143,12 +167,11 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
             <div className="flex w-full justify-end gap-4 items-center overflow-scroll scrollbar-hide">
               {getKycStatusBadge(user?.kycStatus)}
               <Badge variant="secondary" className="font-normal">
-                {((user?.role || "unknown").charAt(0).toUpperCase() + (user?.role || "unknown").slice(1))}
+                {(user?.role || "unknown").charAt(0).toUpperCase() + (user?.role || "unknown").slice(1)}
               </Badge>
             </div>
           </div>
         </div>
-
 
         {/* Middle Section - Menu Items */}
         <div className="flex-1 p-2 overflow-scroll scrollbar-hide">
@@ -158,15 +181,14 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
               label="Profile"
               onClick={() => handleNavigation("/profile")}
             />
+            <MenuItem icon={<Search className="h-5 w-5" />} label="Search" onClick={handleSearchNavigation} />
             <MenuItem
               icon={<Bell className="h-5 w-5" />}
               label="Notifications"
-              onClick={() =>
-                handleNotificationNavigation()
-              }
+              onClick={handleNotificationNavigation}
               badge={unreadCount}
             />
-            {user?.role !== "customer" && user?.integrations?.ecommerce?.enabled && (
+            {user?.integrations?.ecommerce?.enabled && (
               <MenuItem
                 icon={<LayoutGrid className="h-5 w-5" />}
                 label="Apps"
@@ -181,14 +203,15 @@ export function ProfileSheet({ user, onLogout, unreadCount = 0, setIsMobileNotif
               onClick={() => handleNavigation("/settings")}
             />
           </div>
-
         </div>
 
         <div className="flex flex-col gap-2">
           {/* Theme Switcher */}
           <div className="p-2">
-            <div onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-              className="flex items-center justify-between rounded-lg bg-accent/15 px-4 py-3 cursor-pointer hover:bg-accent/45">
+            <div
+              onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              className="flex items-center justify-between rounded-lg bg-accent/15 px-4 py-3 cursor-pointer hover:bg-accent/45"
+            >
               <span className="font-medium">Theme</span>
               <Button
                 variant="ghost"

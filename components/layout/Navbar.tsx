@@ -7,7 +7,7 @@ import { useTheme } from "next-themes"
 import { useSelector, useDispatch } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { logout } from "@/lib/slices/authSlice"
-import { CircleUserRound, MoonIcon, SunIcon, Settings, Bell } from "lucide-react"
+import { CircleUserRound, MoonIcon, SunIcon, Settings, Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Logo } from "../Logo"
 import { useRouter } from "next/navigation"
@@ -15,6 +15,8 @@ import type { Notification, User } from "@/lib/types"
 import { ProfileSheet } from "./MobileSideBar"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar"
+import SearchDrawer from "../search/SearchDrawer"
+import { setSearchDrawerOpen } from "@/lib/slices/searchSlice"
 
 interface Props {
   setIsMobileNotificationDrawerOpen: (open: boolean) => void
@@ -98,19 +100,29 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
             </Button>
           )}
           {isAuthenticated && ( // Show only if authenticated
-            <Button
-              size="icon"
-              variant="ghost"
-              className="xl:hidden relative"
-              onClick={() => setIsMobileNotificationDrawerOpen(true)}
-            >
-              <Bell className="h-5 w-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Button>
+            <>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="relative"
+                onClick={() => dispatch(setSearchDrawerOpen(true))}
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="xl:hidden relative"
+                onClick={() => setIsMobileNotificationDrawerOpen(true)}
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-medium">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </>
           )}
           {isAuthenticated && (
             <ProfileSheet
@@ -119,6 +131,9 @@ export function Navbar({ setIsMobileNotificationDrawerOpen, notifications }: Pro
               unreadCount={unreadCount}
               setIsMobileNotificationDrawerOpen={setIsMobileNotificationDrawerOpen}
             />
+          )}
+          {isAuthenticated && (
+            <SearchDrawer />
           )}
           {isAuthenticated ? (
             <>
