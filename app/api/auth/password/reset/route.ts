@@ -1,5 +1,3 @@
-// app/api/auth/password/reset/route.ts
-
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "../../../index";
 import User from "@/app/api/models/User";
@@ -41,6 +39,7 @@ export async function POST(req: Request) {
 				{ status: 400, headers }
 			);
 		}
+
 		// Verify reset code from Redis
 		const userId = await redis.get(`pwd_reset:${code}`);
 		if (!userId) {
@@ -69,8 +68,18 @@ export async function POST(req: Request) {
 		user.password = newPassword;
 		await user.save();
 
-		// Delete used reset code
-		await redis.del(`pwd_reset:${code}`);
+		// Find and delete all reset codes for this user
+		// First, get all keys with the pwd_reset: prefix
+		const keys = await redis.keys("pwd_reset:*");
+
+		// Check each key to see if it belongs to this user
+		for (const key of keys) {
+			const keyUserId = await redis.get(key);
+			if (keyUserId === userId) {
+				// Delete this reset code since it belongs to the same user
+				await redis.del(key);
+			}
+		}
 
 		return NextResponse.json(
 			{
