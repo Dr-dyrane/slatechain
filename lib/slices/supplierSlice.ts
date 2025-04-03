@@ -6,6 +6,7 @@ interface SupplierState {
 	items: Supplier[];
 	documents: SupplierDocument[];
 	chatMessages: ChatMessage[];
+	selectedSupplier: Supplier | null;
 	loading: boolean;
 	error: string | null;
 }
@@ -14,6 +15,7 @@ const initialState: SupplierState = {
 	items: [],
 	documents: [],
 	chatMessages: [],
+	selectedSupplier: null,
 	loading: false,
 	error: null,
 };
@@ -171,6 +173,22 @@ export const sendChatMessage = createAsyncThunk(
 	}
 );
 
+export const fetchSupplier = createAsyncThunk(
+	"supplier/fetchSupplier",
+	async (supplierId: string, thunkAPI) => {
+		try {
+			const response = await apiClient.get<Supplier>(
+				`/suppliers/${supplierId}/invoice/`
+			);
+			return response;
+		} catch (error: any) {
+			return thunkAPI.rejectWithValue(
+				error.message || "Failed to fetch supplier invoices"
+			);
+		}
+	}
+);
+
 const supplierSlice = createSlice({
 	name: "supplier",
 	initialState,
@@ -225,6 +243,18 @@ const supplierSlice = createSlice({
 			})
 			.addCase(sendChatMessage.fulfilled, (state, action) => {
 				state.chatMessages.push(action.payload);
+			})
+			.addCase(fetchSupplier.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(fetchSupplier.fulfilled, (state, action) => {
+				state.loading = false;
+				state.selectedSupplier = action.payload as Supplier;
+			})
+			.addCase(fetchSupplier.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			});
 	},
 });

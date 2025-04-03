@@ -8,6 +8,9 @@ import { AppDispatch } from "@/lib/store"
 import { fetchOrders } from "@/lib/slices/orderSlice"
 import OrdersTab from "@/components/order/OrdersTab"
 import ReturnsTab from "@/components/returns/ReturnsTab"
+import InvoicesTab from "@/components/invoice/InvoicesTab"
+import { fetchInventory } from "@/lib/slices/inventorySlice"
+import { fetchSuppliers } from "@/lib/slices/supplierSlice"
 
 export default function OrdersPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -17,12 +20,14 @@ export default function OrdersPage() {
 
   useEffect(() => {
     dispatch(fetchOrders())
+    dispatch(fetchInventory())
+    dispatch(fetchSuppliers())
 
     // Check if we should open the add modal from query params
     const openAddModal = searchParams.get("add") === "true"
     const tab = searchParams.get("tab")
 
-    if (tab && (tab === "orders" || tab === "returns")) {
+    if (tab && (tab === "orders" || tab === "returns" || tab === "invoices")) {
       setActiveTab(tab)
     }
 
@@ -44,9 +49,10 @@ export default function OrdersPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="orders">Orders</TabsTrigger>
           <TabsTrigger value="returns">Returns</TabsTrigger>
+          <TabsTrigger value="invoices">Invoices</TabsTrigger>
         </TabsList>
 
         <TabsContent value="orders" className="mt-4">
@@ -55,6 +61,10 @@ export default function OrdersPage() {
 
         <TabsContent value="returns" className="mt-4">
           <ReturnsTab />
+        </TabsContent>
+
+        <TabsContent value="invoices" className="mt-4">
+          <InvoicesTab />
         </TabsContent>
       </Tabs>
     </div>

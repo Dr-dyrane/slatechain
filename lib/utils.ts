@@ -240,6 +240,20 @@ export function formatCurrency(value: number, currency = "USD"): string {
 	}).format(value);
 }
 
+export const currencies = [
+	{ code: "USD", name: "US Dollar" },
+	{ code: "EUR", name: "Euro" },
+	{ code: "GBP", name: "British Pound" },
+	{ code: "JPY", name: "Japanese Yen" },
+	{ code: "CAD", name: "Canadian Dollar" },
+	{ code: "AUD", name: "Australian Dollar" },
+	{ code: "CHF", name: "Swiss Franc" },
+	{ code: "CNY", name: "Chinese Yuan" },
+	{ code: "INR", name: "Indian Rupee" },
+	{ code: "BRL", name: "Brazilian Real" },
+	{ code: "LKR", name: "Sri Lankan Rupee" },
+];
+
 /**
  * Formats a number with thousand separators
  * @param value The number to format
