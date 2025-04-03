@@ -18,20 +18,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
-import {
-    Search,
-    X,
-    Package,
-    ShoppingCart,
-    Truck,
-    User,
-    RotateCcw,
-    FileText,
-    Clock,
-    Filter,
-    ArrowLeft,
-} from "lucide-react"
+import { Search, X, Package, ShoppingCart, Truck, User, RotateCcw, FileText, Clock, Filter } from "lucide-react"
 import { useDebounce } from "@/hooks/use-debounce"
+import { UserRole } from "@/lib/types"
 
 export default function SearchDrawer() {
     const dispatch = useDispatch<AppDispatch>()
@@ -41,6 +30,9 @@ export default function SearchDrawer() {
     const { query, results, isSearching, selectedFilters, recentSearches, isSearchDrawerOpen } = useSelector(
         (state: RootState) => state.search,
     )
+
+    // Get current user from auth state
+    const { user } = useSelector((state: RootState) => state.auth)
 
     // Use custom debounce hook
     const debouncedQuery = useDebounce(query, 300)
@@ -134,6 +126,33 @@ export default function SearchDrawer() {
         invoice: "Invoices",
     }
 
+    // Define available filters based on user role
+    const getAvailableFiltersForRole = (role?: UserRole): string[] => {
+        switch (role) {
+            case UserRole.ADMIN:
+                // Admins can access everything
+                return Object.keys(typeLabels)
+            case UserRole.MANAGER:
+                // Managers can access most things except maybe some sensitive data
+                return ["inventory", "order", "supplier", "customer", "shipment", "return", "invoice"]
+            case UserRole.SUPPLIER:
+                // Suppliers can access their inventory, orders, and shipments
+                return ["inventory", "order", "shipment"]
+            case UserRole.CUSTOMER:
+                // Customers can only access their orders, returns, and invoices
+                return ["order", "return", "invoice"]
+            default:
+                // Default to a restricted set if role is unknown
+                return ["order"]
+        }
+    }
+
+    // Get available filters for current user
+    const availableFilters = getAvailableFiltersForRole(user?.role)
+
+    // Filter results based on user role
+    const filteredResults = results.filter((result: any) => availableFilters.includes(result.type))
+
     return (
         <Sheet open={isSearchDrawerOpen} onOpenChange={(open) => dispatch(setSearchDrawerOpen(open))}>
             <SheetContent
@@ -143,14 +162,6 @@ export default function SearchDrawer() {
                 <SheetHeader className="px-4 pt-4 pb-2">
                     <div className="flex justify-start items-center gap-4 flex-wrap">
                         <SheetTitle className="text-lg text-left font-semibold flex items-center gap-2">
-                            {/* <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => dispatch(setSearchDrawerOpen(false))}
-                                className="h-8 w-8 -ml-2"
-                            >
-                                <ArrowLeft className="h-4 w-4" />
-                            </Button> */}
                             <span>Global Search</span>
                         </SheetTitle>
                     </div>
@@ -172,14 +183,14 @@ export default function SearchDrawer() {
                     )}
                 </div>
 
-                {/* Filters */}
+                {/* Filters - Only show filters available to the user's role */}
                 <div className="border-t border-b p-2 mx-4">
                     <div className="flex items-center gap-1 flex-wrap">
                         <span className="text-xs text-muted-foreground flex items-center ml-1">
                             <Filter className="h-3 w-3 mr-1" />
                             Filters:
                         </span>
-                        {Object.keys(typeLabels).map((filter) => (
+                        {availableFilters.map((filter) => (
                             <Badge
                                 key={filter}
                                 variant={selectedFilters.includes(filter) ? "default" : "outline"}
@@ -220,7 +231,7 @@ export default function SearchDrawer() {
                                 </div>
                             )}
 
-                            {query.length >= 2 && results.length === 0 && (
+                            {query.length >= 2 && filteredResults.length === 0 && (
                                 <div className="flex flex-col items-center justify-center py-12 text-center">
                                     <Search className="h-12 w-12 text-muted-foreground mb-4" />
                                     <h3 className="text-lg font-medium">No results found</h3>
@@ -229,7 +240,7 @@ export default function SearchDrawer() {
                             )}
 
                             {Object.entries(
-                                results.reduce(
+                                filteredResults.reduce(
                                     (acc, result) => {
                                         if (!acc[result.type]) {
                                             acc[result.type] = []
