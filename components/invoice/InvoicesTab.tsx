@@ -128,9 +128,9 @@ export default function InvoicesTab() {
                 // Determine invoice status
                 const now = new Date()
                 let status: "PENDING" | "PAID" | "OVERDUE" = "PAID"
-                if (dueDate < now) {
-                    status = "OVERDUE"
-                }
+                // if (dueDate < now) {
+                //     status = "OVERDUE"
+                // }
 
                 // Use the supplier from Redux state if available
                 const supplierName = supplier?.name || "SlateChain Supply"
@@ -212,11 +212,11 @@ export default function InvoicesTab() {
             cell: ({ row }) => {
                 const status = row.getValue("status") as "PENDING" | "PAID" | "OVERDUE"
                 const statusVariants = {
-                    PENDING: "bg-warning text-warning-foreground",
-                    PAID: "bg-success text-success-foreground",
-                    OVERDUE: "bg-destructive text-destructive-foreground",
+                    PENDING: "warning",
+                    PAID: "success",
+                    OVERDUE: "destructive",
                 }
-                return <Badge className={statusVariants[status]}>{status}</Badge>
+                return <Badge variant={statusVariants[status] as "warning" | "success" | "destructive" | "default" | "secondary" | "outline" | null | undefined}>{status}</Badge>
             },
         },
         {
