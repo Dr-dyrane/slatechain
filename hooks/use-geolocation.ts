@@ -44,8 +44,8 @@ export function useGeolocation(): UseGeolocationResult {
 		getGeoLocation(
 			(position) => {
 				setLocation({
-					latitude: position.coords.latitude,
-					longitude: position.coords.longitude,
+					latitude: parseFloat(position.coords.latitude.toFixed(5)),
+					longitude: parseFloat(position.coords.longitude.toFixed(5)),
 				});
 				setLoading(false);
 			},

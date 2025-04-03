@@ -27,6 +27,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useGeolocation } from "@/hooks/use-geolocation"
+import { Country, State, City } from "country-state-city"
 
 // Define a Zod schema for transport validation
 const transportSchema = z.object({
@@ -69,6 +70,93 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
     const [backendError, setBackendError] = useState<string | null>(null)
     const [updating, setUpdating] = useState(false)
     const { location, loading: locationLoading, error: locationError, getLocation } = useGeolocation()
+    // Address selection state
+    const [street, setStreet] = useState("")
+    const [selectedCountry, setSelectedCountry] = useState<string | null>(null)
+    const [selectedState, setSelectedState] = useState<string | null>(null)
+    const [selectedCity, setSelectedCity] = useState<string | null>(null)
+    const [geocodingLoading, setGeocodingLoading] = useState(false)
+    const [addressError, setAddressError] = useState<string | null>(null)
+    // Get all countries
+    const countries = Country.getAllCountries()
+    // Get states for selected country
+    const states = selectedCountry ? State.getStatesOfCountry(selectedCountry) : []
+    // Get cities for selected state and country
+    const cities = selectedCountry && selectedState ? City.getCitiesOfState(selectedCountry, selectedState) : []
+
+    const geocodeAddress = async () => {
+        if (!selectedCountry || !selectedState || !selectedCity) {
+            setAddressError("Please select a country, state, and city")
+            toast.error("Please select a country, state, and city to generate coordinates")
+            return
+        }
+
+        // Find the country name from the selected country code
+        const countryData = countries.find((country) => country.isoCode === selectedCountry)
+        if (!countryData) {
+            toast.error("Invalid country selection")
+            setAddressError("Invalid country selection")
+            return
+        }
+
+        // Build address components
+        const addressComponents = []
+
+        if (street) addressComponents.push(street)
+
+        if (selectedCity) {
+            const cityData = cities.find((city) => city.name === selectedCity)
+            if (cityData) addressComponents.push(cityData.name)
+        }
+
+        if (selectedState) {
+            const stateData = states.find((state) => state.isoCode === selectedState)
+            if (stateData) addressComponents.push(stateData.name)
+        }
+
+        addressComponents.push(countryData.name)
+
+        const addressString = addressComponents.join(", ")
+
+        if (addressComponents.length < 2) {
+            toast.error("Please provide more address details")
+            return
+        }
+
+        setGeocodingLoading(true)
+        try {
+            const query = encodeURIComponent(addressString)
+            console.log("Geocoding query:", addressString)
+
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?format=json&q=${query}&countrycodes=${selectedCountry}&limit=1`,
+            )
+
+            if (!response.ok) {
+                throw new Error("Failed to geocode address")
+            }
+
+            const data = await response.json()
+            console.log("Geocoding response:", data)
+
+            if (data && data.length > 0) {
+                const { lat, lon } = data[0];
+
+                setValue("currentLocation.latitude", parseFloat(Number(lat).toFixed(5)), { shouldValidate: true });
+                setValue("currentLocation.longitude", parseFloat(Number(lon).toFixed(5)), { shouldValidate: true });
+
+                toast.success("Coordinates generated successfully")
+            } else {
+                toast.error("Could not find coordinates for this address. Try adding more details.")
+            }
+        } catch (error) {
+            console.error("Geocoding error:", error)
+            toast.error("Error generating coordinates: " + (error instanceof Error ? error.message : "Unknown error"))
+        } finally {
+            setGeocodingLoading(false)
+            setAddressError(null)
+        }
+    }
 
     // Fetch carriers when the modal opens
     useEffect(() => {
@@ -277,6 +365,111 @@ export function EditTransportModal({ open, onClose, transport }: EditTransportMo
                                 )}
                                 {locationLoading ? "Getting Location..." : "Update to Current Location"}
                             </Button>
+                        </div>
+                        <div className="grid gap-2 my-4">
+                            <div className="flex justify-between items-center mb-2">
+                                <Label>Or select address (for coordinate generation)</Label>
+                            </div>
+                            {
+                                addressError && (
+                                    <Alert variant="destructive" className="">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            {addressError}
+                                        </AlertDescription>
+                                    </Alert>
+                                )
+                            }
+                            <div className="grid gap-2">
+                                <div>
+                                    <Label htmlFor="country">Country</Label>
+                                    <Select
+                                        onValueChange={(value) => {
+                                            setSelectedCountry(value)
+                                            setSelectedState(null)
+                                            setSelectedCity(null)
+                                        }}
+                                    >
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select a country" />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[200px] overflow-y-auto">
+                                            {countries.map((country) => (
+                                                <SelectItem key={country.isoCode} value={country.isoCode}>
+                                                    {country.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {selectedCountry && states.length > 0 && (
+                                    <div>
+                                        <Label htmlFor="state">State/Province</Label>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                setSelectedState(value)
+                                                setSelectedCity(null)
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select a state" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[200px] overflow-y-auto">
+                                                {states.map((state) => (
+                                                    <SelectItem key={state.isoCode} value={state.isoCode}>
+                                                        {state.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                {selectedState && cities.length > 0 && (
+                                    <div>
+                                        <Label htmlFor="city">City</Label>
+                                        <Select onValueChange={setSelectedCity}>
+                                            <SelectTrigger className="w-full">
+                                                <SelectValue placeholder="Select a city" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[200px] overflow-y-auto">
+                                                {cities.map((city) => (
+                                                    <SelectItem key={city.name} value={city.name}>
+                                                        {city.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+
+                                <div>
+                                    <Label htmlFor="street">Street Address</Label>
+                                    <Input
+                                        id="street"
+                                        placeholder="Street address"
+                                        value={street}
+                                        onChange={(e) => setStreet(e.target.value)}
+                                    />
+                                </div>
+
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={geocodeAddress}
+                                    disabled={geocodingLoading}
+                                    className="mt-1"
+                                >
+                                    {geocodingLoading ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                                    ) : (
+                                        <MapPin className="h-4 w-4 mr-1" />
+                                    )}
+                                    Generate Coordinates from Address
+                                </Button>
+                            </div>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                             <div>
