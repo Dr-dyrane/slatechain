@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, getSidebarItemMeta } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog, LayoutGrid, User } from "lucide-react";
+import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, PanelRightOpen, PanelRightClose, UserCog, LayoutGrid, User, FolderKanban } from "lucide-react";
 import { UserRole } from "@/lib/types";
 import Image from "next/image";
 import { Badge } from "../ui/badge";
@@ -21,6 +21,7 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/users": UserCog,
   "/apps": LayoutGrid,
   "/profile": User,
+  "/portal": FolderKanban,
 };
 
 interface SidebarProps {

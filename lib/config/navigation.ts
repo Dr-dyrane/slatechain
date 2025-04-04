@@ -11,6 +11,7 @@ import {
 	UserCog,
 	LayoutGrid,
 	User,
+	FolderKanban,
 } from "lucide-react";
 import { UserRole } from "@/lib/types";
 
@@ -24,6 +25,7 @@ export const icons = {
 	settings: Settings,
 	apps: LayoutGrid,
 	profile: User,
+	portal: FolderKanban,
 } as const;
 
 // Define base navigation items
@@ -69,6 +71,12 @@ export const baseNavItems = [
 		roles: [UserRole.ADMIN, UserRole.MANAGER],
 	},
 	{
+		href: "/portal",
+		title: "Portal",
+		icon: "portal",
+		roles: [UserRole.SUPPLIER],
+	},
+	{
 		href: "/users",
 		title: "Users",
 		icon: "users",
@@ -78,7 +86,7 @@ export const baseNavItems = [
 		href: "/profile",
 		title: "Profile",
 		icon: "profile",
-		roles: [UserRole.SUPPLIER, UserRole.CUSTOMER],
+		roles: [UserRole.CUSTOMER],
 	},
 	{
 		href: "/settings",
@@ -95,7 +103,7 @@ export const integrationNavItems = {
 			href: "/apps",
 			title: "Apps",
 			icon: "apps",
-			roles: [UserRole.ADMIN, UserRole.MANAGER],
+			roles: [UserRole.ADMIN, UserRole.MANAGER, UserRole.SUPPLIER],
 		},
 	],
 };

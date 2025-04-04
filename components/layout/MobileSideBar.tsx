@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
-import type { KYCStatus, User as UserType } from "@/lib/types"
+import { UserRole, type KYCStatus, type User as UserType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { useState } from "react"
 import Image from "next/image"
@@ -188,7 +188,7 @@ export function ProfileSheet({
               onClick={handleNotificationNavigation}
               badge={unreadCount}
             />
-            {user?.integrations?.ecommerce?.enabled && (
+            {user?.role !== UserRole.CUSTOMER && user?.integrations?.ecommerce?.enabled && (
               <MenuItem
                 icon={<LayoutGrid className="h-5 w-5" />}
                 label="Apps"

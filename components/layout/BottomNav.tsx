@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn, getSidebarItemMeta } from "@/lib/utils";
-import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, UserCog, User } from "lucide-react";
+import { Home, BarChart2, ShoppingCart, Truck, Users, Settings, UserCog, User, FolderKanban } from "lucide-react";
 import { UserRole } from "@/lib/types";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
@@ -19,6 +19,7 @@ const icons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/settings": Settings,
   "/users": UserCog,
   "/profile": User,
+  "/portal": FolderKanban,
 };
 
 interface SidebarProps {
