@@ -13,7 +13,6 @@ import { countries, findCountryByCode, getDefaultCountry, type Country } from "@
 import type { CountryCode } from "libphonenumber-js"
 import { useUserLocation } from "@/hooks/use-geolocation"
 
-
 interface PhoneInputProps {
     value: string
     onChange: (value: string) => void
@@ -42,32 +41,52 @@ export function PhoneInput({
     const [nationalNumber, setNationalNumber] = useState("")
     const [isValid, setIsValid] = useState(true)
     const inputRef = useRef<HTMLInputElement>(null)
+    const [skipEffectCycle, setSkipEffectCycle] = useState(false)
+    const initializedRef = useRef(false)
 
-    // Initialize with default country or detected country
+    // Initialize with default country or detected country - only once
     useEffect(() => {
+        if (initializedRef.current) return
+
+        // If we already have a selected country, don't override it
+        if (selectedCountry) {
+            initializedRef.current = true
+            return
+        }
+
         if (defaultCountry) {
             const country = findCountryByCode(defaultCountry)
             if (country) {
                 setSelectedCountry(country)
                 if (onCountryChange) onCountryChange(country)
+                initializedRef.current = true
             }
-        } else if (detectedCountry && !selectedCountry) {
+        } else if (detectedCountry) {
             const country = findCountryByCode(detectedCountry)
             if (country) {
                 setSelectedCountry(country)
                 if (onCountryChange) onCountryChange(country)
+                initializedRef.current = true
             }
-        } else if (!selectedCountry && !locationLoading) {
+        } else if (!locationLoading) {
             // Fallback to default country
             const defaultCountryObj = getDefaultCountry()
             setSelectedCountry(defaultCountryObj)
             if (onCountryChange) onCountryChange(defaultCountryObj)
+            initializedRef.current = true
         }
     }, [defaultCountry, detectedCountry, locationLoading, selectedCountry, onCountryChange])
 
     // When value changes externally
     useEffect(() => {
-        if (value && selectedCountry) {
+        if (skipEffectCycle) {
+            setSkipEffectCycle(false)
+            return
+        }
+
+        if (!selectedCountry) return
+
+        if (value) {
             // Try to extract the national number from the full phone number
             const fullNumber = value.startsWith("+") ? value : `+${value}`
             const dialCodeWithoutPlus = selectedCountry.dialCode.replace("+", "")
@@ -84,38 +103,47 @@ export function PhoneInput({
         } else {
             setNationalNumber("")
         }
-    }, [value, selectedCountry])
+    }, [value, selectedCountry, skipEffectCycle])
 
     // When national number or country changes, update the full number
     useEffect(() => {
-        if (selectedCountry) {
-            // Only update if we have a country selected
-            const formattedNationalNumber = nationalNumber.startsWith("0") ? nationalNumber.substring(1) : nationalNumber
+        if (!selectedCountry || skipEffectCycle) return
 
-            const fullNumber = nationalNumber ? `${selectedCountry.dialCode}${formattedNationalNumber}` : ""
+        // Only update if we have a country selected and a national number
+        if (!nationalNumber) return
 
-            // Check if the number is valid
-            if (nationalNumber) {
-                const valid = isValidPhoneNumber(fullNumber, selectedCountry.code)
-                setIsValid(valid)
-            } else {
-                setIsValid(true) // Empty is considered valid
-            }
+        const formattedNationalNumber = nationalNumber.startsWith("0") ? nationalNumber.substring(1) : nationalNumber
+        const fullNumber = `${selectedCountry.dialCode}${formattedNationalNumber}`
 
-            // IMPORTANT: Compare with the expected full number format to prevent loops
-            const expectedFullNumber = value && value.startsWith("+") ? value : value ? `+${value}` : ""
+        // Check if the number is valid
+        const valid = isValidPhoneNumber(fullNumber, selectedCountry.code)
+        setIsValid(valid)
 
-            // Only call onChange if the value is meaningfully different
-            if (fullNumber && fullNumber !== expectedFullNumber && fullNumber !== value) {
-                onChange(fullNumber)
-            }
+        // IMPORTANT: Compare with the expected full number format to prevent loops
+        const expectedFullNumber = value && value.startsWith("+") ? value : value ? `+${value}` : ""
+
+        // Only call onChange if the value is meaningfully different
+        if (fullNumber !== expectedFullNumber && fullNumber !== value) {
+            setSkipEffectCycle(true)
+            onChange(fullNumber)
         }
-    }, [nationalNumber, selectedCountry])
+    }, [nationalNumber, selectedCountry, value, onChange, skipEffectCycle])
 
     const handleCountrySelect = (country: Country) => {
+        // When manually selecting a country, we need to prevent auto-detection from overriding
+        initializedRef.current = true
+
         setSelectedCountry(country)
         if (onCountryChange) onCountryChange(country)
         setOpen(false)
+
+        // If we have a national number, update the full number with the new country code
+        if (nationalNumber) {
+            const formattedNationalNumber = nationalNumber.startsWith("0") ? nationalNumber.substring(1) : nationalNumber
+            const fullNumber = `${country.dialCode}${formattedNationalNumber}`
+            setSkipEffectCycle(true)
+            onChange(fullNumber)
+        }
 
         // Focus the input after selecting a country
         setTimeout(() => {

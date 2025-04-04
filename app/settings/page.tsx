@@ -7,11 +7,19 @@ import { HelpSupportCard } from "@/components/settings/HelpSupportCard"
 import { TwoFactorAuthCard } from "@/components/settings/TwoFactorAuthCard"
 import { useSelector } from "react-redux"
 import { RootState } from "@/lib/store"
+import { useEffect } from "react"
+import { setLoading } from "@/lib/slices/authSlice"
 
 export default function SettingsPage() {
-  const { user } = useSelector((state: RootState) => state.auth)
+  const { user, loading } = useSelector((state: RootState) => state.auth)
   const { role } = user || {}
+
   const isCustomer = role === "customer"
+
+  useEffect(() => {
+    setLoading(false)
+  }, [loading])
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl sm:text-3xl font-bold mb-8">Settings</h1>

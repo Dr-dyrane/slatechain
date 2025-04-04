@@ -1,4 +1,5 @@
 import type { CountryCode } from "libphonenumber-js";
+import { Country as CSCCountry } from "country-state-city";
 
 export interface Country {
 	name: string;
@@ -7,25 +8,30 @@ export interface Country {
 	flag: string;
 }
 
-// List of countries with their dial codes and flags
-export const countries: Country[] = [
-	{ name: "Nigeria", code: "NG", dialCode: "+234", flag: "🇳🇬" },
-	{ name: "United States", code: "US", dialCode: "+1", flag: "🇺🇸" },
-	{ name: "United Kingdom", code: "GB", dialCode: "+44", flag: "🇬🇧" },
-	{ name: "Canada", code: "CA", dialCode: "+1", flag: "🇨🇦" },
-	{ name: "Australia", code: "AU", dialCode: "+61", flag: "🇦🇺" },
-	{ name: "India", code: "IN", dialCode: "+91", flag: "🇮🇳" },
-	{ name: "South Africa", code: "ZA", dialCode: "+27", flag: "🇿🇦" },
-	{ name: "Ghana", code: "GH", dialCode: "+233", flag: "🇬🇭" },
-	{ name: "Kenya", code: "KE", dialCode: "+254", flag: "🇰🇪" },
-	{ name: "Germany", code: "DE", dialCode: "+49", flag: "🇩🇪" },
-	{ name: "France", code: "FR", dialCode: "+33", flag: "🇫🇷" },
-	{ name: "Brazil", code: "BR", dialCode: "+55", flag: "🇧🇷" },
-	{ name: "China", code: "CN", dialCode: "+86", flag: "🇨🇳" },
-	{ name: "Japan", code: "JP", dialCode: "+81", flag: "🇯🇵" },
-	{ name: "Mexico", code: "MX", dialCode: "+52", flag: "🇲🇽" },
-	// Add more countries as needed
-];
+// Convert country-state-city data to our format
+export const countries: Country[] = CSCCountry.getAllCountries().map(
+	(country) => {
+		// Extract the dial code from the phone code
+		const dialCode = country.phonecode.startsWith("+")
+			? country.phonecode
+			: `+${country.phonecode}`;
+
+		// Create flag emoji from country code
+		// Convert country code to regional indicator symbols (Unicode)
+		const flag = country.isoCode
+			.toUpperCase()
+			.split("")
+			.map((char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
+			.join("");
+
+		return {
+			name: country.name,
+			code: country.isoCode as CountryCode,
+			dialCode,
+			flag,
+		};
+	}
+);
 
 // Find a country by its code
 export function findCountryByCode(code: string): Country | null {
