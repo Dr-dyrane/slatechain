@@ -164,7 +164,7 @@ export const searchAllStores = createAsyncThunk(
 						title: item.name || "Unnamed Item",
 						subtitle: `SKU: ${item.sku || "N/A"} - ${item.category || "Uncategorized"}`,
 						description: `${item.description || ""} - Quantity: ${item.quantity}, Price: $${item.price}`,
-						url: `/inventory/${item.id}`,
+						url: `/inventory/?tab=stock&id=${item.id}`,
 						data: item,
 					}));
 
@@ -200,7 +200,7 @@ export const searchAllStores = createAsyncThunk(
 						title: `Order #${order.orderNumber || "Unknown"}`,
 						subtitle: `${order.customerId || "Unknown Customer"} - ${order.status || "Unknown Status"}`,
 						description: `${order.items?.length || 0} items - $${order.totalAmount?.toFixed(2) || "0.00"} - ${order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "Unknown date"}`,
-						url: `/orders?id=${order.id}`,
+						url: `/orders?tab=orders&id=${order.id}`,
 						data: order,
 					}));
 
@@ -270,7 +270,7 @@ export const searchAllStores = createAsyncThunk(
 						title: supplier.name || "Unnamed Supplier",
 						subtitle: `Contact: ${supplier.contactPerson || "No Contact"} - ${supplier.email || "No Email"}`,
 						description: `Phone: ${supplier.phoneNumber || "N/A"} - ${supplier.address || ""}`,
-						url: `/suppliers/${supplier.id}`,
+						url: `/suppliers?tab=list&id=${supplier.id}`,
 						data: supplier,
 					}));
 
@@ -280,33 +280,41 @@ export const searchAllStores = createAsyncThunk(
 			// Search customers
 			if (
 				effectiveFilters.includes("customer") &&
-				Array.isArray(state.customer?.items)
+				Array.isArray(state.user?.items)
 			) {
-				const customers = state.customer.items || [];
-				const customerResults = customers
+				const users = state.user.items || [];
+				// Filter users who have the CUSTOMER role
+				const customerUsers = users.filter(
+					(user) => user.role === UserRole.CUSTOMER
+				);
+
+				const customerResults = customerUsers
 					.filter(
-						(customer: any) =>
-							customer?.name?.toLowerCase()?.includes(searchTerm) ||
+						(user) =>
+							user?.firstName?.toLowerCase()?.includes(searchTerm) ||
 							false ||
-							customer?.email?.toLowerCase()?.includes(searchTerm) ||
+							user?.lastName?.toLowerCase()?.includes(searchTerm) ||
 							false ||
-							customer?.phoneNumber?.toLowerCase()?.includes(searchTerm) ||
-							false ||
-							(customer?.firstName + " " + customer?.lastName)
+							(user?.firstName + " " + user?.lastName)
 								?.toLowerCase()
 								?.includes(searchTerm) ||
+							false ||
+							user?.email?.toLowerCase()?.includes(searchTerm) ||
+							false ||
+							user?.phoneNumber?.toLowerCase()?.includes(searchTerm) ||
 							false
 					)
-					.map((customer: any) => ({
-						id: `customer-${customer.id || customer._id || "unknown"}`,
+					.map((user) => ({
+						id: `customer-${user.id || "unknown"}`,
 						type: "customer" as const,
 						title:
-							customer.name ||
-							`${customer.firstName || ""} ${customer.lastName || ""}`,
-						subtitle: customer.email || "No Email",
-						description: `Phone: ${customer.phoneNumber || "N/A"} - ${customer.address?.city || ""}, ${customer.address?.country || ""}`,
-						url: `/customers/${customer.id || customer._id || "unknown"}`,
-						data: customer,
+							`${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+							user.email ||
+							"Unnamed Customer",
+						subtitle: user.email || "No Email",
+						description: `Phone: ${user.phoneNumber || "N/A"} - ${user.address?.city || ""}, ${user.address?.country || ""}`,
+						url: `/users?tab=users&id=${user.id}`,
+						data: user,
 					}));
 
 				results.push(...customerResults);
@@ -350,7 +358,7 @@ export const searchAllStores = createAsyncThunk(
 						title: `Shipment #${shipment.trackingNumber || "No Tracking"}`,
 						subtitle: `${shipment.carrier || "Unknown Carrier"} - ${shipment.status || "Unknown Status"}`,
 						description: `Order: ${shipment.orderId} - Delivery: ${shipment.estimatedDeliveryDate ? new Date(shipment.estimatedDeliveryDate).toLocaleDateString() : "Unknown"}`,
-						url: `/shipments/${shipment.id}`,
+						url: `/logistics?tab=shipments&id=${shipment.id}`,
 						data: shipment,
 					}));
 
@@ -370,7 +378,7 @@ export const searchAllStores = createAsyncThunk(
 						? returns.filter(
 								(returnItem: ReturnRequest) =>
 									returnItem.customerId?._id === state.auth.user?.id ||
-									returnItem.customerId === state.auth.user?.id
+									returnItem.customerId._id === state.auth.user?.id
 							)
 						: returns;
 
@@ -425,7 +433,7 @@ export const searchAllStores = createAsyncThunk(
 						title: transport.name || "Unnamed Transport",
 						subtitle: `Type: ${transport.type} - Status: ${transport.status}`,
 						description: `Capacity: ${transport.capacity} - Location: ${transport.currentLocation?.latitude?.toFixed(2) || "?"}, ${transport.currentLocation?.longitude?.toFixed(2) || "?"}`,
-						url: `/transports/${transport.id}`,
+						url: `/logistics?tab=transport&subtab=transport&id=${transport.id}`,
 						data: transport,
 					}));
 
@@ -456,7 +464,7 @@ export const searchAllStores = createAsyncThunk(
 						title: carrier.name || "Unnamed Carrier",
 						subtitle: `Contact: ${carrier.contactPerson || "No Contact"}`,
 						description: `Email: ${carrier.email || "N/A"} - Phone: ${carrier.phone || "N/A"} - Rating: ${carrier.rating}/5`,
-						url: `/carriers/${carrier.id}`,
+						url: `/logistics?tab=transport&subtab=carriers&id=${carrier.id}`,
 						data: carrier,
 					}));
 
@@ -489,7 +497,7 @@ export const searchAllStores = createAsyncThunk(
 						title: route.name || "Unnamed Route",
 						subtitle: `${route.startLocation || "Unknown"} to ${route.endLocation || "Unknown"}`,
 						description: `Type: ${route.type} - Status: ${route.status} - Distance: ${route.distance}km`,
-						url: `/routes/${route.id}`,
+						url: `/logistics?tab=transport&subtab=routes&id=${route.id}`,
 						data: route,
 					}));
 
@@ -522,7 +530,7 @@ export const searchAllStores = createAsyncThunk(
 						title: `Freight #${freight.freightNumber || "No Number"}`,
 						subtitle: `Type: ${freight.type} - Status: ${freight.status}`,
 						description: `Vehicle: ${freight.vehicle?.type || "N/A"} ${freight.vehicle?.identifier || ""} - Carrier: ${freight.carrierId}`,
-						url: `/freights/${freight.id}`,
+						url: `/logistics?tab=transport&subtab=freight&id=${freight.id}`,
 						data: freight,
 					}));
 
