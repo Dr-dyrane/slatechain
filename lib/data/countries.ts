@@ -6,6 +6,7 @@ export interface Country {
 	code: CountryCode;
 	dialCode: string;
 	flag: string;
+	flagSvg?: string;
 }
 
 // Convert country-state-city data to our format
@@ -24,11 +25,15 @@ export const countries: Country[] = CSCCountry.getAllCountries().map(
 			.map((char) => String.fromCodePoint(char.charCodeAt(0) + 127397))
 			.join("");
 
+		// Create SVG flag URL - using a free flag API
+		const flagSvg = `https://flagcdn.com/w20/${country.isoCode.toLowerCase()}.png`;
+
 		return {
 			name: country.name,
 			code: country.isoCode as CountryCode,
 			dialCode,
 			flag,
+			flagSvg,
 		};
 	}
 );

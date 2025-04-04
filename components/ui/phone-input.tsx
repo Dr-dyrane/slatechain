@@ -12,6 +12,7 @@ import { countries, findCountryByCode, getDefaultCountry, type Country } from "@
 
 import type { CountryCode } from "libphonenumber-js"
 import { useUserLocation } from "@/hooks/use-geolocation"
+import Image from "next/image"
 
 interface PhoneInputProps {
     value: string
@@ -179,8 +180,17 @@ export function PhoneInput({
                     >
                         {selectedCountry ? (
                             <span className="flex items-center gap-1 text-sm">
-                                <span className="text-base">{selectedCountry.flag}</span>
-                                <span>{selectedCountry.dialCode}</span>
+                                {selectedCountry.flagSvg ? (
+                                    <Image
+                                        src={selectedCountry.flagSvg || "/placeholder.svg"}
+                                        alt={`${selectedCountry.name} flag`}
+                                        width={20}
+                                        height={15}
+                                        className="rounded-sm"
+                                    />
+                                ) : (
+                                    <span className="text-base">{selectedCountry.flag}</span>
+                                )}                                <span>{selectedCountry.dialCode}</span>
                             </span>
                         ) : (
                             <span>Select</span>
@@ -201,7 +211,18 @@ export function PhoneInput({
                                         onSelect={() => handleCountrySelect(country)}
                                         className="flex items-center gap-2"
                                     >
-                                        <span className="text-base">{country.flag}</span>
+
+                                        {country.flagSvg ? (
+                                            <Image
+                                                src={country.flagSvg || "/placeholder.svg"}
+                                                alt={`${country.name} flag`}
+                                                width={20}
+                                                height={15}
+                                                className="rounded-sm"
+                                            />
+                                        ) : (
+                                            <span className="text-base">{country.flag}</span>
+                                        )}
                                         <span className="flex-1 truncate">{country.name}</span>
                                         <span className="text-sm text-muted-foreground">{country.dialCode}</span>
                                         <Check
