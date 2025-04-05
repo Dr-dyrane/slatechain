@@ -10,7 +10,7 @@ const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
 
 // Helper function to check if user has access to supplier
-async function hasAccessToSupplier(userId: string, supplierId: string) {
+export async function hasAccessToSupplier(userId: string, supplierId: string) {
 	const user = await User.findById(userId);
 	if (!user) return false;
 
