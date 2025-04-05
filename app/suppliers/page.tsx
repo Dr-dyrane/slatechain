@@ -41,8 +41,9 @@ export default function SuppliersPage() {
     (state: RootState) => state.supplier.chatMessagesBySupplier
   ) as Record<string, ChatMessage[]> || {}
   const chatLoading = useSelector((state: RootState) => state.supplier.chatLoading)
-      const user = useSelector((state: RootState) => state.auth.user)
-  
+  const user = useSelector((state: RootState) => state.auth.user)
+  const loading = useSelector((state: RootState) => state.supplier.loading)
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
 
   const groupedMessages = suppliers.reduce<Record<string, ChatMessage[]>>((acc, supplier) => {
     // Default to an empty array if no messages exist for the supplier
@@ -115,27 +116,39 @@ export default function SuppliersPage() {
     }
   }
 
-  const handleUploadDocument = async (supplierId: string, file: File) => {
+  const handleUploadDocument = async (file: File, documentType?: string) => {
+    if (!selectedSupplier) return;
+
     try {
       await dispatch(
         addSupplierDocument({
-          supplierId,
-          name: file.name,
-          type: file.type,
-          url: "placeholder-url", // Replace with actual file upload logic
+          supplierId: selectedSupplier.id,
+          file,
+          documentType: documentType || "OTHER"
         }),
-      ).unwrap()
-      toast.success("Document uploaded successfully")
+      ).unwrap();
+
+      toast.success("Document uploaded successfully");
     } catch (error) {
-      toast.error("Failed to upload document")
+      console.error("Failed to upload document:", error);
+      toast.error("Failed to upload document");
     }
   }
 
-  const handleDeleteDocument = async (supplierId: string, documentId: string) => {
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!selectedSupplier) return
+
     try {
-      await dispatch(deleteSupplierDocument({ supplierId, documentId })).unwrap()
+      await dispatch(
+        deleteSupplierDocument({
+          supplierId: selectedSupplier.id,
+          documentId,
+        }),
+      ).unwrap()
+
       toast.success("Document deleted successfully")
     } catch (error) {
+      console.error("Failed to delete document:", error)
       toast.error("Failed to delete document")
     }
   }
@@ -166,7 +179,10 @@ export default function SuppliersPage() {
           />
         </TabsContent>
         <TabsContent value="communication">
-          <CommunicationCenter suppliers={suppliers} messages={groupedMessages} onSendMessage={handleSendMessage}
+          <CommunicationCenter
+            suppliers={suppliers}
+            messages={groupedMessages}
+            onSendMessage={handleSendMessage}
             loading={chatLoading} />
         </TabsContent>
         <TabsContent value="documents">
@@ -175,6 +191,9 @@ export default function SuppliersPage() {
             documents={groupedDocuments}
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
+            isLoading={loading}
+            selectedSupplierId={selectedSupplierId || ""}
+            setSelectedSupplierId={setSelectedSupplierId}
           />
         </TabsContent>
       </Tabs>

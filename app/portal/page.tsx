@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import type { RootState, AppDispatch } from "@/lib/store"
 import {
   fetchSuppliers,
-  fetchSupplierDocument,
+  fetchSupplierDocuments,
   addSupplierDocument,
   deleteSupplierDocument,
   fetchChatMessages,
@@ -68,7 +68,7 @@ export default function PortalPage() {
 
   useEffect(() => {
     if (currentSupplier) {
-      dispatch(fetchSupplierDocument(currentSupplier.id))
+      dispatch(fetchSupplierDocuments(currentSupplier.id))
       dispatch(fetchChatMessages(currentSupplier.id))
     }
   }, [dispatch, currentSupplier])

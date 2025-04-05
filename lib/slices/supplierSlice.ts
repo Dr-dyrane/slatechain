@@ -5,7 +5,6 @@ import { apiClient } from "../api/apiClient/[...live]";
 interface SupplierState {
 	items: Supplier[];
 	documents: SupplierDocument[];
-	documentsBySupplier: { [key: string]: SupplierDocument[] };
 	chatMessagesBySupplier: { [key: string]: ChatMessage[] };
 	selectedSupplier: Supplier | null;
 	loading: boolean;
@@ -16,7 +15,6 @@ interface SupplierState {
 const initialState: SupplierState = {
 	items: [],
 	documents: [],
-	documentsBySupplier: {},
 	chatMessagesBySupplier: {},
 	selectedSupplier: null,
 	loading: false,
@@ -91,21 +89,6 @@ export const deleteSupplier = createAsyncThunk(
 );
 
 export const fetchSupplierDocuments = createAsyncThunk(
-	"supplier/fetchSupplierDocuments",
-	async (supplierId: string, thunkAPI) => {
-		try {
-			const response = await apiClient.get<SupplierDocument[]>(
-				`/suppliers/${supplierId}/documents`
-			);
-			return { supplierId, documents: response ?? [] };
-		} catch (error: any) {
-			return thunkAPI.rejectWithValue(
-				error.message || "Failed to fetch supplier documents"
-			);
-		}
-	}
-);
-export const fetchSupplierDocument = createAsyncThunk(
 	"supplier/fetchSupplierDocuments",
 	async (supplierId: string, thunkAPI) => {
 		try {
@@ -305,22 +288,13 @@ const supplierSlice = createSlice({
 					(supplier) => supplier.id !== action.payload
 				);
 			})
-			.addCase(fetchSupplierDocument.pending, (state) => {
-				state.loading = true;
-				state.error = null;
-			})
 			.addCase(fetchSupplierDocuments.pending, (state) => {
 				state.loading = true;
 				state.error = null;
 			})
-			.addCase(fetchSupplierDocument.fulfilled, (state, action) => {
-				state.loading = false;
-				state.documents = action.payload ?? [];
-			})
 			.addCase(fetchSupplierDocuments.fulfilled, (state, action) => {
 				state.loading = false;
-				const { supplierId, documents } = action.payload;
-				state.documentsBySupplier[supplierId] = documents;
+				state.documents = action.payload ?? [];
 			})
 			.addCase(fetchSupplierDocuments.rejected, (state, action) => {
 				state.loading = false;
@@ -361,13 +335,16 @@ const supplierSlice = createSlice({
 			})
 			// Chat fetching actions
 			.addCase(fetchChatMessages.pending, (state) => {
-				state.chatLoading = true;
+				state.chatLoading = true; // Set loading state to true when fetching
 			})
 			.addCase(fetchChatMessages.fulfilled, (state, action) => {
-				state.chatLoading = false;
+				state.chatLoading = false; // Set loading state to false after fetching
+				// Ensure chatMessagesBySupplier is initialized before assigning messages
 				if (!state.chatMessagesBySupplier) {
-					state.chatMessagesBySupplier = {};
+					state.chatMessagesBySupplier = {}; // Initialize if undefined
 				}
+
+				// Ensure that only the corresponding supplier's messages are updated
 				if (action.payload.supplierId) {
 					state.chatMessagesBySupplier[action.payload.supplierId] =
 						action.payload.messages || [];
