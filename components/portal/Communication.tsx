@@ -1,101 +1,77 @@
+// components/porta;/CommunicationCenter.tsx
+
 "use client"
 
-import { CardFooter } from "@/components/ui/card"
-
-import type React from "react"
-
-import { useState, useRef, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import type { ChatMessage } from "@/lib/types"
-import { format } from "date-fns"
-import { Send } from "lucide-react"
+import { setChatLoading } from "@/lib/slices/supplierSlice"
+import { ChatInterface } from "../shared/ChatInterface"
+import { EmptyState } from "../shared/EmptyState"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
-interface CommunicationProps {
-    messages: ChatMessage[]
-    onSendMessage: (message: string) => void
+interface CommunicationCenterProps {
+    onSendMessage: (supplierId: string, message: string) => void
+    loading?: boolean
 }
 
-export function Communication({ messages, onSendMessage }: CommunicationProps) {
+export function CommunicationCenter({ onSendMessage, loading }: CommunicationCenterProps) {
+    const user = useSelector((state: RootState) => state.auth.user)
     const [newMessage, setNewMessage] = useState("")
-    const messagesEndRef = useRef<HTMLDivElement>(null)
+    const chatMessagesBySupplier = useSelector((state: RootState) => state.supplier.chatMessagesBySupplier) as Record<string, ChatMessage[]> || {}
+    if (!user) {
+        return null
+    }
+    const messages = chatMessagesBySupplier[user.id] ?? [];
 
-    // Scroll to bottom when messages change
+    const selectedSupplierId = user.id
+
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, [messages])
+        setChatLoading(false)
+    }, [loading])
 
-    const handleSend = () => {
-        if (newMessage.trim()) {
-            onSendMessage(newMessage)
+
+    const handleSendMessage = () => {
+        if (user.id && newMessage.trim()) {
+            onSendMessage(user.id, newMessage)
             setNewMessage("")
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault()
-            handleSend()
-        }
-    }
-
-    // Sort messages by timestamp
-    const sortedMessages = [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
-
     return (
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-auto flex flex-col">
             <CardHeader>
                 <CardTitle>Communication Center</CardTitle>
-                <CardDescription>Chat with your managers and administrators</CardDescription>
+                <CardDescription>Chat with your Admin and Managers</CardDescription>
             </CardHeader>
-            <CardContent className="flex-grow overflow-hidden">
-                <ScrollArea className="h-[400px] pr-4">
-                    {sortedMessages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                            <p className="text-muted-foreground">No messages yet</p>
-                            <p className="text-sm text-muted-foreground">Start the conversation by sending a message below</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-4">
-                            {sortedMessages.map((message) => (
-                                <div key={message.id} className="flex gap-3">
-                                    <Avatar className="h-8 w-8">
-                                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${message.senderName}`} />
-                                        <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
-                                    <div className="flex flex-col">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="font-medium text-sm">{message.senderName}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                                {format(new Date(message.timestamp), "MMM d, h:mm a")}
-                                            </span>
-                                        </div>
-                                        <p className="text-sm mt-1">{message.message}</p>
-                                    </div>
-                                </div>
-                            ))}
-                            <div ref={messagesEndRef} />
-                        </div>
-                    )}
-                </ScrollArea>
+            <CardContent className="flex-grow flex flex-col">
+
+                {selectedSupplierId ? (
+                    <div className="flex-grow">
+                        <ChatInterface
+                            messages={messages}
+                            onSendMessage={handleSendMessage}
+                            isLoading={loading}
+                            currentUserId={user?.id || "current-user-id"}
+                            currentUserName={user?.name || "Current User"}
+                            placeholder={`Message to ${user?.name || "supplier"}...`}
+                            emptyStateMessage={`No messages with ${user?.name || "this supplier"} yet. Start the conversation!`}
+                            className="h-full"
+                            value={newMessage}
+                            onChange={setNewMessage}
+                        />
+                    </div>
+                ) : (
+                    <div className="flex-grow flex items-center justify-center">
+                        <EmptyState
+                            icon="MessageSquare"
+                            title="No Supplier Selected"
+                            description="Select a supplier to start chatting"
+                        />
+                    </div>
+                )}
             </CardContent>
-            <CardFooter className="border-t pt-4">
-                <div className="flex w-full items-center space-x-2">
-                    <Input
-                        placeholder="Type your message..."
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="flex-grow"
-                    />
-                    <Button onClick={handleSend} size="icon">
-                        <Send className="h-4 w-4" />
-                    </Button>
-                </div>
-            </CardFooter>
         </Card>
     )
 }

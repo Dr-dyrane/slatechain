@@ -12,10 +12,11 @@ import {
   fetchChatMessages,
   sendChatMessage,
   updateSupplier,
+  setChatLoading,
 } from "@/lib/slices/supplierSlice"
-import type { Supplier } from "@/lib/types"
+import type { Supplier, User } from "@/lib/types"
 import { KPIs } from "@/components/portal/KPIs"
-import { Communication } from "@/components/portal/Communication"
+import { CommunicationCenter } from "@/components/portal/Communication"
 import { Documents } from "@/components/portal/Documents"
 import { Overview } from "@/components/portal/Overview"
 import { useRouter } from "next/navigation"
@@ -25,7 +26,7 @@ import { UserRole } from "@/lib/types"
 import { toast } from "sonner"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
 import { useDispatch, useSelector } from "react-redux"
-import { LoadingIndicator } from "@/components/shared/LoadingIndicator"
+import { set } from "mongoose"
 
 export default function PortalPage() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -35,8 +36,7 @@ export default function PortalPage() {
   const { user } = useSelector((state: RootState) => state.auth)
   const suppliers = useSelector((state: RootState) => state.supplier.items)
   const documents = useSelector((state: RootState) => state.supplier.documents)
-  const chatMessages = useSelector((state: RootState) => state.supplier.chatMessages)
-  const { loading, error } = useSelector((state: RootState) => state.supplier)
+  const { chatLoading, loading, error } = useSelector((state: RootState) => state.supplier)
   const notifications = useSelector((state: RootState) => state.notifications?.notifications || [])
 
   // Find the current supplier based on the logged-in user
@@ -45,9 +45,6 @@ export default function PortalPage() {
   // Filter documents and messages for the current supplier
   const supplierDocuments = currentSupplier ? documents.filter((doc) => doc.supplierId === currentSupplier.id) : []
 
-  const supplierMessages = currentSupplier ? chatMessages.filter((msg) => msg.supplierId === currentSupplier.id) : []
-
-  // Filter notifications for the current supplier
   const supplierNotifications =
     currentSupplier && notifications
       ? notifications.filter(
@@ -76,14 +73,14 @@ export default function PortalPage() {
     }
   }, [dispatch, currentSupplier])
 
-  const handleSendMessage = async (message: string) => {
-    if (!currentSupplier || !user) return
-
+  const handleSendMessage = async (supplierId: string, message: string) => {
+    setChatLoading(true)
+    if (!user) return
     try {
       await dispatch(
         sendChatMessage({
-          supplierId: currentSupplier.id,
-          senderId: user.id,
+          supplierId,
+          senderId: supplierId,
           senderName: user.name,
           message,
         }),
@@ -92,6 +89,9 @@ export default function PortalPage() {
     } catch (error) {
       console.error("Failed to send message:", error)
       toast.error("Failed to send message")
+    }
+    finally {
+      setChatLoading(false)
     }
   }
 
@@ -147,14 +147,6 @@ export default function PortalPage() {
     }
   }
 
-  // Show loading state
-  if (loading && !currentSupplier) {
-    return (
-      <div className="flex items-center justify-center h-[600px]">
-        <LoadingIndicator size="lg" message="Loading supplier portal..." />
-      </div>
-    )
-  }
 
   // Show error state
   if (error) {
@@ -207,13 +199,16 @@ export default function PortalPage() {
             supplier={currentSupplier}
             notifications={supplierNotifications}
             onUpdateSupplier={handleUpdateSupplier}
+            user={user as User}
           />
         </TabsContent>
         <TabsContent value="communication">
-          <Communication
-            supplierId={currentSupplier.id}
+          <CommunicationCenter
+            onSendMessage={handleSendMessage}
+            loading={chatLoading}
           />
         </TabsContent>
+
         <TabsContent value="documents">
           <Documents
             documents={supplierDocuments}

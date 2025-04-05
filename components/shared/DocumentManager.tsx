@@ -194,7 +194,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
                                                 <span className="truncate max-w-[200px]">{doc.name}</span>
                                             </TableCell>
                                             <TableCell>{doc.type}</TableCell>
-                                            <TableCell>{formatDate(doc.uploadedAt)}</TableCell>
+                                            {/* @ts-ignore */}
+                                            <TableCell>{formatDate(doc.uploadedAt || doc.createdAt)}</TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex justify-end gap-2">
                                                     <Button variant="ghost" size="icon" asChild>
@@ -242,7 +243,8 @@ export const DocumentManager: React.FC<DocumentManagerProps> = ({
                                             <div className="text-muted-foreground">Type:</div>
                                             <div>{doc.type}</div>
                                             <div className="text-muted-foreground">Date:</div>
-                                            <div>{formatDate(doc.uploadedAt)}</div>
+                                            {/* @ts-ignore */}
+                                            <div>{formatDate(doc.uploadedAt || doc.createdAt)}</div>
                                         </div>
                                         <div className="flex justify-end gap-2 border-t pt-3">
                                             <Button variant="outline" size="sm" asChild>

@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import type { Supplier, Notification as NotificationType } from "@/lib/types"
+import type { Supplier, Notification as NotificationType, User } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Mail, Phone, MapPin, Star, Calendar, Edit, Bell, MessageSquare, Package, FileText } from "lucide-react"
@@ -27,9 +27,10 @@ interface OverviewProps {
     supplier: Supplier
     notifications?: NotificationType[]
     onUpdateSupplier: (supplier: Supplier) => Promise<void>
+    user: User
 }
 
-export function Overview({ supplier, notifications = [], onUpdateSupplier }: OverviewProps) {
+export function Overview({ supplier, user, notifications = [], onUpdateSupplier }: OverviewProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [formData, setFormData] = useState({
         name: supplier.name,
@@ -105,7 +106,7 @@ export function Overview({ supplier, notifications = [], onUpdateSupplier }: Ove
                         </div>
                         <div className="flex items-center">
                             <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span className="text-sm">{supplier.phoneNumber}</span>
+                            <span className="text-sm">{supplier.phoneNumber || user.phoneNumber}</span>
                         </div>
                         <div className="flex items-center">
                             <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -117,7 +118,12 @@ export function Overview({ supplier, notifications = [], onUpdateSupplier }: Ove
                         </div>
                         <div className="flex items-center">
                             <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                            <span className="text-sm">Member since: {format(new Date(supplier.createdAt), "MMM yyyy")}</span>
+                            <span className="text-sm">
+                                Member since:{" "}
+                                {user?.createdAt
+                                    ? format(new Date(user.createdAt), "MMM yyyy")
+                                    : "Unknown"}
+                            </span>
                         </div>
                     </div>
                 </CardContent>
