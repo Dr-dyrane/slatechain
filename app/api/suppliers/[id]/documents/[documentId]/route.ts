@@ -6,6 +6,7 @@ import User from "../../../../models/User";
 import SupplierDocument from "../../../../models/SupplierDocument";
 import { UserRole } from "@/lib/types";
 import mongoose from "mongoose";
+import KYCDocument from "@/app/api/models/KYCDocument";
 
 const UPDATE_RATE_LIMIT = 20;
 const DELETE_RATE_LIMIT = 10;
@@ -66,16 +67,38 @@ export async function GET(
 			}
 
 			// Find document
-			const document = await SupplierDocument.findOne({
+			let document = await SupplierDocument.findOne({
 				_id: documentId,
 				supplierId: id,
 			});
 
 			if (!document) {
-				return NextResponse.json(
-					{ code: "NOT_FOUND", message: "Document not found" },
-					{ status: 404 }
-				);
+				// If not found, try to find in KYC documents
+				const kycDoc = await KYCDocument.findOne({
+					_id: documentId,
+					userId: id, // supplier ID is user ID
+				});
+
+				if (!kycDoc) {
+					return NextResponse.json(
+						{ code: "NOT_FOUND", message: "Document not found" },
+						{ status: 404 }
+					);
+				}
+
+				// Convert KYC doc to supplier document format
+				document = {
+					id: kycDoc._id,
+					supplierId: id,
+					name: kycDoc.originalFilename || `${kycDoc.type} Document`,
+					type: kycDoc.type || "KYC",
+					url: kycDoc.url,
+					kycDocumentId: kycDoc._id,
+					uploadedAt: kycDoc.createdAt,
+					fileSize: kycDoc.fileSize,
+					mimeType: kycDoc.mimeType,
+					originalFilename: kycDoc.originalFilename,
+				};
 			}
 
 			return NextResponse.json(document);
