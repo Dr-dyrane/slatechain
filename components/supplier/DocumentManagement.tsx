@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { use, useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -7,7 +7,7 @@ import type { SupplierDocument, Supplier } from "@/lib/types"
 import { Download, FileText, Trash2, Upload } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog"
 import { useAppDispatch } from "@/lib/store"
-import { addSupplierDocument, deleteSupplierDocument, viewSupplierDocument } from "@/lib/slices/supplierSlice"
+import { addSupplierDocument, deleteSupplierDocument, fetchSupplierDocuments, viewSupplierDocument } from "@/lib/slices/supplierSlice"
 import { useToast } from "@/hooks/use-toast"
 import DocumentManager from "../shared/DocumentManager"
 
@@ -22,26 +22,23 @@ interface DocumentManagementProps {
 }
 
 export function DocumentManagement({ suppliers, documents, onUploadDocument, onDeleteDocument, selectedSupplierId, setSelectedSupplierId, isLoading }: DocumentManagementProps) {
-    const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewDocument, setPreviewDocument] = useState<any | null>(null)
     const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
     const dispatch = useAppDispatch()
     const { toast } = useToast()
 
-
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (event.target.files && event.target.files[0]) {
-            setSelectedFile(event.target.files[0])
-        }
-    }
+    useEffect(() => {
+        if (!selectedSupplierId) return
+        dispatch(fetchSupplierDocuments(selectedSupplierId))
+    }, [selectedSupplierId])
 
     const handleViewDocument = async (documentId: string) => {
-        if (!selectedSupplierId) return Promise.resolve()
+        if (!selectedSupplierId) return
 
         try {
             const document = await dispatch(
                 viewSupplierDocument({
-                    selectedSupplierId,
+                    supplierId: selectedSupplierId,
                     documentId,
                 }),
             ).unwrap()
@@ -66,7 +63,7 @@ export function DocumentManagement({ suppliers, documents, onUploadDocument, onD
                 // Use the Redux thunk with proper payload
                 await dispatch(
                     addSupplierDocument({
-                        selectedSupplierId,
+                        supplierId: selectedSupplierId,
                         file,
                         documentType,
                     }),
@@ -95,7 +92,7 @@ export function DocumentManagement({ suppliers, documents, onUploadDocument, onD
             if (selectedSupplierId) {
                 await dispatch(
                     deleteSupplierDocument({
-                        selectedSupplierId,
+                        supplierId: selectedSupplierId,
                         documentId,
                     }),
                 ).unwrap()
@@ -118,7 +115,12 @@ export function DocumentManagement({ suppliers, documents, onUploadDocument, onD
     }
 
     const selectedSupplierDocuments = selectedSupplierId ? documents[selectedSupplierId] || [] : []
-
+    useEffect(() => {
+        if (selectedSupplierId) {
+            const supplierDocuments = documents[selectedSupplierId] || []
+            console.log("Selected Supplier Documents:", supplierDocuments)
+        }
+    }, [selectedSupplierId, documents])
 
     return (
         <Card className="h-[600px] flex flex-col">
@@ -141,6 +143,7 @@ export function DocumentManagement({ suppliers, documents, onUploadDocument, onD
                 </Select>
                 {selectedSupplierId && (
                     <DocumentManager
+                        // @ts-ignore
                         documents={selectedSupplierDocuments}
                         onUploadDocument={handleUploadDocument}
                         onDeleteDocument={handleDeleteDocument}

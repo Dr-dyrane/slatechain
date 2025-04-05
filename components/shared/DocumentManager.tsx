@@ -439,7 +439,9 @@ const DocumentManager = ({
                                         {/* @ts-ignore */}
                                         <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
                                         {/* @ts-ignore */}
-                                        <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                                        <TableCell>{formatDate(doc.createdAt || doc.uploadedAt
+
+                                        )}</TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
                                                 <Button variant="ghost" size="icon" onClick={() => handlePreview(doc)}>
@@ -503,7 +505,7 @@ const DocumentManager = ({
                                     {/* @ts-ignore */}
                                     <div>Size: {formatFileSize(doc.fileSize)}</div>
                                     {/* @ts-ignore */}
-                                    <div>Uploaded At: {formatDate(doc.createdAt)}</div>
+                                    <div>Uploaded At: {formatDate(doc.createdAt || doc.uploadedAt)}</div>
                                 </div>
                                 <div className="flex justify-end gap-2 border-t pt-3">
                                     <Button variant="outline" size="sm" onClick={() => handlePreview(doc)}>

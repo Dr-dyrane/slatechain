@@ -11,7 +11,6 @@ import {
   addSupplier,
   updateSupplier,
   deleteSupplier,
-  fetchSupplierDocuments,
   addSupplierDocument,
   deleteSupplierDocument,
   fetchChatMessages,
@@ -65,7 +64,6 @@ export default function SuppliersPage() {
 
   useEffect(() => {
     suppliers.forEach((supplier) => {
-      dispatch(fetchSupplierDocuments(supplier.id))
       dispatch(fetchChatMessages(supplier.id))
     })
   }, [dispatch, suppliers])
