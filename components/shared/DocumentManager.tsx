@@ -1,17 +1,33 @@
-// components/shared/DocumentManager.tsx
-
 "use client"
 
+import { DialogFooter } from "@/components/ui/dialog"
+
 import type React from "react"
-import { useState, useRef } from "react"
+import { useRef, useState, useEffect } from "react"
+
+import {
+    FileText,
+    Upload,
+    Trash2,
+    Download,
+    Eye,
+    type File,
+    FileImage,
+    FileSpreadsheet,
+    FileIcon as FilePdf,
+    Loader2,
+} from "lucide-react"
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableFooter,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
 import {
     AlertDialog,
     AlertDialogAction,
@@ -23,314 +39,534 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { EmptyState } from "./EmptyState"
-import type { SupplierDocument } from "@/lib/types"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
-    FileText,
-    Upload,
-    Trash2,
-    Download,
-    type File,
-    FileImage,
-    FileSpreadsheet,
-    FileIcon as FilePdf,
-} from "lucide-react"
-import { format } from "date-fns"
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+
+export interface SupplierDocument {
+    id: string
+    name: string
+    url: string
+    type: string
+    size: number
+    uploadedAt: Date
+}
 
 interface DocumentManagerProps {
     documents: SupplierDocument[]
-    onUploadDocument: (file: File) => void
-    onDeleteDocument: (documentId: string) => void
+    onUploadDocument: (file: File, documentType?: string) => Promise<void>
+    onDeleteDocument: (documentId: string) => Promise<void>
+    onViewDocument?: (documentId: string) => Promise<void>
     isLoading?: boolean
     className?: string
     documentTypes?: string[]
     emptyStateMessage?: string
 }
 
-export const DocumentManager: React.FC<DocumentManagerProps> = ({
+const DocumentManager = ({
     documents,
     onUploadDocument,
     onDeleteDocument,
-    isLoading = false,
-    className = "",
-    documentTypes = ["CONTRACT", "CERTIFICATE", "INSURANCE", "COMPLIANCE", "OTHER"],
+    onViewDocument,
+    isLoading,
+    className,
+    documentTypes,
     emptyStateMessage = "No documents uploaded yet.",
-}) => {
-    const [selectedType, setSelectedType] = useState(documentTypes[0])
-    const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+}: DocumentManagerProps) => {
+    const [isUploadDialogOpen, setUploadDialogOpen] = useState(false)
+    const [file, setFile] = useState<File | null>(null)
+    const [filePreview, setFilePreview] = useState<string | null>(null)
+    const [documentToDelete, setDocumentToDelete] = useState<string | null>(null)
     const [previewDocument, setPreviewDocument] = useState<SupplierDocument | null>(null)
     const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
-    const [documentToDelete, setDocumentToDelete] = useState<string | null>(null)
+    const [selectedDocumentType, setSelectedDocumentType] = useState<string | undefined>(undefined)
+    const [uploadLoading, setUploadLoading] = useState(false)
+    const [deleteLoading, setDeleteLoading] = useState(false)
+    const { toast } = useToast()
     const fileInputRef = useRef<HTMLInputElement>(null)
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file && selectedType) {
-            onUploadDocument(file)
-            setUploadDialogOpen(false)
+    // Clean up object URL when component unmounts or when file changes
+    useEffect(() => {
+        return () => {
+            if (filePreview && filePreview.startsWith("blob:")) {
+                URL.revokeObjectURL(filePreview)
+            }
+        }
+    }, [filePreview])
 
-            // Reset file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ""
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const selectedFile = e.target.files[0]
+            setFile(selectedFile)
+
+            // Clean up previous preview URL
+            if (filePreview && filePreview.startsWith("blob:")) {
+                URL.revokeObjectURL(filePreview)
+            }
+
+            // Create preview for the file
+            if (selectedFile.type.startsWith("image/")) {
+                // For images, create a preview URL
+                const previewUrl = URL.createObjectURL(selectedFile)
+                setFilePreview(previewUrl)
+            } else if (selectedFile.type === "application/pdf") {
+                // For PDFs, create a preview URL
+                const previewUrl = URL.createObjectURL(selectedFile)
+                setFilePreview(previewUrl)
+            } else {
+                // For other file types, set preview to null
+                setFilePreview(null)
             }
         }
     }
 
-    const handlePreview = (document: SupplierDocument) => {
-        setPreviewDocument(document)
-        setPreviewDialogOpen(true)
+    const handleUpload = async () => {
+        if (file) {
+            try {
+                setUploadLoading(true)
+                await onUploadDocument(file, selectedDocumentType)
+
+                // Clean up preview URL
+                if (filePreview && filePreview.startsWith("blob:")) {
+                    URL.revokeObjectURL(filePreview)
+                }
+
+                setFile(null)
+                setFilePreview(null)
+                setSelectedDocumentType(undefined)
+
+                // Reset file input
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = ""
+                }
+
+                toast({
+                    title: "Upload successful",
+                    description: "Your document has been uploaded.",
+                })
+
+                // Close the dialog only after successful upload
+                setUploadDialogOpen(false)
+            } catch (error) {
+                console.error("Error uploading document:", error)
+                toast({
+                    title: "Upload failed",
+                    description: "There was an error uploading your document. Please try again.",
+                    variant: "destructive",
+                })
+            } finally {
+                setUploadLoading(false)
+            }
+        }
+    }
+
+    const handleCancelUpload = () => {
+        // Don't allow cancellation during upload
+        if (uploadLoading) return
+
+        // Clean up preview URL
+        if (filePreview && filePreview.startsWith("blob:")) {
+            URL.revokeObjectURL(filePreview)
+        }
+
+        setFile(null)
+        setFilePreview(null)
+        setSelectedDocumentType(undefined)
+
+        // Reset file input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
+
+        setUploadDialogOpen(false)
+    }
+
+    const handleDelete = async () => {
+        if (documentToDelete) {
+            try {
+                setDeleteLoading(true)
+                await onDeleteDocument(documentToDelete)
+
+                toast({
+                    title: "Delete successful",
+                    description: "Your document has been deleted.",
+                })
+            } catch (error) {
+                console.error("Error deleting document:", error)
+                toast({
+                    title: "Delete failed",
+                    description: "There was an error deleting your document. Please try again.",
+                    variant: "destructive",
+                })
+            } finally {
+                setDeleteLoading(false)
+                setDocumentToDelete(null)
+            }
+        }
     }
 
     const confirmDelete = (documentId: string) => {
         setDocumentToDelete(documentId)
     }
 
-    const handleDelete = () => {
-        if (documentToDelete) {
-            onDeleteDocument(documentToDelete)
-            setDocumentToDelete(null)
-        }
-    }
-
     const getFileIcon = (type: string) => {
-        if (type.includes("image")) {
-            return <FileImage className="h-5 w-5 text-blue-500" />
-        } else if (type.includes("pdf")) {
-            return <FilePdf className="h-5 w-5 text-red-500" />
-        } else if (type.includes("spreadsheet") || type.includes("excel") || type.includes("csv")) {
-            return <FileSpreadsheet className="h-5 w-5 text-green-500" />
+        switch (type) {
+            case "image/jpeg":
+            case "image/png":
+                return <FileImage className="h-4 w-4 mr-2" />
+            case "application/pdf":
+                return <FilePdf className="h-4 w-4 mr-2" />
+            case "application/vnd.ms-excel":
+            case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
+                return <FileSpreadsheet className="h-4 w-4 mr-2" />
+            default:
+                return <FileText className="h-4 w-4 mr-2" />
+        }
+    }
+
+    const formatDate = (date: Date) => {
+        return new Date(date).toLocaleDateString()
+    }
+
+    const formatFileSize = (size: number) => {
+        if (size < 1024) {
+            return `${size} bytes`
+        } else if (size < 1024 * 1024) {
+            return `${(size / 1024).toFixed(2)} KB`
+        } else if (size < 1024 * 1024 * 1024) {
+            return `${(size / (1024 * 1024)).toFixed(2)} MB`
         } else {
-            return <FileText className="h-5 w-5 text-gray-500" />
+            return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
         }
     }
 
-    const formatDate = (dateString: string) => {
-        try {
-            return format(new Date(dateString), "MMM d, yyyy")
-        } catch (error) {
-            return "Unknown date"
+    const handlePreview = async (document: SupplierDocument) => {
+        if (onViewDocument) {
+            try {
+                await onViewDocument(document.id)
+            } catch (error) {
+                console.error("Error viewing document:", error)
+                toast({
+                    title: "Error",
+                    description: "Failed to load document preview",
+                    variant: "destructive",
+                })
+            }
+        } else {
+            setPreviewDocument(document)
+            setPreviewDialogOpen(true)
         }
     }
 
-    const canPreview = (url: string) => {
-        const extension = url.split(".").pop()?.toLowerCase()
-        return ["jpg", "jpeg", "png", "gif", "webp", "pdf"].includes(extension || "")
+    const renderFilePreview = () => {
+        if (!file || (!filePreview && !file.type.startsWith("image/") && file.type !== "application/pdf")) {
+            return (
+                <div className="mt-4 border rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                    <div className="text-center">
+                        {getFileIcon(file?.type || "")}
+                        <p className="text-sm mt-2">{file?.name}</p>
+                        <p className="text-xs text-muted-foreground">{file ? formatFileSize(file.size) : ""}</p>
+                    </div>
+                </div>
+            )
+        }
+
+        if (file.type.startsWith("image/")) {
+            return (
+                <div className="mt-4 border rounded-md p-2 bg-muted/20">
+                    <p className="text-sm font-medium mb-2">Preview:</p>
+                    <div className="flex justify-center">
+                        <img
+                            src={filePreview || "/placeholder.svg"}
+                            alt="File preview"
+                            className="max-h-[200px] object-contain rounded-md"
+                        />
+                    </div>
+                </div>
+            )
+        } else if (file.type === "application/pdf") {
+            return (
+                <div className="mt-4 border rounded-md p-2 bg-muted/20">
+                    <p className="text-sm font-medium mb-2">Preview:</p>
+                    <iframe src={filePreview as string} className="w-full h-[200px] rounded-md" title="PDF preview" />
+                </div>
+            )
+        }
+
+        return null
     }
 
     return (
-        <Card className={`h-full ${className}`}>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Documents</CardTitle>
-                <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <div className={cn("w-full", className)}>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-lg font-semibold">Documents</h2>
+                <Dialog
+                    open={isUploadDialogOpen}
+                    onOpenChange={(open) => {
+                        // Prevent closing dialog during upload
+                        if (uploadLoading && !open) return
+                        setUploadDialogOpen(open)
+                    }}
+                >
                     <DialogTrigger asChild>
-                        <Button>
+                        <Button variant="outline">
                             <Upload className="h-4 w-4 mr-2" />
-                            Upload
+                            Upload Document
                         </Button>
                     </DialogTrigger>
-                    <DialogContent>
+                    <DialogContent className="sm:max-w-[500px]">
                         <DialogHeader>
                             <DialogTitle>Upload Document</DialogTitle>
+                            <DialogDescription>Choose a file to upload.</DialogDescription>
                         </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="document-type">Document Type</Label>
-                                <Select value={selectedType} onValueChange={setSelectedType}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select document type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {documentTypes.map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {type.charAt(0) + type.slice(1).toLowerCase()}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="file" className="text-right">
+                                    File
+                                </Label>
+                                <Input
+                                    id="file"
+                                    type="file"
+                                    className="col-span-3"
+                                    onChange={handleFileChange}
+                                    ref={fileInputRef}
+                                    disabled={uploadLoading}
+                                />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="document-file">File</Label>
-                                <Input id="document-file" type="file" ref={fileInputRef} onChange={handleFileChange} />
-                            </div>
+                            {documentTypes && documentTypes.length > 0 && (
+                                <div className="grid grid-cols-4 items-center gap-4">
+                                    <Label htmlFor="documentType" className="text-right">
+                                        Document Type
+                                    </Label>
+                                    <Select onValueChange={setSelectedDocumentType} disabled={uploadLoading}>
+                                        <SelectTrigger className="col-span-3">
+                                            <SelectValue placeholder="Select a document type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {documentTypes.map((type) => (
+                                                <SelectItem key={type} value={type}>
+                                                    {type}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {/* File Preview */}
+                            {file && renderFilePreview()}
+
+                            {file && (
+                                <div className="text-sm text-muted-foreground mt-2">
+                                    <p>File: {file.name}</p>
+                                    <p>Size: {formatFileSize(file.size)}</p>
+                                    <p>Type: {file.type || "Unknown"}</p>
+                                </div>
+                            )}
+
+                            {uploadLoading && (
+                                <div className="flex items-center justify-center py-2">
+                                    <Loader2 className="h-6 w-6 animate-spin text-primary mr-2" />
+                                    <span>Uploading document...</span>
+                                </div>
+                            )}
                         </div>
                         <DialogFooter>
-                            <Button variant="outline" onClick={() => setUploadDialogOpen(false)}>
+                            <Button variant="outline" type="button" onClick={handleCancelUpload} disabled={uploadLoading}>
                                 Cancel
+                            </Button>
+                            <Button type="button" onClick={handleUpload} disabled={!file || uploadLoading}>
+                                {uploadLoading ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Uploading...
+                                    </>
+                                ) : (
+                                    "Upload"
+                                )}
                             </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
-            </CardHeader>
-            <CardContent>
-                {isLoading ? (
-                    // Loading state
-                    <div className="space-y-4">
-                        <Skeleton className="h-8 w-full" />
-                        {[1, 2, 3].map((i) => (
-                            <Skeleton key={i} className="h-12 w-full" />
-                        ))}
-                    </div>
-                ) : documents.length === 0 ? (
-                    // Empty state
-                    <EmptyState icon='FileText' title="No Documents" description={emptyStateMessage} />
-                ) : (
-                    <>
-                        {/* Table view for large screens */}
-                        <div className="hidden lg:block overflow-x-auto">
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Name</TableHead>
-                                        <TableHead>Type</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead className="text-right">Actions</TableHead>
+            </div>
+
+            {isLoading ? (
+                <div className="grid gap-4">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                </div>
+            ) : documents.length === 0 ? (
+                <div className="text-center py-10">
+                    <p className="text-muted-foreground">{emptyStateMessage}</p>
+                </div>
+            ) : (
+                <>
+                    <div className="hidden md:block">
+                        <Table>
+                            <TableCaption>A list of your documents.</TableCaption>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Type</TableHead>
+                                    <TableHead>Size</TableHead>
+                                    <TableHead>Uploaded At</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {documents.map((doc) => (
+                                    <TableRow key={doc.id}>
+                                        <TableCell>
+                                            <div className="flex items-center">
+                                                {getFileIcon(doc.type)}
+                                                {doc.name}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>{doc.type}</TableCell>
+                                        {/* @ts-ignore */}
+                                        <TableCell>{formatFileSize(doc.fileSize)}</TableCell>
+                                        {/* @ts-ignore */}
+                                        <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handlePreview(doc)}>
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                                <Button variant="ghost" size="icon" asChild>
+                                                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                                        <Download className="h-4 w-4" />
+                                                    </a>
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon" onClick={() => confirmDelete(doc.id)}>
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Are you sure you want to delete this document? This action cannot be undone.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <AlertDialogAction onClick={handleDelete} disabled={deleteLoading}>
+                                                                {deleteLoading ? (
+                                                                    <>
+                                                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                                        Deleting...
+                                                                    </>
+                                                                ) : (
+                                                                    "Delete"
+                                                                )}
+                                                            </AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </div>
+                                        </TableCell>
                                     </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {documents.map((doc) => (
-                                        <TableRow key={doc.id}>
-                                            <TableCell className="flex items-center gap-2">
-                                                {getFileIcon(doc.url)}
-                                                <span className="truncate max-w-[200px]">{doc.name}</span>
-                                            </TableCell>
-                                            <TableCell>{doc.type}</TableCell>
-                                            {/* @ts-ignore */}
-                                            <TableCell>{formatDate(doc.uploadedAt || doc.createdAt)}</TableCell>
-                                            <TableCell className="text-right">
-                                                <div className="flex justify-end gap-2">
-                                                    <Button variant="ghost" size="icon" asChild>
-                                                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                                                            <Download className="h-4 w-4" />
-                                                        </a>
-                                                    </Button>
-                                                    <AlertDialog>
-                                                        <AlertDialogTrigger asChild>
-                                                            <Button variant="ghost" size="icon" onClick={() => confirmDelete(doc.id)}>
-                                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                                            </Button>
-                                                        </AlertDialogTrigger>
-                                                        <AlertDialogContent>
-                                                            <AlertDialogHeader>
-                                                                <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                                                                <AlertDialogDescription>
-                                                                    Are you sure you want to delete this document? This action cannot be undone.
-                                                                </AlertDialogDescription>
-                                                            </AlertDialogHeader>
-                                                            <AlertDialogFooter>
-                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
-                                                            </AlertDialogFooter>
-                                                        </AlertDialogContent>
-                                                    </AlertDialog>
-                                                </div>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </div>
+                                ))}
+                            </TableBody>
+                            <TableFooter>
+                                <TableRow>
+                                    <TableCell colSpan={5}>Total {documents.length} documents</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        </Table>
+                    </div>
 
-                        {/* Card view for small and medium screens */}
-                        <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {documents.map((doc) => (
-                                <Card key={doc.id} className="overflow-hidden">
-                                    <CardContent className="p-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            {getFileIcon(doc.url)}
-                                            <h3 className="font-medium truncate">{doc.name}</h3>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 text-sm mb-4">
-                                            <div className="text-muted-foreground">Type:</div>
-                                            <div>{doc.type}</div>
-                                            <div className="text-muted-foreground">Date:</div>
-                                            {/* @ts-ignore */}
-                                            <div>{formatDate(doc.uploadedAt || doc.createdAt)}</div>
-                                        </div>
-                                        <div className="flex justify-end gap-2 border-t pt-3">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                                                    <Download className="h-4 w-4 mr-1" />
-                                                    Download
-                                                </a>
-                                            </Button>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" className="text-destructive border-destructive">
-                                                        <Trash2 className="h-4 w-4 mr-1" />
-                                                        Delete
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Are you sure you want to delete this document? This action cannot be undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => {
-                                                            onDeleteDocument(doc.id);
-                                                            setDocumentToDelete(null);
-                                                        }}>
-                                                            Delete
-                                                        </AlertDialogAction></AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            ))}
-                        </div>
-                    </>
-                )}
-            </CardContent>
-
-            {/* Document Preview Dialog */}
-            <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-                <DialogContent className="max-w-4xl">
-                    <DialogHeader>
-                        <DialogTitle>{previewDocument?.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4 flex justify-center">
-                        {previewDocument &&
-                            (previewDocument.type.includes("image") ? (
-                                <img
-                                    src={previewDocument.url || "/placeholder.svg"}
-                                    alt={previewDocument.name}
-                                    className="max-h-[60vh] object-contain"
-                                />
-                            ) : previewDocument.url.endsWith(".pdf") ? (
-                                <iframe src={previewDocument.url} className="w-full h-[60vh]" title={previewDocument.name} />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center p-8 text-center">
-                                    {getFileIcon(previewDocument.type)}
-                                    <p className="mt-4">This file type cannot be previewed</p>
-                                    <Button className="mt-4" asChild>
-                                        <a href={previewDocument.url} target="_blank" rel="noopener noreferrer" download>
-                                            <Download className="h-4 w-4 mr-2" />
+                    <div className="md:hidden grid gap-4">
+                        {documents.map((doc) => (
+                            <div key={doc.id} className="border rounded-md p-4">
+                                <div className="flex items-center mb-2">
+                                    {getFileIcon(doc.type)}
+                                    <span className="font-semibold">{doc.name}</span>
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                    <div>Type: {doc.type}</div>
+                                    {/* @ts-ignore */}
+                                    <div>Size: {formatFileSize(doc.fileSize)}</div>
+                                    {/* @ts-ignore */}
+                                    <div>Uploaded At: {formatDate(doc.createdAt)}</div>
+                                </div>
+                                <div className="flex justify-end gap-2 border-t pt-3">
+                                    <Button variant="outline" size="sm" onClick={() => handlePreview(doc)}>
+                                        <Eye className="h-4 w-4 mr-1" />
+                                        View
+                                    </Button>
+                                    <Button variant="outline" size="sm" asChild>
+                                        <a href={doc.url} target="_blank" rel="noopener noreferrer">
+                                            <Download className="h-4 w-4 mr-1" />
                                             Download
                                         </a>
                                     </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="outline" size="sm" className="text-destructive border-destructive">
+                                                <Trash2 className="h-4 w-4 mr-1" />
+                                                Delete
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete this document? This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete} disabled={deleteLoading}>
+                                                    {deleteLoading ? (
+                                                        <>
+                                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                            Deleting...
+                                                        </>
+                                                    ) : (
+                                                        "Delete"
+                                                    )}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
-                            ))}
+                            </div>
+                        ))}
                     </div>
+                </>
+            )}
+
+            <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+                <DialogContent className="sm:max-w-[625px]">
+                    <DialogHeader>
+                        <DialogTitle>Document Preview</DialogTitle>
+                        <DialogDescription>{previewDocument?.name}</DialogDescription>
+                    </DialogHeader>
+                    {previewDocument && <iframe src={previewDocument.url} className="w-full h-[600px]" />}
                     <DialogFooter>
-                        <Button variant="outline" onClick={() => setPreviewDialogOpen(false)}>
-                            Close
-                        </Button>
-                        {previewDocument && (
-                            <Button asChild>
-                                <a href={previewDocument.url} target="_blank" rel="noopener noreferrer" download>
-                                    <Download className="h-4 w-4 mr-2" />
-                                    Download
-                                </a>
-                            </Button>
-                        )}
+                        <Button onClick={() => setPreviewDialogOpen(false)}>Close</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </Card>
+        </div>
     )
 }
+
+export default DocumentManager
 

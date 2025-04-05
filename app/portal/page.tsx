@@ -21,12 +21,12 @@ import { Documents } from "@/components/portal/Documents"
 import { Overview } from "@/components/portal/Overview"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle } from 'lucide-react'
 import { UserRole } from "@/lib/types"
 import { toast } from "sonner"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
 import { useDispatch, useSelector } from "react-redux"
-import { set } from "mongoose"
+
 
 export default function PortalPage() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -95,27 +95,22 @@ export default function PortalPage() {
     }
   }
 
-  const handleUploadDocument = async (file: File) => {
-    if (!currentSupplier) return
+  const handleUploadDocument = async (file: File, documentType?: string) => {
+    if (!currentSupplier) return;
 
     try {
-      // In a real app, you would upload the file to a server first
-      // and then get the URL back
-      const documentUrl = URL.createObjectURL(file)
-
       await dispatch(
         addSupplierDocument({
           supplierId: currentSupplier.id,
-          name: file.name,
-          type: file.type || "application/octet-stream",
-          url: documentUrl,
+          file,
+          documentType: documentType || "OTHER"
         }),
-      ).unwrap()
+      ).unwrap();
 
-      toast.success("Document uploaded successfully")
+      toast.success("Document uploaded successfully");
     } catch (error) {
-      console.error("Failed to upload document:", error)
-      toast.error("Failed to upload document")
+      console.error("Failed to upload document:", error);
+      toast.error("Failed to upload document");
     }
   }
 
@@ -215,6 +210,7 @@ export default function PortalPage() {
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
             isLoading={loading}
+            supplierId={currentSupplier?.id}
           />
         </TabsContent>
       </Tabs>

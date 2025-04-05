@@ -1,5 +1,3 @@
-// app/api/suppliers/[id]/documents/route.ts
-
 import { type NextRequest, NextResponse } from "next/server";
 import { handleRequest } from "@/app/api";
 import User from "../../../models/User";
@@ -32,6 +30,55 @@ async function hasAccessToSupplier(userId: string, supplierId: string) {
 	}
 
 	return false;
+}
+
+// Helper function to convert file to base64
+async function validateAndExtractFile(formData: FormData) {
+	try {
+		const file = formData.get("document") as File;
+		const type = formData.get("type") as string;
+
+		if (!file || !type) {
+			throw {
+				code: "INVALID_INPUT",
+				message: "File and document type are required",
+				status: 400,
+			};
+		}
+
+		const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
+		const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+		if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+			throw {
+				code: "INVALID_FILE_TYPE",
+				message: "File must be JPEG, PNG, or PDF",
+				status: 400,
+			};
+		}
+
+		if (file.size > MAX_FILE_SIZE) {
+			throw {
+				code: "FILE_TOO_LARGE",
+				message: "File size must be less than 5MB",
+				status: 400,
+			};
+		}
+
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+		const base64String = buffer.toString("base64");
+
+		return {
+			base64Url: `data:${file.type};base64,${base64String}`,
+			originalFilename: file.name,
+			mimeType: file.type,
+			fileSize: file.size,
+			type,
+		};
+	} catch (error) {
+		throw error;
+	}
 }
 
 // GET /api/suppliers/[id]/documents - List documents for a supplier
@@ -94,7 +141,7 @@ export async function GET(
 				id: kycDoc._id,
 				supplierId: id,
 				name: kycDoc.originalFilename || `${kycDoc.type} Document`,
-				type: "KYC",
+				type: kycDoc.type || "KYC",
 				url: kycDoc.url,
 				kycDocumentId: kycDoc._id,
 				uploadedAt: kycDoc.createdAt,
@@ -153,17 +200,54 @@ export async function POST(
 				);
 			}
 
-			const documentData = await req.json();
+			// Check if this is a form data request (file upload) or JSON request
+			const contentType = req.headers.get("content-type") || "";
 
-			// Validate required fields
-			if (!documentData.name || !documentData.type || !documentData.url) {
-				return NextResponse.json(
-					{
-						code: "INVALID_INPUT",
-						message: "Name, type, and URL are required",
-					},
-					{ status: 400 }
-				);
+			let documentData: any;
+
+			if (contentType.includes("multipart/form-data")) {
+				// Handle file upload with base64 conversion
+				try {
+					const formData = await req.formData();
+					const fileData = await validateAndExtractFile(formData);
+
+					documentData = {
+						supplierId: id,
+						name: fileData.originalFilename,
+						type: fileData.type,
+						url: fileData.base64Url, // Always use base64 URL
+						fileSize: fileData.fileSize,
+						mimeType: fileData.mimeType,
+						originalFilename: fileData.originalFilename,
+					};
+				} catch (error: any) {
+					return NextResponse.json(
+						{
+							code: error.code || "UPLOAD_ERROR",
+							message: error.message || "Failed to process document upload",
+						},
+						{ status: error.status || 500 }
+					);
+				}
+			} else {
+				// Handle JSON request
+				documentData = await req.json();
+
+				// Validate required fields
+				if (!documentData.name || !documentData.type) {
+					return NextResponse.json(
+						{
+							code: "INVALID_INPUT",
+							message: "Name and type are required",
+						},
+						{ status: 400 }
+					);
+				}
+
+				// Ignore any URL passed from frontend if it's not a base64 URL
+				if (documentData.url && !documentData.url.startsWith("data:")) {
+					delete documentData.url;
+				}
 			}
 
 			// Add supplierId to document data
@@ -189,6 +273,11 @@ export async function POST(
 						},
 						{ status: 400 }
 					);
+				}
+
+				// Use the KYC document URL if no URL is provided
+				if (!documentData.url) {
+					documentData.url = kycDoc.url;
 				}
 			}
 

@@ -106,12 +106,42 @@ export const fetchSupplierDocuments = createAsyncThunk(
 
 export const addSupplierDocument = createAsyncThunk(
 	"supplier/addSupplierDocument",
-	async (document: Omit<SupplierDocument, "id" | "uploadedAt">, thunkAPI) => {
+	async (
+		payload: {
+			supplierId: string;
+			file?: File;
+			documentType?: string;
+			document?: Omit<SupplierDocument, "id" | "uploadedAt">;
+		},
+		thunkAPI
+	) => {
 		try {
-			const response = await apiClient.post<SupplierDocument>(
-				`/suppliers/${document.supplierId}/documents`,
-				document
-			);
+			let response;
+
+			// Handle file upload with FormData
+			if (payload.file) {
+				const formData = new FormData();
+				formData.append("document", payload.file);
+				formData.append("type", payload.documentType || "OTHER");
+
+				response = await apiClient.post<SupplierDocument>(
+					`/suppliers/${payload.supplierId}/documents`,
+					formData,
+					{
+						headers: { "Content-Type": "multipart/form-data" },
+					}
+				);
+			}
+			// Handle document object
+			else if (payload.document) {
+				response = await apiClient.post<SupplierDocument>(
+					`/suppliers/${payload.supplierId}/documents`,
+					payload.document
+				);
+			} else {
+				throw new Error("Either file or document must be provided");
+			}
+
 			return response;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
@@ -135,6 +165,25 @@ export const deleteSupplierDocument = createAsyncThunk(
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to delete supplier document"
+			);
+		}
+	}
+);
+
+export const viewSupplierDocument = createAsyncThunk(
+	"supplier/viewSupplierDocument",
+	async (
+		{ supplierId, documentId }: { supplierId: string; documentId: string },
+		thunkAPI
+	) => {
+		try {
+			const response = await apiClient.get<SupplierDocument>(
+				`/suppliers/${supplierId}/documents/${documentId}`
+			);
+			return response;
+		} catch (error: any) {
+			return thunkAPI.rejectWithValue(
+				error.message || "Failed to view supplier document"
 			);
 		}
 	}
@@ -239,11 +288,29 @@ const supplierSlice = createSlice({
 					(supplier) => supplier.id !== action.payload
 				);
 			})
+			.addCase(fetchSupplierDocuments.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(fetchSupplierDocuments.fulfilled, (state, action) => {
+				state.loading = false;
 				state.documents = action.payload ?? [];
 			})
+			.addCase(fetchSupplierDocuments.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
+			})
+			.addCase(addSupplierDocument.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
 			.addCase(addSupplierDocument.fulfilled, (state, action) => {
+				state.loading = false;
 				state.documents.push(action.payload);
+			})
+			.addCase(addSupplierDocument.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			})
 			.addCase(deleteSupplierDocument.fulfilled, (state, action) => {
 				state.documents = state.documents.filter(
@@ -253,6 +320,18 @@ const supplierSlice = createSlice({
 							doc.id === action.payload.documentId
 						)
 				);
+			})
+			.addCase(viewSupplierDocument.pending, (state) => {
+				state.loading = true;
+				state.error = null;
+			})
+			.addCase(viewSupplierDocument.fulfilled, (state) => {
+				state.loading = false;
+				// No state changes needed, just loading state management
+			})
+			.addCase(viewSupplierDocument.rejected, (state, action) => {
+				state.loading = false;
+				state.error = action.payload as string;
 			})
 			// Chat fetching actions
 			.addCase(fetchChatMessages.pending, (state) => {
