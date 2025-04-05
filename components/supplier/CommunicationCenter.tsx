@@ -4,28 +4,30 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { ChatMessage, Supplier } from "@/lib/types"
+import { setChatLoading } from "@/lib/slices/supplierSlice"
+import { ChatInterface } from "../shared/ChatInterface"
+import { EmptyState } from "../shared/EmptyState"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
 interface CommunicationCenterProps {
     suppliers: Supplier[]
     messages: Record<string, ChatMessage[]>
     onSendMessage: (supplierId: string, message: string) => void
+    loading?: boolean
 }
 
-export function CommunicationCenter({ suppliers, messages, onSendMessage }: CommunicationCenterProps) {
+export function CommunicationCenter({ suppliers, messages, onSendMessage, loading }: CommunicationCenterProps) {
     const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
     const [newMessage, setNewMessage] = useState("")
-    const messagesEndRef = useRef<HTMLDivElement>(null)
+    const user = useSelector((state: RootState) => state.auth.user)
 
-
-    // Scroll to bottom when messages change
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-    }, [messages])
+        setChatLoading(false)
+    }, [loading])
+
 
     const handleSendMessage = () => {
         if (selectedSupplierId && newMessage.trim()) {
@@ -35,9 +37,11 @@ export function CommunicationCenter({ suppliers, messages, onSendMessage }: Comm
     }
 
     const selectedSupplierMessages = selectedSupplierId ? messages[selectedSupplierId] || [] : []
+    // Get the selected supplier's name
+    const selectedSupplier = suppliers.find((supplier) => supplier.id === selectedSupplierId)
 
     return (
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-auto flex flex-col">
             <CardHeader>
                 <CardTitle>Communication Center</CardTitle>
                 <CardDescription>Chat with your suppliers</CardDescription>
@@ -55,30 +59,29 @@ export function CommunicationCenter({ suppliers, messages, onSendMessage }: Comm
                         ))}
                     </SelectContent>
                 </Select>
-                {selectedSupplierId && (
-                    <>
-                        <ScrollArea className="flex-grow mb-4 border rounded p-2">
-                            {selectedSupplierMessages.map((message) => (
-                                <div key={message.id} className="mb-2">
-                                    <strong>{message.senderName}:</strong> {message.message}
-                                </div>
-                                
-                            ))}
-                        </ScrollArea>
-                        <div className="flex">
-                            <Input
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type your message..."
-                                className="flex-grow mr-2"
-                            />
-                            <Button onClick={handleSendMessage}>Send</Button>
-                        </div>
-                    </>
-                )}
-                {!selectedSupplierId && (
-                    <div className="flex-grow flex items-center justify-center text-muted-foreground">
-                        Select a supplier to start chatting
+
+                {selectedSupplierId ? (
+                    <div className="flex-grow">
+                        <ChatInterface
+                            messages={selectedSupplierMessages}
+                            onSendMessage={handleSendMessage}
+                            isLoading={loading}
+                            currentUserId={user?.id || "current-user-id"}
+                            currentUserName={user?.name || "Current User"}
+                            placeholder={`Message to ${selectedSupplier?.name || "supplier"}...`}
+                            emptyStateMessage={`No messages with ${selectedSupplier?.name || "this supplier"} yet. Start the conversation!`}
+                            className="h-full"
+                            value={newMessage}
+                            onChange={setNewMessage}
+                        />
+                    </div>
+                ) : (
+                    <div className="flex-grow flex items-center justify-center">
+                        <EmptyState
+                            icon="MessageSquare"
+                            title="No Supplier Selected"
+                            description="Select a supplier to start chatting"
+                        />
                     </div>
                 )}
             </CardContent>

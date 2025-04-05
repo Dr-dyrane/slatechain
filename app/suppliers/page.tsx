@@ -16,6 +16,7 @@ import {
   deleteSupplierDocument,
   fetchChatMessages,
   sendChatMessage,
+  setChatLoading,
 } from "@/lib/slices/supplierSlice"
 import type { ChatMessage, Supplier, SupplierDocument } from "@/lib/types"
 import { SupplierList } from "@/components/supplier/SupplierList"
@@ -39,6 +40,9 @@ export default function SuppliersPage() {
   const chatMessagesBySupplier = useSelector(
     (state: RootState) => state.supplier.chatMessagesBySupplier
   ) as Record<string, ChatMessage[]> || {}
+  const chatLoading = useSelector((state: RootState) => state.supplier.chatLoading)
+      const user = useSelector((state: RootState) => state.auth.user)
+  
 
   const groupedMessages = suppliers.reduce<Record<string, ChatMessage[]>>((acc, supplier) => {
     // Default to an empty array if no messages exist for the supplier
@@ -93,17 +97,21 @@ export default function SuppliersPage() {
   }
 
   const handleSendMessage = async (supplierId: string, message: string) => {
+    setChatLoading(true)
     try {
       await dispatch(
         sendChatMessage({
           supplierId,
-          senderId: "current-user-id", // Replace with actual user ID
-          senderName: "Current User", // Replace with actual user name
+          senderId: user?.id || "current-user-id",
+          senderName: user?.name || "Current User",
           message,
         }),
       ).unwrap()
     } catch (error) {
       toast.error("Failed to send message")
+    }
+    finally {
+      setChatLoading(false)
     }
   }
 
@@ -158,7 +166,8 @@ export default function SuppliersPage() {
           />
         </TabsContent>
         <TabsContent value="communication">
-          <CommunicationCenter suppliers={suppliers} messages={groupedMessages} onSendMessage={handleSendMessage} />
+          <CommunicationCenter suppliers={suppliers} messages={groupedMessages} onSendMessage={handleSendMessage}
+            loading={chatLoading} />
         </TabsContent>
         <TabsContent value="documents">
           <DocumentManagement
