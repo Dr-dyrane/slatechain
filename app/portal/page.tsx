@@ -26,6 +26,7 @@ import { UserRole } from "@/lib/types"
 import { toast } from "sonner"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
 import { useDispatch, useSelector } from "react-redux"
+import { ErrorState } from "@/components/ui/error"
 
 
 export default function PortalPage() {
@@ -143,14 +144,18 @@ export default function PortalPage() {
   }
 
 
-  // Show error state
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
-    )
+      <div className="flex h-full items-center justify-center bg-none">
+        <ErrorState
+          title="Portal Error"
+          description="We encountered an issue while loading the supplier portal."
+          message={error}
+          onRetry={() => window.location.reload()}
+          onCancel={() => window.location.href = "/dashboard"}
+        />
+      </div>
+    );
   }
 
   // Show message if user is not a supplier
