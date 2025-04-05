@@ -5,18 +5,20 @@ import { apiClient } from "../api/apiClient/[...live]";
 interface SupplierState {
 	items: Supplier[];
 	documents: SupplierDocument[];
-	chatMessages: ChatMessage[];
+	chatMessagesBySupplier: { [key: string]: ChatMessage[] };
 	selectedSupplier: Supplier | null;
 	loading: boolean;
+	chatLoading: boolean;
 	error: string | null;
 }
 
 const initialState: SupplierState = {
 	items: [],
 	documents: [],
-	chatMessages: [],
+	chatMessagesBySupplier: {},
 	selectedSupplier: null,
 	loading: false,
+	chatLoading: false,
 	error: null,
 };
 
@@ -86,8 +88,6 @@ export const deleteSupplier = createAsyncThunk(
 	}
 );
 
-// The rest of the slice remains the same since the API endpoints
-// maintain the same structure and response format
 export const fetchSupplierDocuments = createAsyncThunk(
 	"supplier/fetchSupplierDocuments",
 	async (supplierId: string, thunkAPI) => {
@@ -147,7 +147,7 @@ export const fetchChatMessages = createAsyncThunk(
 			const response = await apiClient.get<ChatMessage[]>(
 				`/suppliers/${supplierId}/chat`
 			);
-			return response ?? [];
+			return { supplierId, messages: response ?? [] };
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to fetch chat messages"
@@ -164,7 +164,7 @@ export const sendChatMessage = createAsyncThunk(
 				`/suppliers/${message.supplierId}/chat`,
 				message
 			);
-			return response;
+			return { supplierId: message.supplierId, message: response };
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
 				error.message || "Failed to send chat message"
@@ -192,7 +192,23 @@ export const fetchSupplier = createAsyncThunk(
 const supplierSlice = createSlice({
 	name: "supplier",
 	initialState,
-	reducers: {},
+	reducers: {
+		setSelectedSupplier: (state, action) => {
+			state.selectedSupplier = action.payload;
+		},
+		clearSelectedSupplier: (state) => {
+			state.selectedSupplier = null;
+		},
+		clearChatMessagesBySupplier: (state, action) => {
+			delete state.chatMessagesBySupplier[action.payload];
+		},
+		setChatLoading: (state, action) => {
+			state.chatLoading = action.payload;
+		},
+		clearError: (state) => {
+			state.error = null;
+		},
+	},
 	extraReducers: (builder) => {
 		builder
 			.addCase(fetchSuppliers.pending, (state) => {
@@ -238,11 +254,51 @@ const supplierSlice = createSlice({
 						)
 				);
 			})
+			// Chat fetching actions
+			.addCase(fetchChatMessages.pending, (state) => {
+				state.chatLoading = true; // Set loading state to true when fetching
+			})
 			.addCase(fetchChatMessages.fulfilled, (state, action) => {
-				state.chatMessages = action.payload ?? [];
+				state.chatLoading = false; // Set loading state to false after fetching
+				// Ensure chatMessagesBySupplier is initialized before assigning messages
+				if (!state.chatMessagesBySupplier) {
+					state.chatMessagesBySupplier = {}; // Initialize if undefined
+				}
+
+				// Ensure that only the corresponding supplier's messages are updated
+				if (action.payload.supplierId) {
+					state.chatMessagesBySupplier[action.payload.supplierId] =
+						action.payload.messages || [];
+				}
+			})
+			.addCase(fetchChatMessages.rejected, (state, action) => {
+				state.chatLoading = false; // Set loading state to false on error
+				state.error = action.payload as string;
+			})
+
+			// Chat sending actions
+			.addCase(sendChatMessage.pending, (state) => {
+				state.chatLoading = true; // Set loading state to true when sending
 			})
 			.addCase(sendChatMessage.fulfilled, (state, action) => {
-				state.chatMessages.push(action.payload);
+				state.chatLoading = false; // Set loading state to false after sending
+				const { supplierId, message } = action.payload;
+
+				// Ensure chatMessagesBySupplier is initialized before pushing new messages
+				if (!state.chatMessagesBySupplier) {
+					state.chatMessagesBySupplier = {}; // Initialize if undefined
+				}
+
+				// Ensure the supplier has a message array before pushing new messages
+				if (!state.chatMessagesBySupplier[supplierId]) {
+					state.chatMessagesBySupplier[supplierId] = [];
+				}
+
+				state.chatMessagesBySupplier[supplierId].push(message);
+			})
+			.addCase(sendChatMessage.rejected, (state, action) => {
+				state.chatLoading = false; // Set loading state to false on error
+				state.error = action.payload as string;
 			})
 			.addCase(fetchSupplier.pending, (state) => {
 				state.loading = true;
@@ -258,5 +314,13 @@ const supplierSlice = createSlice({
 			});
 	},
 });
+
+export const {
+	setSelectedSupplier,
+	clearSelectedSupplier,
+	clearChatMessagesBySupplier,
+	setChatLoading,
+	clearError,
+} = supplierSlice.actions;
 
 export default supplierSlice.reducer;

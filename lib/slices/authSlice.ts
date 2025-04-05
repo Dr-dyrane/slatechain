@@ -344,8 +344,10 @@ export const login = createAsyncThunk<
 		const response = await loginUser(credentials);
 
 		// If the response includes a token but no user, it means 2FA is required
+		// @ts-ignore
 		if (response.token && !response.user) {
 			return {
+				// @ts-ignore
 				token: response.token,
 				requireTwoFactor: true,
 			};

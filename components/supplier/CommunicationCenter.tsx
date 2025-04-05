@@ -1,6 +1,8 @@
+// components/supplier/CommunicationCenter.tsx
+
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -17,6 +19,13 @@ interface CommunicationCenterProps {
 export function CommunicationCenter({ suppliers, messages, onSendMessage }: CommunicationCenterProps) {
     const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
     const [newMessage, setNewMessage] = useState("")
+    const messagesEndRef = useRef<HTMLDivElement>(null)
+
+
+    // Scroll to bottom when messages change
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [messages])
 
     const handleSendMessage = () => {
         if (selectedSupplierId && newMessage.trim()) {
@@ -53,6 +62,7 @@ export function CommunicationCenter({ suppliers, messages, onSendMessage }: Comm
                                 <div key={message.id} className="mb-2">
                                     <strong>{message.senderName}:</strong> {message.message}
                                 </div>
+                                
                             ))}
                         </ScrollArea>
                         <div className="flex">

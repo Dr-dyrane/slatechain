@@ -1,3 +1,5 @@
+// app/suppliers/page.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -34,13 +36,18 @@ export default function SuppliersPage() {
   const dispatch = useDispatch<AppDispatch>()
   const suppliers = useSelector((state: RootState) => state.supplier.items) as Supplier[]
   const documents = useSelector((state: RootState) => state.supplier.documents)
-  const chatMessages = useSelector((state: RootState) => state.supplier.chatMessages)
+  const chatMessagesBySupplier = useSelector(
+    (state: RootState) => state.supplier.chatMessagesBySupplier
+  ) as Record<string, ChatMessage[]> || {}
 
   const groupedMessages = suppliers.reduce<Record<string, ChatMessage[]>>((acc, supplier) => {
-    acc[supplier.id] = chatMessages.filter((msg) => msg.supplierId === supplier.id);
+    // Default to an empty array if no messages exist for the supplier
+    const messages = chatMessagesBySupplier[supplier.id] ?? [];
+
+    acc[supplier.id] = messages;
     return acc;
   }, {});
-  
+
   const groupedDocuments = suppliers.reduce<Record<string, SupplierDocument[]>>((acc, supplier) => {
     acc[supplier.id] = documents.filter((doc) => doc.supplierId === supplier.id);
     return acc;

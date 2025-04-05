@@ -45,6 +45,8 @@ import {
 	ItemCondition,
 	ReturnDisposition,
 	ReturnResolutionStatus,
+	SupplierDocument,
+	ChatMessage,
 } from "@/lib/types";
 import {
 	ShopifyOrdersResponse,
@@ -54,6 +56,7 @@ import {
 	mockBlockchainApiResponses,
 	mockPaymentResponses,
 } from "../blockchain/mockApiResponses";
+import { number } from "zod";
 
 // ==================== ENHANCED MOCK DATA HELPERS ====================
 
@@ -681,7 +684,7 @@ const generateWarehouses = (count: number): Warehouse[] => {
 
 	for (let i = 0; i < count; i++) {
 		const zones: WarehouseZone[] = [];
-		const zoneCount = randomNumber(2, 5);
+		const zoneCount = randomNumber(2, 5) as number;
 
 		for (let j = 0; j < zoneCount; j++) {
 			const zoneTypes = [
@@ -740,7 +743,7 @@ const generateSuppliers = (count: number): Supplier[] => {
 			customerNames[randomNumber(0, customerNames.length - 1)];
 
 		suppliers.push({
-			id: `supplier-${i + 1}`,
+			id: `user-${i + 1}`,
 			name: name,
 			contactPerson: contactPerson,
 			email: randomEmail(contactPerson),
@@ -754,6 +757,103 @@ const generateSuppliers = (count: number): Supplier[] => {
 	}
 
 	return suppliers;
+};
+
+// Helper function to generate random IDs
+const generateId = (prefix: string): string => {
+	return `${prefix}-${Math.floor(Math.random() * 10000)}`;
+};
+
+// Generate mock documents for suppliers
+export const generateMockDocuments = (
+	suppliers: Supplier[]
+): SupplierDocument[] => {
+	const documentTypes = [
+		"CONTRACT",
+		"CERTIFICATE",
+		"INSURANCE",
+		"COMPLIANCE",
+		"OTHER",
+	];
+	const documents: SupplierDocument[] = [];
+
+	suppliers.forEach((supplier) => {
+		// Generate 1-5 documents per supplier
+		const documentCount = Math.floor(Math.random() * 5) + 1;
+
+		for (let i = 0; i < documentCount; i++) {
+			const docType =
+				documentTypes[Math.floor(Math.random() * documentTypes.length)];
+			const createdAt = randomDate(new Date(2022, 0, 1), new Date());
+
+			documents.push({
+				id: generateId("doc"),
+				supplierId: supplier.id,
+				name: `${docType} - ${supplier.name} - ${i + 1}`,
+				type: docType,
+				url: `https://example.com/documents/${supplier.id}/${docType.toLowerCase()}_${i + 1}.pdf`,
+				uploadedAt: createdAt,
+			});
+		}
+	});
+
+	return documents;
+};
+
+// Generate mock chat messages for suppliers
+export const generateMockChatMessages = (
+	suppliers: Supplier[]
+): ChatMessage[] => {
+	const messages: ChatMessage[] = [];
+	const senderTypes = ["admin", "manager", "supplier"];
+	const messageTemplates = [
+		"Hello, I have a question about our recent order.",
+		"Can you provide an update on the shipment status?",
+		"We need to discuss the pricing for the next quarter.",
+		"The quality of the last batch was excellent.",
+		"Please send the updated product catalog when available.",
+		"We're experiencing some delays with our production.",
+		"I've attached the requested documentation.",
+		"Let's schedule a call to discuss this further.",
+		"Thank you for your prompt response.",
+		"We need to address some quality issues with the last shipment.",
+	];
+
+	suppliers.forEach((supplier) => {
+		// Generate 5-15 messages per supplier
+		const messageCount = Math.floor(Math.random() * 10) + 5;
+
+		for (let i = 0; i < messageCount; i++) {
+			const senderType =
+				senderTypes[Math.floor(Math.random() * senderTypes.length)];
+			const senderId =
+				senderType === "supplier" ? supplier.id : generateId("user");
+			const senderName =
+				senderType === "supplier"
+					? supplier.name
+					: `${senderType.charAt(0).toUpperCase() + senderType.slice(1)} User`;
+			const messageText =
+				messageTemplates[Math.floor(Math.random() * messageTemplates.length)];
+			const timestamp = randomDate(new Date(2023, 0, 1), new Date());
+
+			messages.push({
+				id: generateId("msg"),
+				supplierId: supplier.id,
+				senderId: senderId,
+				senderName: senderName,
+				message: messageText,
+				timestamp: timestamp,
+			});
+		}
+
+		// Sort messages by timestamp (oldest first)
+		messages.sort(
+			(a, b) =>
+				new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+		);
+	});
+
+	return messages;
 };
 
 // Generate more comprehensive shipments
@@ -873,6 +973,7 @@ const generateUsers = (count: number): User[] => {
 
 		// Add blockchain data for the first user (index 0)
 		if (i === 0) {
+			user.role = UserRole.ADMIN;
 			// Override integrations settings for the first user
 			user.integrations = {
 				ecommerce: {
@@ -1599,6 +1700,9 @@ const mockShops = generateShopifyShops(3);
 const mockStockMovements = generateStockMovements(25);
 const mockManufacturingOrders = generateManufacturingOrders(15);
 const mockNotifications = generateNotifications(30);
+// Generate mock documents and chat messages
+const mockDocuments = generateMockDocuments(mockSuppliers);
+const mockChatMessages = generateMockChatMessages(mockSuppliers);
 
 // ==================== MOCK API RESPONSES ====================
 
@@ -1662,6 +1766,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/orders/:id": (id: number): Order =>
 			mockOrders.find((order: Order) => order.id === id) || mockOrders[0],
 		"/shipments": (): Shipment[] => mockShipments,
+		"/suppliers/:id/documents": (params: { id: string }) => {
+			const supplierId = params.id;
+			return mockDocuments.filter((doc) => doc.supplierId === supplierId);
+		},
+		"/suppliers/:id/chat": (params: { id: string }) => {
+			const supplierId = params.id;
+			return mockChatMessages.filter((msg) => msg.supplierId === supplierId);
+		},
 		"/suppliers": (): Supplier[] => mockSuppliers,
 		"/carriers": (): Carrier[] => [
 			{
@@ -2005,6 +2117,10 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/suppliers/:id/chat": (params: { id: string }) => {
+			const supplierId = params.id;
+			return mockChatMessages.filter((msg) => msg.supplierId === supplierId);
+		},
 		"/transports/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/carriers/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/routes/:id": (id: string) => ({ success: true, deletedId: id }),
@@ -2217,6 +2333,34 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 				return returnRequest;
 			}
 			return null;
+		},
+		"/suppliers/:id/documents": (params: { id: string }, data: any) => {
+			const supplierId = params.id;
+			const newDocument = {
+				id: `doc-${Date.now()}`,
+				supplierId,
+				name: data.name,
+				type: data.type,
+				url: data.url,
+				uploadedAt: new Date().toISOString(),
+			};
+
+			mockDocuments.push(newDocument);
+			return newDocument;
+		},
+		"/suppliers/:id/chat": (params: { id: string }, data: any) => {
+			const supplierId = params.id;
+			const newMessage = {
+				id: `msg-${Date.now()}`,
+				supplierId,
+				senderId: data.senderId,
+				senderName: data.senderName,
+				message: data.message,
+				timestamp: new Date().toISOString(),
+			};
+
+			mockChatMessages.push(newMessage);
+			return newMessage;
 		},
 		// KYC verification endpoint
 		"/admin/kyc/verify": (data: any) => {

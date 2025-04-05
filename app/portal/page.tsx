@@ -25,6 +25,7 @@ import { UserRole } from "@/lib/types"
 import { toast } from "sonner"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
 import { useDispatch, useSelector } from "react-redux"
+import { LoadingIndicator } from "@/components/shared/LoadingIndicator"
 
 export default function PortalPage() {
   const [activeTab, setActiveTab] = useState("overview")
@@ -87,6 +88,7 @@ export default function PortalPage() {
           message,
         }),
       ).unwrap()
+      toast.success("Message sent successfully")
     } catch (error) {
       console.error("Failed to send message:", error)
       toast.error("Failed to send message")
@@ -105,7 +107,7 @@ export default function PortalPage() {
         addSupplierDocument({
           supplierId: currentSupplier.id,
           name: file.name,
-          type: file.type,
+          type: file.type || "application/octet-stream",
           url: documentUrl,
         }),
       ).unwrap()
@@ -148,8 +150,8 @@ export default function PortalPage() {
   // Show loading state
   if (loading && !currentSupplier) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center h-[600px]">
+        <LoadingIndicator size="lg" message="Loading supplier portal..." />
       </div>
     )
   }
@@ -208,13 +210,16 @@ export default function PortalPage() {
           />
         </TabsContent>
         <TabsContent value="communication">
-          <Communication messages={supplierMessages} onSendMessage={handleSendMessage} />
+          <Communication
+            supplierId={currentSupplier.id}
+          />
         </TabsContent>
         <TabsContent value="documents">
           <Documents
             documents={supplierDocuments}
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
+            isLoading={loading}
           />
         </TabsContent>
       </Tabs>
