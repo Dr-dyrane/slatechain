@@ -106,17 +106,17 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                 const isCurrentUser = msg.senderId === currentUserId
                                 return (
                                     <div key={msg.id} className={`flex items-start gap-2 ${isCurrentUser ? "flex-row-reverse" : ""}`}>
-                                       <Avatar className="h-8 w-8">
-                                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${msg.senderName}`} />
-                                        <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
-                                    </Avatar>
+                                        <Avatar className="h-8 w-8">
+                                            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${msg.senderName}`} />
+                                            <AvatarFallback>{msg.senderName.charAt(0)}</AvatarFallback>
+                                        </Avatar>
                                         <div className={`max-w-[75%] ${isCurrentUser ? "text-right" : ""}`}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className={`text-sm font-medium ${isCurrentUser ? "ml-auto" : ""}`}>
                                                     {msg.senderName}
                                                 </span>
                                                 <span className="text-xs text-muted-foreground">{renderMessageTime(msg.timestamp
-                                                // @ts-ignore
+                                                    // @ts-ignore
                                                     || msg.createdAt || msg.updatedAt
                                                 )}</span>
                                             </div>
