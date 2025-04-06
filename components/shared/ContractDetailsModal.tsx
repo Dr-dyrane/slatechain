@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -38,6 +38,14 @@ export function ContractDetailsModal({
 }: ContractDetailsModalProps) {
     const [activeTab, setActiveTab] = useState("details")
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+
+    useEffect(() => {
+        if (!open) {
+            // Reset state when modal is closed
+            setActiveTab("details")
+            setIsEditModalOpen(false)
+        }
+    }, [open])
 
     const getSupplierName = () => {
         if (!contract.supplierId) return "Open Contract"
@@ -254,21 +262,19 @@ export function ContractDetailsModal({
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog >
+            </Dialog>
 
             {/* Edit Contract Modal */}
-            {
-                onUpdate && suppliers && (
-                    <ContractFormModal
-                        open={isEditModalOpen}
-                        onClose={() => setIsEditModalOpen(false)}
-                        onSubmit={handleUpdateContract}
-                        suppliers={suppliers}
-                        title="Edit Contract"
-                        contract={contract}
-                    />
-                )
-            }
+            {onUpdate && suppliers && (
+                <ContractFormModal
+                    open={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSubmit={handleUpdateContract}
+                    suppliers={suppliers}
+                    title="Edit Contract"
+                    contract={contract}
+                />
+            )}
         </>
     )
 }

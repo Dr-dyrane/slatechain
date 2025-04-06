@@ -17,9 +17,8 @@ import { cn } from "@/lib/utils"
 import type { Contract, Supplier } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { generateReferenceNumber } from "@/lib/utils"
-import { Root } from "postcss"
 import { useSelector } from "react-redux"
-import { RootState } from "@/lib/store"
+import type { RootState } from "@/lib/store"
 
 interface ContractFormModalProps {
     open: boolean
@@ -40,8 +39,11 @@ export function ContractFormModal({
     title = "Create Contract",
     contract,
 }: ContractFormModalProps) {
-    const [formData, setFormData] = useState<Partial<Contract>>(
-        contract || {
+    const [formData, setFormData] = useState<Partial<Contract>>(() => {
+        if (contract) {
+            return { ...contract }
+        }
+        return {
             title: "",
             description: "",
             contractNumber: generateReferenceNumber("CNT"),
@@ -52,8 +54,8 @@ export function ContractFormModal({
             version: 1,
             notes: "",
             tags: [],
-        },
-    )
+        }
+    })
 
     const [startDate, setStartDate] = useState<Date | undefined>(contract ? new Date(contract.startDate) : new Date())
 
@@ -105,16 +107,32 @@ export function ContractFormModal({
         onSubmit(formData)
     }
 
-    // Add useEffect to reset contract number when modal opens/closes
+    // Add useEffect to reset form data when the modal is closed or when the contract prop changes:
     useEffect(() => {
-        if (open && !contract) {
-            // Only generate a new contract number when opening for a new contract
-            setFormData((prev) => ({
-                ...prev,
+        // Reset form data when contract changes or modal opens/closes
+        if (contract) {
+            setFormData({ ...contract })
+            setStartDate(new Date(contract.startDate))
+            setEndDate(new Date(contract.endDate))
+        } else if (!open) {
+            // Reset to default values when modal is closed
+            setFormData({
+                title: "",
+                description: "",
                 contractNumber: generateReferenceNumber("CNT"),
-            }))
+                status: selectedSupplierId ? "active" : "open",
+                startDate: new Date().toISOString(),
+                endDate: new Date(new Date().setMonth(new Date().getMonth() + 12)).toISOString(),
+                supplierId: selectedSupplierId || "",
+                version: 1,
+                notes: "",
+                tags: [],
+            })
+            setStartDate(new Date())
+            setEndDate(new Date(new Date().setMonth(new Date().getMonth() + 12)))
+            setTagInput("")
         }
-    }, [open, contract])
+    }, [contract, open, selectedSupplierId])
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -126,7 +144,8 @@ export function ContractFormModal({
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
                 <p id="contract-form-description" className="sr-only">
-                    This dialog is used for creating or editing a contract, with options to specify the contract details such as title, supplier, status, dates, and more.
+                    This dialog is used for creating or editing a contract, with options to specify the contract details such as
+                    title, supplier, status, dates, and more.
                 </p>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
@@ -265,9 +284,7 @@ export function ContractFormModal({
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit">
-                            {loading ? "Saving..." : 'Save'}
-                        </Button>
+                        <Button type="submit">{loading ? "Saving..." : "Save"}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
