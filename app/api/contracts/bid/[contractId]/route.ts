@@ -54,3 +54,21 @@ export async function POST(
 
 	return NextResponse.json({ message: "Bid created successfully", bid });
 }
+
+export async function GET(
+	req: NextRequest,
+	{ params }: { params: { contractId: string } }
+) {
+	const { contractId } = params;
+
+	if (!mongoose.Types.ObjectId.isValid(contractId)) {
+		return NextResponse.json(
+			{ code: "INVALID_ID", message: "Invalid contract ID" },
+			{ status: 400 }
+		);
+	}
+
+	const bids = await Bid.find({ contractId });
+
+	return NextResponse.json(bids);
+}
