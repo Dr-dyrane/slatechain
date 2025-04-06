@@ -78,9 +78,12 @@ export function ContractDetailsModal({
     return (
         <>
             <Dialog open={open} onOpenChange={onClose}>
-                <DialogContent className="sm:max-w-[700px]">
+                <DialogContent
+                    className="w-full max-w-md sm:rounded-2xl rounded-none sm:max-w-lg mx-auto max-h-screen overflow-y-auto"
+                    aria-describedby="contract-details"
+                >
                     <DialogHeader>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center mt-4">
                             <DialogTitle className="text-xl">{contract.title}</DialogTitle>
                             <div className="flex items-center gap-2">
                                 {getStatusBadge(contract.status)}
@@ -92,6 +95,9 @@ export function ContractDetailsModal({
                             </div>
                         </div>
                     </DialogHeader>
+                    <p id="contract-form-description" className="sr-only">
+                        this contract is for {getSupplierName()}
+                    </p>
 
                     <Tabs value={activeTab} onValueChange={setActiveTab}>
                         <TabsList className="grid w-full grid-cols-2">
@@ -103,13 +109,13 @@ export function ContractDetailsModal({
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
                                     <FileText className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">Contract Number:</span>
+                                    <span className="hidden sm:inline text-sm font-medium">Contract Number:</span>
                                     <span className="text-sm">{contract.contractNumber}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <User className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">Supplier:</span>
+                                    <span className="hidden sm:inline text-sm font-medium">Supplier:</span>
                                     <span className="text-sm">{getSupplierName()}</span>
                                 </div>
                             </div>
@@ -117,13 +123,13 @@ export function ContractDetailsModal({
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">Start Date:</span>
+                                    <span className="hidden sm:inline text-sm font-medium">Start Date:</span>
                                     <span className="text-sm">{format(new Date(contract.startDate), "PPP")}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
                                     <Calendar className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm font-medium">End Date:</span>
+                                    <span className="hidden sm:inline text-sm font-medium">End Date:</span>
                                     <span className="text-sm">{format(new Date(contract.endDate), "PPP")}</span>
                                 </div>
                             </div>
@@ -160,7 +166,7 @@ export function ContractDetailsModal({
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-2">
-                                    <FileSignature className="h-4 w-4 text-muted-foreground" />
+                                    <FileSignature className="h-4 w-4 hidden sm:inline text-muted-foreground" />
                                     <span className="text-sm font-medium">Signed by Supplier:</span>
                                     <Badge variant={contract.signedBySupplier ? "success" : "outline"}>
                                         {contract.signedBySupplier ? "Yes" : "No"}
@@ -168,7 +174,7 @@ export function ContractDetailsModal({
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <FileSignature className="h-4 w-4 text-muted-foreground" />
+                                    <FileSignature className="h-4 w-4 hidden sm:inline text-muted-foreground" />
                                     <span className="text-sm font-medium">Signed by Admin:</span>
                                     <Badge variant={contract.signedByAdmin ? "success" : "outline"}>
                                         {contract.signedByAdmin ? "Yes" : "No"}
@@ -248,19 +254,21 @@ export function ContractDetailsModal({
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
+            </Dialog >
 
             {/* Edit Contract Modal */}
-            {onUpdate && suppliers && (
-                <ContractFormModal
-                    open={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSubmit={handleUpdateContract}
-                    suppliers={suppliers}
-                    title="Edit Contract"
-                    contract={contract}
-                />
-            )}
+            {
+                onUpdate && suppliers && (
+                    <ContractFormModal
+                        open={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSubmit={handleUpdateContract}
+                        suppliers={suppliers}
+                        title="Edit Contract"
+                        contract={contract}
+                    />
+                )
+            }
         </>
     )
 }
