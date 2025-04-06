@@ -719,3 +719,16 @@ export function getNationalNumber(phoneNumber: string): string | null {
 		return null;
 	}
 }
+
+/**
+ * Generates a unique reference number with a prefix
+ * @param prefix The prefix for the reference number (e.g., "CNT" for contracts, "BID" for bids)
+ * @returns A unique reference number
+ */
+export function generateReferenceNumber(prefix: string): string {
+	const timestamp = Date.now().toString().slice(-6);
+	const random = Math.floor(Math.random() * 10000)
+		.toString()
+		.padStart(4, "0");
+	return `${prefix}-${timestamp}-${random}`;
+}

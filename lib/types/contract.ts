@@ -41,6 +41,7 @@ export interface Bid {
 	submissionDate: string;
 	validUntil: string;
 	proposedAmount: number;
+	description?: string;
 	durationInDays: number;
 	supplierId: string; // Linked to the Supplier
 	linkedContractId?: string; // Optional, linked to a contract

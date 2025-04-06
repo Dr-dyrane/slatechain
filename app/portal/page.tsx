@@ -1,3 +1,5 @@
+// app/portal/page.tsx
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -14,14 +16,16 @@ import {
   updateSupplier,
   setChatLoading,
 } from "@/lib/slices/supplierSlice"
+import { fetchSupplierContracts } from "@/lib/slices/contractSlice"
 import type { Supplier, User } from "@/lib/types"
 import { KPIs } from "@/components/portal/KPIs"
 import { CommunicationCenter } from "@/components/portal/Communication"
 import { Documents } from "@/components/portal/Documents"
 import { Overview } from "@/components/portal/Overview"
+import { Contracts } from "@/components/portal/Contracts"
 import { useRouter } from "next/navigation"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle } from "lucide-react"
 import { UserRole } from "@/lib/types"
 import { toast } from "sonner"
 import { fetchNotifications } from "@/lib/slices/notificationSlice"
@@ -37,7 +41,9 @@ export default function PortalPage() {
   const { user } = useSelector((state: RootState) => state.auth)
   const suppliers = useSelector((state: RootState) => state.supplier.items)
   const documents = useSelector((state: RootState) => state.supplier.documents)
+  const contracts = useSelector((state: RootState) => state.contracts.contracts)
   const { chatLoading, loading, error } = useSelector((state: RootState) => state.supplier)
+  const contractLoading = useSelector((state: RootState) => state.contracts.loading)
   const notifications = useSelector((state: RootState) => state.notifications?.notifications || [])
 
   // Find the current supplier based on the logged-in user
@@ -45,6 +51,9 @@ export default function PortalPage() {
 
   // Filter documents and messages for the current supplier
   const supplierDocuments = currentSupplier ? documents.filter((doc) => doc.supplierId === currentSupplier.id) : []
+  const supplierContracts = currentSupplier
+    ? contracts.filter((contract) => contract.supplierId === currentSupplier.id)
+    : []
 
   const supplierNotifications =
     currentSupplier && notifications
@@ -71,6 +80,7 @@ export default function PortalPage() {
     if (currentSupplier) {
       dispatch(fetchSupplierDocuments(currentSupplier.id))
       dispatch(fetchChatMessages(currentSupplier.id))
+      dispatch(fetchSupplierContracts(currentSupplier.id))
     }
   }, [dispatch, currentSupplier])
 
@@ -90,28 +100,27 @@ export default function PortalPage() {
     } catch (error) {
       console.error("Failed to send message:", error)
       toast.error("Failed to send message")
-    }
-    finally {
+    } finally {
       setChatLoading(false)
     }
   }
 
   const handleUploadDocument = async (file: File, documentType?: string) => {
-    if (!currentSupplier) return;
+    if (!currentSupplier) return
 
     try {
       await dispatch(
         addSupplierDocument({
           supplierId: currentSupplier.id,
           file,
-          documentType: documentType || "OTHER"
+          documentType: documentType || "OTHER",
         }),
-      ).unwrap();
+      ).unwrap()
 
-      toast.success("Document uploaded successfully");
+      toast.success("Document uploaded successfully")
     } catch (error) {
-      console.error("Failed to upload document:", error);
-      toast.error("Failed to upload document");
+      console.error("Failed to upload document:", error)
+      toast.error("Failed to upload document")
     }
   }
 
@@ -143,7 +152,6 @@ export default function PortalPage() {
     }
   }
 
-
   if (error) {
     return (
       <div className="flex h-full items-center justify-center bg-none">
@@ -152,10 +160,10 @@ export default function PortalPage() {
           description="We encountered an issue while loading the supplier portal."
           message={error}
           onRetry={() => window.location.reload()}
-          onCancel={() => window.location.href = "/dashboard"}
+          onCancel={() => (window.location.href = "/dashboard")}
         />
       </div>
-    );
+    )
   }
 
   // Show message if user is not a supplier
@@ -183,15 +191,26 @@ export default function PortalPage() {
       <h1 className="text-2xl sm:text-3xl font-bold">Supplier Portal</h1>
       <KPIs supplier={currentSupplier} />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
-          <TabsTrigger value="overview" className="flex-grow sm:flex-grow-0">
+        <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 gap-2 mb-2 md:mb-8">
+          <TabsTrigger value="overview" >
             Overview
           </TabsTrigger>
-          <TabsTrigger value="communication" className="flex-grow sm:flex-grow-0">
+          <TabsTrigger value="communication" >
             Communication
           </TabsTrigger>
-          <TabsTrigger value="documents" className="flex-grow sm:flex-grow-0">
+          <TabsTrigger value="documents" className="hidden md:flex">
             Documents
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="hidden md:flex">
+            Contracts
+          </TabsTrigger>
+        </TabsList>
+        <TabsList className="w-full md:hidden grid grid-cols-2 gap-2 mb-8">
+          <TabsTrigger value="documents" >
+            Documents
+          </TabsTrigger>
+          <TabsTrigger value="contracts" >
+            Contracts
           </TabsTrigger>
         </TabsList>
         <TabsContent value="overview">
@@ -203,12 +222,8 @@ export default function PortalPage() {
           />
         </TabsContent>
         <TabsContent value="communication">
-          <CommunicationCenter
-            onSendMessage={handleSendMessage}
-            loading={chatLoading}
-          />
+          <CommunicationCenter onSendMessage={handleSendMessage} loading={chatLoading} />
         </TabsContent>
-
         <TabsContent value="documents">
           <Documents
             documents={supplierDocuments}
@@ -217,6 +232,9 @@ export default function PortalPage() {
             isLoading={loading}
             supplierId={currentSupplier?.id}
           />
+        </TabsContent>
+        <TabsContent value="contracts">
+          <Contracts contracts={supplierContracts} isLoading={contractLoading} supplierId={currentSupplier?.id} />
         </TabsContent>
       </Tabs>
     </div>

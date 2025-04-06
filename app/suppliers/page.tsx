@@ -17,10 +17,12 @@ import {
   sendChatMessage,
   setChatLoading,
 } from "@/lib/slices/supplierSlice"
+import { fetchContracts } from "@/lib/slices/contractSlice"
 import type { ChatMessage, Supplier, SupplierDocument } from "@/lib/types"
 import { SupplierList } from "@/components/supplier/SupplierList"
 import { CommunicationCenter } from "@/components/supplier/CommunicationCenter"
 import { DocumentManagement } from "@/components/supplier/DocumentManagement"
+import { ContractManagement } from "@/components/supplier/ContractManagement"
 import { AddSupplierModal } from "@/components/supplier/AddSupplierModal"
 import { EditSupplierModal } from "@/components/supplier/EditSupplierModal"
 import { toast } from "sonner"
@@ -39,7 +41,9 @@ export default function SuppliersPage() {
   const chatMessagesBySupplier = useSelector(
     (state: RootState) => state.supplier.chatMessagesBySupplier
   ) as Record<string, ChatMessage[]> || {}
+  const contracts = useSelector((state: RootState) => state.contracts.contracts)
   const chatLoading = useSelector((state: RootState) => state.supplier.chatLoading)
+  const contractLoading = useSelector((state: RootState) => state.contracts.loading)
   const user = useSelector((state: RootState) => state.auth.user)
   const loading = useSelector((state: RootState) => state.supplier.loading)
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
@@ -57,9 +61,15 @@ export default function SuppliersPage() {
     return acc;
   }, {});
 
+  // Group contracts by supplier
+  const groupedContracts = suppliers.reduce((acc, supplier) => {
+    acc[supplier.id] = contracts.filter((contract) => contract.supplierId === supplier.id);
+    return acc;
+  }, {} as Record<string, typeof contracts>);
 
   useEffect(() => {
     dispatch(fetchSuppliers())
+    dispatch(fetchContracts())
   }, [dispatch])
 
   useEffect(() => {
@@ -156,15 +166,26 @@ export default function SuppliersPage() {
       <h1 className="text-2xl sm:text-3xl font-bold">Supplier Collaboration</h1>
       <SupplierKPIs suppliers={suppliers} />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full mb-8 flex flex-wrap justify-start">
-          <TabsTrigger value="list" className="flex-grow sm:flex-grow-0">
+        <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 gap-2 mb-2 md:mb-8">
+          <TabsTrigger value="list" >
             Supplier List
           </TabsTrigger>
-          <TabsTrigger value="communication" className="flex-grow sm:flex-grow-0">
+          <TabsTrigger value="communication" >
             Communication
           </TabsTrigger>
-          <TabsTrigger value="documents" className="flex-grow sm:flex-grow-0">
+          <TabsTrigger value="documents" className="hidden md:flex">
             Documents
+          </TabsTrigger>
+          <TabsTrigger value="contracts" className="hidden md:flex">
+            Contracts
+          </TabsTrigger>
+        </TabsList>
+        <TabsList className="w-full md:hidden grid grid-cols-2 gap-2 mb-8">
+          <TabsTrigger value="documents" >
+            Documents
+          </TabsTrigger>
+          <TabsTrigger value="contracts" >
+            Contracts
           </TabsTrigger>
         </TabsList>
         <TabsContent value="list">
@@ -190,6 +211,15 @@ export default function SuppliersPage() {
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
             isLoading={loading}
+            selectedSupplierId={selectedSupplierId || ""}
+            setSelectedSupplierId={setSelectedSupplierId}
+          />
+        </TabsContent>
+        <TabsContent value="contracts">
+          <ContractManagement
+            suppliers={suppliers}
+            contracts={groupedContracts}
+            isLoading={contractLoading}
             selectedSupplierId={selectedSupplierId || ""}
             setSelectedSupplierId={setSelectedSupplierId}
           />
