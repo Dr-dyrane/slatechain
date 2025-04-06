@@ -104,10 +104,16 @@ export function ContractFormModal({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="w-full max-w-md sm:rounded-2xl rounded-none sm:max-w-lg mx-auto max-h-screen overflow-y-auto">
+            <DialogContent
+                className="w-full max-w-md sm:rounded-2xl rounded-none sm:max-w-lg mx-auto max-h-screen overflow-y-auto"
+                aria-describedby="contract-form-description"
+            >
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
+                <p id="contract-form-description" className="sr-only">
+                    This dialog is used for creating or editing a contract, with options to specify the contract details such as title, supplier, status, dates, and more.
+                </p>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-2 gap-4">
