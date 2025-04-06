@@ -47,6 +47,7 @@ import {
 	ReturnResolutionStatus,
 	SupplierDocument,
 	ChatMessage,
+	Bid,
 } from "@/lib/types";
 import {
 	ShopifyOrdersResponse,
@@ -57,6 +58,8 @@ import {
 	mockPaymentResponses,
 } from "../blockchain/mockApiResponses";
 import { number } from "zod";
+import { id } from "ethers";
+import Contract from "@/app/api/models/Contract";
 
 // ==================== ENHANCED MOCK DATA HELPERS ====================
 
@@ -1668,6 +1671,19 @@ const generateRealisticTaxID = () => {
 	return `${firstPart}-${secondPart}`;
 };
 
+// Generate random description
+const randomDescription = (words: number): string => {
+	const lorem =
+		"lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua";
+	const loremArray = lorem.split(" ");
+	let description = "";
+	for (let i = 0; i < words; i++) {
+		description +=
+			loremArray[Math.floor(Math.random() * loremArray.length)] + " ";
+	}
+	return description.trim();
+};
+
 // Generate realistic document file URLs
 const generateDocumentURL = (type: string, userId: string) => {
 	const fileTypes = {
@@ -1703,6 +1719,64 @@ const mockNotifications = generateNotifications(30);
 // Generate mock documents and chat messages
 const mockDocuments = generateMockDocuments(mockSuppliers);
 const mockChatMessages = generateMockChatMessages(mockSuppliers);
+// Mock Contracts
+export const mockContracts = Array.from({ length: 4 }, (_, i) => ({
+	id: randomId("contract"),
+	_id: randomId("contract"),
+
+	title: randomElement([
+		"Supply Agreement",
+		"Service Level Agreement",
+		"Partnership Agreement",
+		"Non-Disclosure Agreement",
+	]),
+	description: randomDescription(5),
+	contractNumber: `CONTRACT-${randomNumber(1000, 9999)}`,
+	version: randomElement([1, 2, 3, 4]),
+	createdBy: randomElement(mockUsers).id,
+	supplierId: randomElement(mockSuppliers).id,
+	startDate: randomDate(new Date(2023, 0, 1), new Date()),
+	endDate: randomDate(new Date(2023, 11, 31), new Date()),
+	terms: randomDescription(10),
+	status: randomElement([
+		"draft",
+		"pending",
+		"open",
+		"active",
+		"completed",
+		"expired",
+		"terminated",
+	]),
+	createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+	updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+	amount: randomPrice(1000, 5000),
+	renewalDate: randomDate(new Date(2023, 11, 31), new Date()),
+}));
+
+// Mock Bids
+export const mockBids: Bid[] = Array.from({ length: 6 }, (_, i) => ({
+	id: randomId("bid"),
+	_id: randomId("bid"),
+	title: randomElement([
+		"Supply Agreement Bid",
+		"Service Level Agreement Bid",
+		"Partnership Agreement Bid",
+		"Non-Disclosure Agreement Bid",
+	]),
+	referenceNumber: `BID-${randomNumber(1000, 9999)}`,
+	validUntil: randomDate(new Date(2023, 0, 1), new Date()),
+	supplierId: randomElement(mockSuppliers).id,
+	proposedAmount: randomPrice(500, 2000),
+
+	durationInDays: 2,
+	createdBy: randomElement(mockUsers).id,
+	submissionDate: randomDate(new Date(2023, 0, 1), new Date()),
+	status: randomElement(["submitted", "under_review", "accepted", "rejected"]),
+	notes: randomDescription(6),
+	createdAt: randomDate(new Date(2023, 0, 1), new Date()),
+	updatedAt: randomDate(new Date(2023, 0, 1), new Date()),
+	contractId: randomElement(mockContracts).id,
+}));
 
 // ==================== MOCK API RESPONSES ====================
 
@@ -2047,6 +2121,17 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			success: true,
 			shop: mockShops[0],
 		}),
+		"/contracts": () => mockContracts,
+		"/contracts/:id": (params: { id: string }) => {
+			const contract = mockContracts.find((c) => c.id === params.id);
+			return contract || mockContracts[0];
+		},
+		"/contracts/supplier/:id": (params: { id: string }) => {
+			return (
+				mockContracts.filter((c) => c.supplierId === params.id) ||
+				mockContracts[0]
+			);
+		},
 		"/notifications": (): Notification[] => mockNotifications,
 		"/blockchain/wallet-data": (params: any) =>
 			mockBlockchainApiResponses["/blockchain/wallet-data"](params),
@@ -2073,6 +2158,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 					pages: Math.ceil(mockSubmissions.length / limit),
 				},
 			};
+		},
+		"/bids": () => mockBids,
+		"/contracts/:id/bids": (params: { id: string }) => {
+			return mockBids.filter((b) => b.linkedContractId === params.id);
+		},
+		"/contracts/bid/:id": (params: { id: string }) => {
+			const bid = mockBids.find((b) => b.id === params.id);
+			return bid || mockBids[0];
 		},
 	},
 	put: {
@@ -2105,6 +2198,32 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			}
 			return data;
 		},
+		"/contracts/:id": (params: { id: string }, data: any) => {
+			const index = mockContracts.findIndex((c) => c.id === params.id);
+			if (index !== -1) {
+				const updatedContract = {
+					...mockContracts[index],
+					...data,
+					updatedAt: new Date().toISOString(),
+				};
+				mockContracts[index] = updatedContract;
+				return updatedContract;
+			}
+			return null;
+		},
+		"/contracts/bid/:id": (params: { id: string }, data: any) => {
+			const index = mockBids.findIndex((b) => b.id === params.id);
+			if (index !== -1) {
+				const updatedBid = {
+					...mockBids[index],
+					...data,
+					updatedAt: new Date().toISOString(),
+				};
+				mockBids[index] = updatedBid;
+				return updatedBid;
+			}
+			return null;
+		},
 	},
 	delete: {
 		"/inventory/:id": (id: number) => ({ success: true, deletedId: id }),
@@ -2114,6 +2233,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			success: true,
 			deletedId: id,
 		}),
+		"/contracts/bid/:id": (params: { id: string }) => {
+			const index = mockBids.findIndex((b) => b.id === params.id);
+			if (index !== -1) {
+				mockBids.splice(index, 1);
+				return { success: true, deletedId: params.id };
+			}
+			return { success: false, error: "Bid not found" };
+		},
 		"/orders/:id": (id: number) => ({ success: true, deletedId: id }),
 		"/shipments/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/suppliers/:id": (id: string) => ({ success: true, deletedId: id }),
@@ -2127,6 +2254,14 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 		"/freights/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/users/:id": (id: string) => ({ success: true, deletedId: id }),
 		"/notification/:id": (id: string) => ({ success: true, deletedId: id }),
+		"/contracts/:id": (params: { id: string }) => {
+			const index = mockContracts.findIndex((c) => c.id === params.id);
+			if (index !== -1) {
+				mockContracts.splice(index, 1);
+				return { success: true, deletedId: params.id };
+			}
+			return { success: false, error: "Contract not found" };
+		},
 	},
 	post: {
 		"/auth/register": (data: Partial<User>): AuthResponse => ({
@@ -2172,6 +2307,17 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 			accessToken: "mock_access_token",
 			refreshToken: "mock_refresh_token",
 		}),
+		"/contracts/:id/bids": (params: { id: string }, data: any) => {
+			const newBid = {
+				...data,
+				id: `bid-${Date.now()}`,
+				linkedContractId: params.id,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+			mockBids.push(newBid);
+			return newBid;
+		},
 		"/auth/login": (data: {
 			email: string;
 			password: string;
@@ -2361,6 +2507,16 @@ export const mockApiResponses: Record<string, Record<string, any>> = {
 
 			mockChatMessages.push(newMessage);
 			return newMessage;
+		},
+		"/contracts": (data: any) => {
+			const newContract = {
+				...data,
+				id: `contract-${Date.now()}`,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+			mockContracts.push(newContract);
+			return newContract;
 		},
 		// KYC verification endpoint
 		"/admin/kyc/verify": (data: any) => {
