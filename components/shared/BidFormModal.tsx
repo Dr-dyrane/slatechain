@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils"
 import type { Bid, Contract } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { generateReferenceNumber } from "@/lib/utils"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
 interface BidFormModalProps {
     open: boolean
@@ -26,6 +28,8 @@ interface BidFormModalProps {
 }
 
 export function BidFormModal({ open, onClose, onSubmit, contract, bid }: BidFormModalProps) {
+    const loading = useSelector((state: RootState) => state.contracts.bidLoading)
+
     const [formData, setFormData] = useState<Partial<Bid>>(
         bid || {
             title: `Bid for ${contract.title}`,
@@ -207,7 +211,9 @@ export function BidFormModal({ open, onClose, onSubmit, contract, bid }: BidForm
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit">Submit Bid</Button>
+                        <Button type="submit">
+                            {loading ? 'Submitting...' : "Submit Bid"}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>
