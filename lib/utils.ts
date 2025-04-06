@@ -78,19 +78,20 @@ export const getSidebarItemMeta = (
 						: undefined,
 			};
 		case "/portal":
-			// Corrected logic to access contracts properly
-			const activeContracts =
-				state.contracts?.contracts?.filter(
-					(contract) => contract.status === "active"
-				).length || 0;
+			const supplier = state.supplier?.items.find(
+				(s) => s.id === state.auth?.user?.id
+			);
+			const contracts = state.contracts?.contracts;
+			const supplierContracts = contracts
+				? contracts.filter((c) => c.supplierId === supplier?.id).length
+				: 0;
 			return {
-				badge:
-					activeContracts > 0
-						? {
-								count: activeContracts,
-								variant: "secondary",
-							}
-						: undefined,
+				badge: supplierContracts
+					? {
+							count: supplierContracts,
+							variant: "secondary",
+						}
+					: undefined,
 			};
 		case "/logistics":
 			const inTransitShipments =

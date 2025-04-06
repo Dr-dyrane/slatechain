@@ -18,6 +18,7 @@ import { fetchShopifyOrders, fetchShopifyShop } from "../slices/shopifySlice";
 import type { UserRole } from "@/lib/types";
 import { getBaseNavItems } from "../config/navigation";
 import { fetchReturns } from "../slices/returnSlice";
+import { fetchContracts } from "../slices/contractSlice";
 
 // Define initialization functions for each role
 const adminInitializers = [
@@ -34,6 +35,7 @@ const adminInitializers = [
 	fetchCarriers,
 	fetchFreights,
 	fetchRoutes,
+	fetchContracts,
 ];
 
 const managerInitializers = [
@@ -46,12 +48,14 @@ const managerInitializers = [
 	fetchCarriers,
 	fetchFreights,
 	fetchRoutes,
+	fetchContracts,
 ];
 
 const supplierInitializers = [
 	fetchInventory,
 	fetchOrders,
 	fetchProgress,
+	fetchContracts,
 	fetchShipments,
 	fetchNotifications,
 	fetchCarriers,
