@@ -1,5 +1,3 @@
-// app/suppliers/page.tsx
-
 "use client"
 
 import { useState, useEffect } from "react"
@@ -38,34 +36,36 @@ export default function SuppliersPage() {
   const dispatch = useDispatch<AppDispatch>()
   const suppliers = useSelector((state: RootState) => state.supplier.items) as Supplier[]
   const documents = useSelector((state: RootState) => state.supplier.documents)
-  const chatMessagesBySupplier = useSelector(
-    (state: RootState) => state.supplier.chatMessagesBySupplier
-  ) as Record<string, ChatMessage[]> || {}
+  const chatMessagesBySupplier =
+    (useSelector((state: RootState) => state.supplier.chatMessagesBySupplier) as Record<string, ChatMessage[]>) || {}
   const contracts = useSelector((state: RootState) => state.contracts.contracts)
   const chatLoading = useSelector((state: RootState) => state.supplier.chatLoading)
   const contractLoading = useSelector((state: RootState) => state.contracts.loading)
   const user = useSelector((state: RootState) => state.auth.user)
   const loading = useSelector((state: RootState) => state.supplier.loading)
-  const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null)
+  const [selectedSupplierId, setSelectedSupplierId] = useState<string>("all")
 
   const groupedMessages = suppliers.reduce<Record<string, ChatMessage[]>>((acc, supplier) => {
     // Default to an empty array if no messages exist for the supplier
-    const messages = chatMessagesBySupplier[supplier.id] ?? [];
+    const messages = chatMessagesBySupplier[supplier.id] ?? []
 
-    acc[supplier.id] = messages;
-    return acc;
-  }, {});
+    acc[supplier.id] = messages
+    return acc
+  }, {})
 
   const groupedDocuments = suppliers.reduce<Record<string, SupplierDocument[]>>((acc, supplier) => {
-    acc[supplier.id] = documents.filter((doc) => doc.supplierId === supplier.id);
-    return acc;
-  }, {});
+    acc[supplier.id] = documents.filter((doc) => doc.supplierId === supplier.id)
+    return acc
+  }, {})
 
   // Group contracts by supplier
-  const groupedContracts = suppliers.reduce((acc, supplier) => {
-    acc[supplier.id] = contracts.filter((contract) => contract.supplierId === supplier.id);
-    return acc;
-  }, {} as Record<string, typeof contracts>);
+  const groupedContracts = suppliers.reduce(
+    (acc, supplier) => {
+      acc[supplier.id] = contracts.filter((contract) => contract.supplierId === supplier.id)
+      return acc
+    },
+    {} as Record<string, typeof contracts>,
+  )
 
   useEffect(() => {
     dispatch(fetchSuppliers())
@@ -118,28 +118,27 @@ export default function SuppliersPage() {
       ).unwrap()
     } catch (error) {
       toast.error("Failed to send message")
-    }
-    finally {
+    } finally {
       setChatLoading(false)
     }
   }
 
   const handleUploadDocument = async (file: File, documentType?: string) => {
-    if (!selectedSupplier) return;
+    if (!selectedSupplier) return
 
     try {
       await dispatch(
         addSupplierDocument({
           supplierId: selectedSupplier.id,
           file,
-          documentType: documentType || "OTHER"
+          documentType: documentType || "OTHER",
         }),
-      ).unwrap();
+      ).unwrap()
 
-      toast.success("Document uploaded successfully");
+      toast.success("Document uploaded successfully")
     } catch (error) {
-      console.error("Failed to upload document:", error);
-      toast.error("Failed to upload document");
+      console.error("Failed to upload document:", error)
+      toast.error("Failed to upload document")
     }
   }
 
@@ -167,12 +166,8 @@ export default function SuppliersPage() {
       <SupplierKPIs suppliers={suppliers} />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full grid grid-cols-2 md:grid-cols-4 gap-2 mb-2 md:mb-8">
-          <TabsTrigger value="list" >
-            Supplier List
-          </TabsTrigger>
-          <TabsTrigger value="communication" >
-            Communication
-          </TabsTrigger>
+          <TabsTrigger value="list">Supplier List</TabsTrigger>
+          <TabsTrigger value="communication">Communication</TabsTrigger>
           <TabsTrigger value="documents" className="hidden md:flex">
             Documents
           </TabsTrigger>
@@ -181,12 +176,8 @@ export default function SuppliersPage() {
           </TabsTrigger>
         </TabsList>
         <TabsList className="w-full md:hidden grid grid-cols-2 gap-2 mb-8">
-          <TabsTrigger value="documents" >
-            Documents
-          </TabsTrigger>
-          <TabsTrigger value="contracts" >
-            Contracts
-          </TabsTrigger>
+          <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="contracts">Contracts</TabsTrigger>
         </TabsList>
         <TabsContent value="list">
           <SupplierList
@@ -202,7 +193,8 @@ export default function SuppliersPage() {
             suppliers={suppliers}
             messages={groupedMessages}
             onSendMessage={handleSendMessage}
-            loading={chatLoading} />
+            loading={chatLoading}
+          />
         </TabsContent>
         <TabsContent value="documents">
           <DocumentManagement
@@ -211,7 +203,7 @@ export default function SuppliersPage() {
             onUploadDocument={handleUploadDocument}
             onDeleteDocument={handleDeleteDocument}
             isLoading={loading}
-            selectedSupplierId={selectedSupplierId || ""}
+            selectedSupplierId={selectedSupplierId !== "all" ? selectedSupplierId : ""}
             setSelectedSupplierId={setSelectedSupplierId}
           />
         </TabsContent>
@@ -220,7 +212,7 @@ export default function SuppliersPage() {
             suppliers={suppliers}
             contracts={groupedContracts}
             isLoading={contractLoading}
-            selectedSupplierId={selectedSupplierId || ""}
+            selectedSupplierId={selectedSupplierId}
             setSelectedSupplierId={setSelectedSupplierId}
           />
         </TabsContent>

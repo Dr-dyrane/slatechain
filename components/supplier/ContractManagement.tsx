@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useDispatch } from "react-redux"
-import type { AppDispatch } from "@/lib/store"
+import { useDispatch, useSelector } from "react-redux"
+import type { AppDispatch, RootState } from "@/lib/store"
 import {
     fetchContracts,
     fetchSupplierContracts,
@@ -14,6 +14,7 @@ import {
     deleteContract,
     signContract,
     terminateContract,
+    clearError,
 } from "@/lib/slices/contractSlice"
 import type { Contract, Supplier } from "@/lib/types"
 import { toast } from "sonner"
@@ -40,13 +41,17 @@ export function ContractManagement({
     setSelectedSupplierId,
 }: ContractManagementProps) {
     const dispatch = useDispatch<AppDispatch>()
+    const allContracts = useSelector((state: RootState) => state.contracts.contracts)
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
     const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false)
     const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
 
     useEffect(() => {
-        if (selectedSupplierId) {
+        // Clear any previous errors when component mounts
+        dispatch(clearError())
+
+        if (selectedSupplierId && selectedSupplierId !== "all") {
             dispatch(fetchSupplierContracts(selectedSupplierId))
         } else {
             dispatch(fetchContracts())
@@ -55,7 +60,7 @@ export function ContractManagement({
 
     const handleCreateContract = async (contractData: Partial<Contract>) => {
         try {
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 contractData.supplierId = selectedSupplierId
             }
 
@@ -64,13 +69,15 @@ export function ContractManagement({
             setIsCreateModalOpen(false)
 
             // Refresh contracts
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 dispatch(fetchSupplierContracts(selectedSupplierId))
             } else {
                 dispatch(fetchContracts())
             }
-        } catch (error) {
-            toast.error("Failed to create contract")
+        } catch (error: any) {
+            // Display the error message from the API
+            toast.error(error || "Failed to create contract")
+            console.error("Contract creation error:", error)
         }
     }
 
@@ -89,7 +96,7 @@ export function ContractManagement({
             setIsDetailsModalOpen(false)
 
             // Refresh contracts
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 dispatch(fetchSupplierContracts(selectedSupplierId))
             } else {
                 dispatch(fetchContracts())
@@ -105,7 +112,7 @@ export function ContractManagement({
             toast.success("Contract deleted successfully")
 
             // Refresh contracts
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 dispatch(fetchSupplierContracts(selectedSupplierId))
             } else {
                 dispatch(fetchContracts())
@@ -116,13 +123,12 @@ export function ContractManagement({
     }
 
     const handleSignContract = async (contractId: string) => {
-        // This is an admin action
         try {
             await dispatch(signContract({ id: contractId, isSupplier: false })).unwrap()
             toast.success("Contract signed successfully")
 
             // Refresh contracts
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 dispatch(fetchSupplierContracts(selectedSupplierId))
             } else {
                 dispatch(fetchContracts())
@@ -139,7 +145,7 @@ export function ContractManagement({
             setIsTerminateModalOpen(false)
 
             // Refresh contracts
-            if (selectedSupplierId) {
+            if (selectedSupplierId && selectedSupplierId !== "all") {
                 dispatch(fetchSupplierContracts(selectedSupplierId))
             } else {
                 dispatch(fetchContracts())
@@ -159,7 +165,9 @@ export function ContractManagement({
         setIsTerminateModalOpen(true)
     }
 
-    const selectedSupplierContracts = selectedSupplierId ? contracts[selectedSupplierId] || [] : []
+    // Get contracts to display based on selection
+    const displayContracts =
+        selectedSupplierId === "all" || !selectedSupplierId ? allContracts : contracts[selectedSupplierId] || []
 
     return (
         <Card className="h-auto flex flex-col">
@@ -176,7 +184,7 @@ export function ContractManagement({
                 </div>
             </CardHeader>
             <CardContent className="flex-grow flex flex-col">
-                <Select onValueChange={(value) => setSelectedSupplierId(value)} value={selectedSupplierId || undefined}>
+                <Select onValueChange={(value) => setSelectedSupplierId(value)} value={selectedSupplierId || "all"}>
                     <SelectTrigger className="mb-4">
                         <SelectValue placeholder="All Suppliers" />
                     </SelectTrigger>
@@ -190,28 +198,24 @@ export function ContractManagement({
                     </SelectContent>
                 </Select>
 
-                {selectedSupplierId ? (
-                    selectedSupplierContracts.length > 0 ? (
-                        <ContractList
-                            contracts={selectedSupplierContracts}
-                            isLoading={isLoading}
-                            onViewContract={handleViewContract}
-                            onDeleteContract={handleDeleteContract}
-                            onSignContract={handleSignContract}
-                            onTerminateContract={handleTerminateClick}
-                        />
-                    ) : (
-                        <EmptyState
-                            icon="FileText"
-                            title="No Contracts Found"
-                            description={`No contracts found for this supplier. Create a new contract to get started.`}
-                        />
-                    )
+                {displayContracts.length > 0 ? (
+                    <ContractList
+                        contracts={displayContracts}
+                        isLoading={isLoading}
+                        onViewContract={handleViewContract}
+                        onDeleteContract={handleDeleteContract}
+                        onSignContract={handleSignContract}
+                        onTerminateContract={handleTerminateClick}
+                    />
                 ) : (
                     <EmptyState
                         icon="FileText"
-                        title="Select a Supplier"
-                        description="Select a supplier to view their contracts or create a new contract."
+                        title="No Contracts Found"
+                        description={
+                            selectedSupplierId && selectedSupplierId !== "all"
+                                ? `No contracts found for this supplier. Create a new contract to get started.`
+                                : "No contracts found. Create a new contract to get started."
+                        }
                     />
                 )}
             </CardContent>
@@ -222,7 +226,7 @@ export function ContractManagement({
                 onClose={() => setIsCreateModalOpen(false)}
                 onSubmit={handleCreateContract}
                 suppliers={suppliers}
-                selectedSupplierId={selectedSupplierId}
+                selectedSupplierId={selectedSupplierId !== "all" ? selectedSupplierId : undefined}
                 title="Create New Contract"
             />
 
