@@ -27,6 +27,7 @@ import notificationReducer from "./slices/notificationSlice";
 import returnReducer from "./slices/returnSlice";
 import avatarReducer from "./slices/avatarSlice";
 import searchReducer from "./slices/searchSlice";
+import contractReducer from "./slices/contractSlice";
 import { useDispatch } from "react-redux";
 import safeStorage from "./helpers/safeStorage";
 
@@ -50,6 +51,7 @@ const createPersistConfig = (userId: string | null) => ({
 		"returns",
 		"avatar",
 		"search",
+		"contracts",
 	],
 });
 
@@ -71,6 +73,7 @@ const createRootReducer = () =>
 		returns: returnReducer,
 		avatar: avatarReducer,
 		search: searchReducer,
+		contracts: contractReducer,
 	});
 
 export const createStore = (userId: string | null) => {

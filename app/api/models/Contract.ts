@@ -5,6 +5,7 @@ import { addIdSupport } from "@/lib/utils";
 
 export type ContractStatus =
 	| "draft"
+	| "pending"
 	| "open"
 	| "active"
 	| "completed"
@@ -40,7 +41,15 @@ const contractSchema = new Schema<IContract>(
 		contractNumber: { type: String, required: true, unique: true },
 		status: {
 			type: String,
-			enum: ["open", "active", "expired", "terminated", "pending", "draft"],
+			enum: [
+				"draft",
+				"pending",
+				"open",
+				"active",
+				"completed",
+				"expired",
+				"terminated",
+			],
 			default: "draft",
 		},
 		startDate: { type: Date, required: true },

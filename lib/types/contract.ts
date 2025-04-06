@@ -1,5 +1,13 @@
-import { ContractStatus } from "@/app/api/models/Contract";
+export type ContractStatus =
+	| "draft"
+	| "pending"
+	| "open"
+	| "active"
+	| "completed"
+	| "expired"
+	| "terminated";
 
+export type BidStatus = "submitted" | "under_review" | "accepted" | "rejected";
 export type Contract = {
 	_id: string;
 	id: string;
@@ -24,8 +32,9 @@ export type Contract = {
 	updatedAt: string;
 };
 
-interface Bid {
+export interface Bid {
 	_id: string;
+	id: string;
 	title: string;
 	referenceNumber: string;
 	status: "submitted" | "under_review" | "accepted" | "rejected";
@@ -42,7 +51,7 @@ interface Bid {
 	updatedAt: string;
 }
 
-interface BidState {
+export interface BidState {
 	items: Bid[];
 	status: "idle" | "loading" | "succeeded" | "failed";
 	error: string | null;
