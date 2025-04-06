@@ -104,7 +104,7 @@ export function ContractFormModal({
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="w-full max-w-md sm:rounded-2xl rounded-none sm:max-w-lg mx-auto max-h-screen overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
@@ -241,7 +241,7 @@ export function ContractFormModal({
                             </div>
                         </div>
                     </div>
-                    <DialogFooter>
+                    <DialogFooter className="flex gap-2">
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>

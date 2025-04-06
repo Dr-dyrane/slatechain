@@ -112,8 +112,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
                                         </Avatar>
                                         <div className={`w-auto ${isCurrentUser ? "text-right" : ""}`}>
                                             <div
-                                                className={`rounded-lg  p-3 ${isCurrentUser ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-muted rounded-tl-none"
-                                                    }`}
+                                                className={`rounded-lg w-full max-w-[60vw] break-words p-3 ${isCurrentUser ? "bg-primary text-primary-foreground rounded-tr-none" : "bg-muted rounded-tl-none"}`}
                                             >
                                                 {msg.message}
                                             </div>

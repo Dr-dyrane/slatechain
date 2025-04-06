@@ -76,7 +76,7 @@ export function InvoiceModal({ open, onClose, invoiceData }: InvoiceModalProps) 
                                                             />
                                                         </Avatar>
                                                     )}
-                                                    <div>
+                                                    <div className="text-center sm:text-left">
                                                         <div className="text-2xl font-bold">SupplyCycles Supply</div>
                                                         <div className="text-muted-foreground text-sm mt-1">
                                                             <Building className="h-3 w-3 inline mr-1" />
@@ -107,9 +107,7 @@ export function InvoiceModal({ open, onClose, invoiceData }: InvoiceModalProps) 
                                                 <div className="text-right">
                                                     <p>Date: {formatDate(invoiceData.date)}</p>
                                                     <p>Due Date: {formatDate(invoiceData.dueDate)}</p>
-                                                    <p className="mt-2">
-                                                        <Badge variant={statusVariants[invoiceData.status] as "warning" | "success" | "destructive" | "default" | "secondary" | "outline" | null | undefined}>{invoiceData.status}</Badge>
-                                                    </p>
+                                                    <Badge className="mt-2" variant={statusVariants[invoiceData.status] as "warning" | "success" | "destructive" | "default" | "secondary" | "outline" | null | undefined}>{invoiceData.status}</Badge>
                                                 </div>
                                             </div>
                                         </div>
