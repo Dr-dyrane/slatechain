@@ -77,7 +77,21 @@ export const getSidebarItemMeta = (
 							}
 						: undefined,
 			};
-
+		case "/portal":
+			// Corrected logic to access contracts properly
+			const activeContracts =
+				state.contracts?.contracts?.filter(
+					(contract) => contract.status === "active"
+				).length || 0;
+			return {
+				badge:
+					activeContracts > 0
+						? {
+								count: activeContracts,
+								variant: "secondary",
+							}
+						: undefined,
+			};
 		case "/logistics":
 			const inTransitShipments =
 				state.shipment?.items.filter((s) => s.status === "IN_TRANSIT").length ||
