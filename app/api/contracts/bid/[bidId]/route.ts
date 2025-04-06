@@ -10,7 +10,7 @@ export async function PUT(
 	req: NextRequest,
 	{ params }: { params: { bidId: string } }
 ) {
-	const { bidId } = params;
+	const { bidId } = await params;
 	const { amount, terms, deliveryDate } = await req.json();
 	const userId = req.headers.get("user-id");
 
@@ -64,7 +64,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { bidId: string } }
 ) {
-	const { bidId } = params;
+	const { bidId } = await params;
 
 	if (!mongoose.Types.ObjectId.isValid(bidId)) {
 		return NextResponse.json(
@@ -88,7 +88,7 @@ export async function DELETE(
 	req: NextRequest,
 	{ params }: { params: { bidId: string } }
 ) {
-	const { bidId } = params;
+	const { bidId } = await params;
 	const userId = req.headers.get("user-id");
 
 	if (!mongoose.Types.ObjectId.isValid(bidId)) {

@@ -106,11 +106,13 @@ export async function POST(req: NextRequest) {
 					const contract = new Contract(data);
 					await contract.save();
 					return NextResponse.json(contract);
-				} catch (error) {
+				} catch (error: any) {
 					return NextResponse.json(
 						{
 							code: "INTERNAL_SERVER_ERROR",
-							message: "An error occurred while creating the contract",
+							message:
+								error.message ||
+								"An error occurred while creating the contract",
 						},
 						{ status: 500 }
 					);
@@ -150,11 +152,13 @@ export async function POST(req: NextRequest) {
 					const contract = new Contract(data);
 					await contract.save();
 					return NextResponse.json(contract);
-				} catch (error) {
+				} catch (error: any) {
 					return NextResponse.json(
 						{
 							code: "INTERNAL_SERVER_ERROR",
-							message: "An error occurred while creating the contract",
+							message:
+								error.message ||
+								"An error occurred while creating the contract",
 						},
 						{ status: 500 }
 					);

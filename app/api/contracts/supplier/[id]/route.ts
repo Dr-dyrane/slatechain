@@ -14,7 +14,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { id: string } }
 ) {
-	const { id } = params;
+	const { id } = await params;
 
 	return handleRequest(
 		req,

@@ -1,4 +1,4 @@
-// app/api/contracts/bid/[contractId]/route.ts
+// app/api/contracts/[id]/bids/route.ts
 
 import { type NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -11,7 +11,7 @@ export async function POST(
 	req: NextRequest,
 	{ params }: { params: { contractId: string } }
 ) {
-	const { contractId } = params;
+	const { contractId } = await params;
 	const { amount, terms, deliveryDate } = await req.json();
 	const userId = req.headers.get("user-id"); // Assuming you're passing the user ID in headers
 
@@ -59,7 +59,7 @@ export async function GET(
 	req: NextRequest,
 	{ params }: { params: { contractId: string } }
 ) {
-	const { contractId } = params;
+	const { contractId } = await params;
 
 	if (!mongoose.Types.ObjectId.isValid(contractId)) {
 		return NextResponse.json(
