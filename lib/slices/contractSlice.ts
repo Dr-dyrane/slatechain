@@ -114,7 +114,14 @@ export const updateContract = createAsyncThunk(
 	"contracts/update",
 	async ({ id, data }: { id: string; data: Partial<Contract> }, thunkAPI) => {
 		try {
-			const response = await apiClient.put<Contract>(`/contracts/${id}`, data);
+			// Remove the contractNumber from the data to avoid duplicate key error
+			const { contractNumber, ...updateData } = data;
+
+			// Send the update request with the filtered data (contractNumber excluded)
+			const response = await apiClient.put<Contract>(
+				`/contracts/${id}`,
+				updateData
+			);
 			return response;
 		} catch (error: any) {
 			return thunkAPI.rejectWithValue(
@@ -305,6 +312,9 @@ const contractSlice = createSlice({
 	name: "contracts",
 	initialState,
 	reducers: {
+		setLoading: (state, action) => {
+			state.loading = action.payload;
+		},
 		setSelectedContract: (state, action) => {
 			state.selectedContract = action.payload;
 		},
@@ -665,6 +675,7 @@ export const {
 	setSelectedBid,
 	clearSelectedBid,
 	clearError,
+	setLoading,
 } = contractSlice.actions;
 
 export default contractSlice.reducer;

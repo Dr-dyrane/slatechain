@@ -20,7 +20,7 @@ export interface IContract extends Document {
 	startDate: Date;
 	endDate: Date;
 	renewalDate?: Date;
-	supplierId: mongoose.Types.ObjectId;
+	supplierId?: mongoose.Types.ObjectId;
 	version: number;
 	notes?: string;
 	tags?: string[];
@@ -58,7 +58,7 @@ const contractSchema = new Schema<IContract>(
 		supplierId: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Supplier",
-			required: true,
+			required: false,
 			index: true,
 		},
 		version: { type: Number, default: 1 },

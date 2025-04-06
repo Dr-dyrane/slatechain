@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,6 +17,9 @@ import { cn } from "@/lib/utils"
 import type { Contract, Supplier } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { generateReferenceNumber } from "@/lib/utils"
+import { Root } from "postcss"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
 
 interface ContractFormModalProps {
     open: boolean
@@ -57,7 +60,7 @@ export function ContractFormModal({
     const [endDate, setEndDate] = useState<Date | undefined>(
         contract ? new Date(contract.endDate) : new Date(new Date().setMonth(new Date().getMonth() + 12)),
     )
-
+    const loading = useSelector((state: RootState) => state.contracts.loading)
     const [tagInput, setTagInput] = useState("")
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -101,6 +104,17 @@ export function ContractFormModal({
         e.preventDefault()
         onSubmit(formData)
     }
+
+    // Add useEffect to reset contract number when modal opens/closes
+    useEffect(() => {
+        if (open && !contract) {
+            // Only generate a new contract number when opening for a new contract
+            setFormData((prev) => ({
+                ...prev,
+                contractNumber: generateReferenceNumber("CNT"),
+            }))
+        }
+    }, [open, contract])
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -251,7 +265,9 @@ export function ContractFormModal({
                         <Button type="button" variant="outline" onClick={onClose}>
                             Cancel
                         </Button>
-                        <Button type="submit">Save Contract</Button>
+                        <Button type="submit">
+                            {loading ? "Saving..." : 'Save'}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

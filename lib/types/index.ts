@@ -1123,7 +1123,7 @@ export type Contract = {
 	startDate: string;
 	endDate: string;
 	renewalDate?: string;
-	supplierId: string;
+	supplierId?: string;
 	bidId?: string;
 	createdBy: string;
 	signedBySupplier?: boolean;

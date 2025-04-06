@@ -92,38 +92,40 @@ export async function POST(req: NextRequest) {
 				);
 			}
 
-			// Admin can create contracts for any supplier
+			const data = await req.json();
+
+			// Handle case where supplierId is "no-supplier"
+			let isNoSupplierCase = false;
+			if (data.supplierId === "no-supplier") {
+				data.supplierId = userId;
+				data.status = "open";
+				isNoSupplierCase = true;
+			}
+
+			const createContract = async () => {
+				data.createdBy = userId;
+				const contract = new Contract(data);
+				await contract.save();
+
+				return contract;
+			};
+
 			if (user.role === UserRole.ADMIN) {
-				const data = await req.json();
-
-				// Case where no supplierId is provided (open contract)
-				if (!data.supplierId) {
-					// You might want to set the contract status to "open"
-					data.status = "open"; // Ensure that the status is marked as open
-				}
-
 				try {
-					const contract = new Contract(data);
-					await contract.save();
+					const contract = await createContract();
 					return NextResponse.json(contract);
 				} catch (error: any) {
 					return NextResponse.json(
 						{
 							code: "INTERNAL_SERVER_ERROR",
-							message:
-								error.message ||
-								"An error occurred while creating the contract",
+							message: error.message || "Error creating contract",
 						},
 						{ status: 500 }
 					);
 				}
 			}
 
-			// Managers can create contracts for suppliers they manage
 			if (user.role === UserRole.MANAGER) {
-				const data = await req.json();
-
-				// Ensure supplierId exists if the contract is not open
 				if (!data.supplierId && data.status !== "open") {
 					return NextResponse.json(
 						{
@@ -134,7 +136,6 @@ export async function POST(req: NextRequest) {
 					);
 				}
 
-				// If a supplierId is provided, ensure the manager has access to it
 				if (
 					data.supplierId &&
 					!(await hasAccessToContract(userId, data.supplierId))
@@ -149,16 +150,13 @@ export async function POST(req: NextRequest) {
 				}
 
 				try {
-					const contract = new Contract(data);
-					await contract.save();
+					const contract = await createContract();
 					return NextResponse.json(contract);
 				} catch (error: any) {
 					return NextResponse.json(
 						{
 							code: "INTERNAL_SERVER_ERROR",
-							message:
-								error.message ||
-								"An error occurred while creating the contract",
+							message: error.message || "Error creating contract",
 						},
 						{ status: 500 }
 					);

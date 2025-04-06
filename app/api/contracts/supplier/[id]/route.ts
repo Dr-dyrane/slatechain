@@ -34,15 +34,16 @@ export async function GET(
 				);
 			}
 
-			// Admins can see all contracts
+			// Admins can see all contracts for a supplier
 			if (user.role === UserRole.ADMIN) {
 				const contracts = await Contract.find({ supplierId: id });
 				return NextResponse.json(contracts);
 			}
 
-			// Managers can see contracts for suppliers they are assigned to
+			// Managers can only see contracts for suppliers they manage
 			if (user.role === UserRole.MANAGER) {
-				if (!(await hasAccessToContract(userId, id))) {
+				const hasAccess = await hasAccessToContract(userId, id);
+				if (!hasAccess) {
 					return NextResponse.json(
 						{
 							code: "FORBIDDEN",
@@ -56,9 +57,11 @@ export async function GET(
 				return NextResponse.json(contracts);
 			}
 
-			// Suppliers can only see their own contracts
+			// Suppliers: see their own contracts and all open contracts
 			if (user.role === UserRole.SUPPLIER && user._id.toString() === id) {
-				const contracts = await Contract.find({ supplierId: id });
+				const contracts = await Contract.find({
+					$or: [{ supplierId: id }, { status: "open" }],
+				});
 				return NextResponse.json(contracts);
 			}
 
