@@ -108,6 +108,22 @@ export async function PUT(
 				bid.status = status;
 			}
 
+			// Allow admin/manager to update status
+			if (status !== undefined && isAdminOrManager) {
+				bid.status = status;
+
+				// If bid is being accepted and has a linked contract, update the contract
+				if (status === "accepted" && bid.linkedContractId) {
+					const contract = await Contract.findById(bid.linkedContractId);
+					if (contract) {
+						contract.status = "active";
+						contract.supplierId = bid.supplierId;
+						contract.bidId = bid._id;
+						await contract.save();
+					}
+				}
+			}
+
 			try {
 				await bid.save();
 				return NextResponse.json({ message: "Bid updated successfully", bid });
