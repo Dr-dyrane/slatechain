@@ -3,11 +3,11 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, DollarSign, Clock } from "lucide-react"
-import type { Bid } from "@/lib/types"
+import { Calendar, DollarSign, Clock, User } from "lucide-react"
+import type { Bid, Supplier } from "@/lib/types"
 import { format } from "date-fns"
 import { useSelector } from "react-redux"
-import { RootState } from "@/lib/store"
+import type { RootState } from "@/lib/store"
 import { Skeleton } from "../ui/skeleton"
 
 interface BidListProps {
@@ -15,11 +15,17 @@ interface BidListProps {
     isSupplierView?: boolean
     onAcceptBid?: (bidId: string) => void
     onRejectBid?: (bidId: string) => void
+    suppliers?: Supplier[]
 }
 
-export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid }: BidListProps) {
-
+export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid, suppliers = [] }: BidListProps) {
     const bidLoading = useSelector((state: RootState) => state.contracts.bidLoading)
+
+    // Function to get supplier name from ID
+    const getSupplierName = (supplierId: string): string => {
+        const supplier = suppliers.find((s) => s.id === supplierId)
+        return supplier ? supplier.name : "Unknown Supplier"
+    }
 
     if (bidLoading) {
         return (
@@ -70,10 +76,16 @@ export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid
                     <Card key={bid.id} className="overflow-hidden">
                         <CardContent className="p-0">
                             <div className="p-4 flex items-center justify-between border-b">
-                                <div className="font-medium">{bid.referenceNumber}</div>
-                                <div className="flex items-center gap-2">{getStatusBadge(bid.status)}</div>
+                                {isSupplierView && <div className="font-medium">{bid.referenceNumber}</div>}
+                                {!isSupplierView && <div className="flex items-center gap-2">{getStatusBadge(bid.status)}</div>}
                             </div>
                             <div className="p-4 grid grid-cols-2 gap-4 text-sm">
+                                <div className="flex flex-col">
+                                    <span className="text-muted-foreground flex items-center gap-1">
+                                        <User className="h-3 w-3" /> Supplier
+                                    </span>
+                                    <span>{getSupplierName(bid.supplierId)}</span>
+                                </div>
                                 <div className="flex flex-col">
                                     <span className="text-muted-foreground flex items-center gap-1">
                                         <DollarSign className="h-3 w-3" /> Amount
@@ -102,11 +114,12 @@ export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid
             </div>
 
             {/* Desktop View (md and above) */}
-            <div className="hidden md:block rounded-md border">
+            <div className="hidden md:block rounded-md border w-auto">
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Reference #</TableHead>
+                            {isSupplierView && <TableHead>Reference #</TableHead>}
+                            {!isSupplierView && <TableHead>Supplier</TableHead>}
                             <TableHead>Amount</TableHead>
                             <TableHead>Duration</TableHead>
                             <TableHead>Valid Until</TableHead>
@@ -117,7 +130,8 @@ export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid
                     <TableBody>
                         {bids.map((bid) => (
                             <TableRow key={bid.id}>
-                                <TableCell className="font-medium">{bid.referenceNumber}</TableCell>
+                                {isSupplierView && <TableCell className="font-medium">{bid.referenceNumber}</TableCell>}
+                                {!isSupplierView && <TableCell>{getSupplierName(bid.supplierId)}</TableCell>}
                                 <TableCell>${bid.proposedAmount.toLocaleString()}</TableCell>
                                 <TableCell>{bid.durationInDays} days</TableCell>
                                 <TableCell>{format(new Date(bid.validUntil), "MMM d, yyyy")}</TableCell>
