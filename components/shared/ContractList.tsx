@@ -120,8 +120,8 @@ export function ContractList({
 
     return (
         <>
-            {/* Mobile and Tablet View (sm and md) */}
-            <div className="space-y-4 lg:hidden">
+            {/* Mobile and Tablet View (sm) */}
+            <div className="space-y-4 md:hidden">
                 {contracts.map((contract) => (
                     <Card key={contract.id} className="overflow-hidden">
                         <CardContent className="p-0">
@@ -157,8 +157,8 @@ export function ContractList({
                 ))}
             </div>
 
-            {/* Desktop View (lg and above) */}
-            <div className="hidden lg:block rounded-md border">
+            {/* Desktop View (md and above) */}
+            <div className="hidden md:block rounded-md border">
                 <Table>
                     <TableHeader>
                         <TableRow>
