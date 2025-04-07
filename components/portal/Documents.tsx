@@ -21,7 +21,7 @@ export function Documents({
     documents,
     onUploadDocument,
     onDeleteDocument,
-    isLoading = false,
+    isLoading,
     supplierId,
 }: DocumentsProps) {
     const { toast } = useToast()

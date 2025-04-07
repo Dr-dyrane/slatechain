@@ -15,8 +15,9 @@ import {
     signContract,
     terminateContract,
     clearError,
+    fetchContractBids,
 } from "@/lib/slices/contractSlice"
-import type { Contract, Supplier } from "@/lib/types"
+import type { Bid, Contract, Supplier } from "@/lib/types"
 import { toast } from "sonner"
 import { ContractList } from "../shared/ContractList"
 import { ContractFormModal } from "../shared/ContractFormModal"
@@ -46,6 +47,7 @@ export function ContractManagement({
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false)
     const [isTerminateModalOpen, setIsTerminateModalOpen] = useState(false)
     const [selectedContract, setSelectedContract] = useState<Contract | null>(null)
+    const [contractBids, setContractBids] = useState<Bid[]>([])
 
     useEffect(() => {
         // Clear any previous errors when component mounts
@@ -155,8 +157,7 @@ export function ContractManagement({
         }
     }
 
-    const handleViewContract = (contract: Contract) => {
-        // Check and update contract status before opening the details modal
+    const handleViewContract = async (contract: Contract) => {
         const updatedContract = { ...contract }
 
         // If contract has a supplier but status is still open, update it to active
@@ -165,19 +166,22 @@ export function ContractManagement({
             updatedContract.supplierId &&
             updatedContract.supplierId !== "no-supplier"
         ) {
-            updatedContract.status = "active"
-
-            // Optionally update the contract in the backend immediately
-            dispatch(
-                updateContract({
-                    id: updatedContract.id,
-                    data: { status: "active" },
-                }),
-            )
+            updatedContract.status = "open"
         }
 
         setSelectedContract(updatedContract)
         setIsDetailsModalOpen(true)
+
+        // Fetch bids for the selected contract
+        try {
+            const bids = await dispatch(fetchContractBids(updatedContract.id)).unwrap()
+            setContractBids(bids)
+        } catch (error) {
+            toast.error("Failed to fetch bids for this contract")
+            console.error("Bid fetch error:", error)
+            setContractBids([]) // fallback to empty list
+        }
+
     }
 
     const handleTerminateClick = (contract: Contract) => {
@@ -263,6 +267,7 @@ export function ContractManagement({
                         setIsTerminateModalOpen(true)
                     }}
                     suppliers={suppliers}
+                    bids={contractBids}
                 />
             )}
 

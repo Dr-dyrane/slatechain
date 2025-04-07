@@ -6,6 +6,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, DollarSign, Clock } from "lucide-react"
 import type { Bid } from "@/lib/types"
 import { format } from "date-fns"
+import { useSelector } from "react-redux"
+import { RootState } from "@/lib/store"
+import { Skeleton } from "../ui/skeleton"
 
 interface BidListProps {
     bids: Bid[]
@@ -15,6 +18,19 @@ interface BidListProps {
 }
 
 export function BidList({ bids, isSupplierView = false, onAcceptBid, onRejectBid }: BidListProps) {
+
+    const bidLoading = useSelector((state: RootState) => state.contracts.bidLoading)
+
+    if (bidLoading) {
+        return (
+            <div className="space-y-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+            </div>
+        )
+    }
+
     const getStatusBadge = (status: string) => {
         switch (status) {
             case "submitted":
