@@ -93,6 +93,27 @@ export default function InvoicesTab() {
         setSupplierIds(newSupplierIds)
     }, [inventoryItems])
 
+    // Check for supplier IDs in orders and fetch supplier data if needed
+    useEffect(() => {
+        // Only run this effect if we don't already have a current supplier ID
+        if (!currentSupplierId && orders.length > 0 && inventoryItems.length > 0) {
+            // Find the first order with items that have a supplier
+            for (const order of orders) {
+                if (!order.paid) continue // Skip unpaid orders
+
+                for (const item of order.items) {
+                    const inventoryItem = inventoryItems.find((invItem) => invItem.id === item.productId)
+
+                    if (inventoryItem?.supplierId) {
+                        setCurrentSupplierId(inventoryItem.supplierId)
+                        dispatch(fetchSupplier(inventoryItem.supplierId))
+                        return // Exit once we've found and set a supplier
+                    }
+                }
+            }
+        }
+    }, [orders, inventoryItems, currentSupplierId, dispatch])
+
     // Generate invoices from orders
     const invoices: InvoiceData[] = useMemo(() => {
         return orders
@@ -101,12 +122,6 @@ export default function InvoicesTab() {
                 // Find inventory items for each order item
                 const orderItems = order.items.map((item) => {
                     const inventoryItem = inventoryItems.find((invItem) => invItem.id === item.productId)
-
-                    // If we find an inventory item with a supplier ID, set it as current
-                    if (inventoryItem?.supplierId && !currentSupplierId) {
-                        setCurrentSupplierId(inventoryItem.supplierId)
-                        dispatch(fetchSupplier(inventoryItem.supplierId))
-                    }
 
                     return {
                         id: item.id || `item-${Math.random().toString(36).substr(2, 9)}`,
@@ -127,7 +142,7 @@ export default function InvoicesTab() {
 
                 // Determine invoice status
                 const now = new Date()
-                let status: "PENDING" | "PAID" | "OVERDUE" = "PAID"
+                const status: "PENDING" | "PAID" | "OVERDUE" = "PAID"
                 // if (dueDate < now) {
                 //     status = "OVERDUE"
                 // }
@@ -179,7 +194,7 @@ export default function InvoicesTab() {
                     status,
                 }
             })
-    }, [orders, inventoryItems, supplier, user, dispatch, currentSupplierId])
+    }, [orders, inventoryItems, supplier, user])
 
     // Define columns for the invoice table
     const columns: ColumnDef<InvoiceData>[] = [
@@ -216,7 +231,23 @@ export default function InvoicesTab() {
                     PAID: "success",
                     OVERDUE: "destructive",
                 }
-                return <Badge variant={statusVariants[status] as "warning" | "success" | "destructive" | "default" | "secondary" | "outline" | null | undefined}>{status}</Badge>
+                return (
+                    <Badge
+                        variant={
+                            statusVariants[status] as
+                            | "warning"
+                            | "success"
+                            | "destructive"
+                            | "default"
+                            | "secondary"
+                            | "outline"
+                            | null
+                            | undefined
+                        }
+                    >
+                        {status}
+                    </Badge>
+                )
             },
         },
         {
