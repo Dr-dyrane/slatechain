@@ -31,6 +31,7 @@ export async function PUT(
 				validUntil,
 				notes,
 				tags,
+				status, // Added status field for admin/manager updates
 			} = await req.json();
 
 			if (!mongoose.Types.ObjectId.isValid(bidId)) {
@@ -49,24 +50,43 @@ export async function PUT(
 				);
 			}
 
-			// Ensure the user is the one who created the bid
-			if (bid.supplierId.toString() !== userId) {
+			// Get the user to check their role
+			const user = await User.findById(userId);
+			if (!user) {
 				return NextResponse.json(
-					{ code: "FORBIDDEN", message: "You can only update your own bid" },
+					{ code: "UNAUTHORIZED", message: "User not found" },
+					{ status: 404 }
+				);
+			}
+
+			// Check if user is admin/manager or the bid creator
+			const isAdminOrManager =
+				user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
+			const isBidCreator = bid.supplierId.toString() === userId;
+
+			// If user is not admin/manager and not the bid creator, deny access
+			if (!isAdminOrManager && !isBidCreator) {
+				return NextResponse.json(
+					{
+						code: "FORBIDDEN",
+						message: "You don't have permission to update this bid",
+					},
 					{ status: 403 }
 				);
 			}
 
-			// Check if the associated contract is still open
-			const contract = await Contract.findById(bid.linkedContractId);
-			if (contract?.status !== "open") {
-				return NextResponse.json(
-					{
-						code: "CONTRACT_CLOSED",
-						message: "This contract is no longer open for bids",
-					},
-					{ status: 403 }
-				);
+			// If user is the bid creator (and not admin/manager), check if contract is still open
+			if (isBidCreator && !isAdminOrManager) {
+				const contract = await Contract.findById(bid.linkedContractId);
+				if (contract?.status !== "open") {
+					return NextResponse.json(
+						{
+							code: "CONTRACT_CLOSED",
+							message: "This contract is no longer open for bids",
+						},
+						{ status: 403 }
+					);
+				}
 			}
 
 			// Update the bid details
@@ -81,6 +101,11 @@ export async function PUT(
 			// Save terms in the description if provided
 			if (terms !== undefined && !description) {
 				bid.description = terms;
+			}
+
+			// Allow admin/manager to update status
+			if (status !== undefined && isAdminOrManager) {
+				bid.status = status;
 			}
 
 			try {
@@ -180,10 +205,26 @@ export async function DELETE(
 				);
 			}
 
-			// Ensure that only the user who created the bid can delete it
-			if (bid.supplierId.toString() !== userId) {
+			// Get the user to check their role
+			const user = await User.findById(userId);
+			if (!user) {
 				return NextResponse.json(
-					{ code: "FORBIDDEN", message: "You can only delete your own bid" },
+					{ code: "UNAUTHORIZED", message: "User not found" },
+					{ status: 404 }
+				);
+			}
+
+			// Allow admin/manager to delete any bid
+			const isAdminOrManager =
+				user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
+
+			// Ensure that only the user who created the bid or admin/manager can delete it
+			if (!isAdminOrManager && bid.supplierId.toString() !== userId) {
+				return NextResponse.json(
+					{
+						code: "FORBIDDEN",
+						message: "You don't have permission to delete this bid",
+					},
 					{ status: 403 }
 				);
 			}

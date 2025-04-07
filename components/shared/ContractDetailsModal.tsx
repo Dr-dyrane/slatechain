@@ -218,6 +218,7 @@ export function ContractDetailsModal({
                                     bids={bids}
                                     isSupplierView={isSupplierView}
                                     suppliers={suppliers}
+                                    onClose={onClose}
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
