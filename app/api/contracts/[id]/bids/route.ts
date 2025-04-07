@@ -57,18 +57,18 @@ export async function POST(
 
 export async function GET(
 	req: NextRequest,
-	{ params }: { params: { contractId: string } }
+	{ params }: { params: { id: string } }
 ) {
-	const { contractId } = await params;
+	const { id } = await params;
 
-	if (!mongoose.Types.ObjectId.isValid(contractId)) {
+	if (!mongoose.Types.ObjectId.isValid(id)) {
 		return NextResponse.json(
 			{ code: "INVALID_ID", message: "Invalid contract ID" },
 			{ status: 400 }
 		);
 	}
 
-	const bids = await Bid.find({ contractId });
+	const bids = await Bid.find({ id });
 
 	return NextResponse.json(bids);
 }
