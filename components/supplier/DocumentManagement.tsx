@@ -123,7 +123,7 @@ export function DocumentManagement({ suppliers, documents, onUploadDocument, onD
     }, [selectedSupplierId, documents])
 
     return (
-        <Card className="h-[600px] flex flex-col">
+        <Card className="h-auto flex flex-col">
             <CardHeader>
                 <CardTitle>Document Management</CardTitle>
                 <CardDescription>Upload and manage supplier documents</CardDescription>
