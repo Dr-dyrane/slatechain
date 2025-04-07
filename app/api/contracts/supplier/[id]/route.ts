@@ -57,12 +57,29 @@ export async function GET(
 				return NextResponse.json(contracts);
 			}
 
-			// Suppliers: see their own contracts and all open contracts
 			if (user.role === UserRole.SUPPLIER && user._id.toString() === id) {
-				const contracts = await Contract.find({
-					$or: [{ supplierId: id }, { status: "open" }],
+				const supplierContracts = await Contract.find({ supplierId: id });
+				const openContracts = await Contract.find({ status: "open" });
+
+				// Create a map to avoid duplicates using contract ID
+				const contractMap = new Map();
+
+				// Add supplier-specific contracts
+				supplierContracts.forEach((contract) => {
+					contractMap.set(contract._id.toString(), contract);
 				});
-				return NextResponse.json(contracts);
+
+				// Add open contracts, only if not already added
+				openContracts.forEach((contract) => {
+					if (!contractMap.has(contract._id.toString())) {
+						contractMap.set(contract._id.toString(), contract);
+					}
+				});
+
+				// Convert map values back to array
+				const mergedContracts = Array.from(contractMap.values());
+
+				return NextResponse.json(mergedContracts);
 			}
 
 			return NextResponse.json(

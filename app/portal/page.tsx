@@ -234,7 +234,7 @@ export default function PortalPage() {
           />
         </TabsContent>
         <TabsContent value="contracts">
-          <Contracts contracts={supplierContracts} isLoading={contractLoading} supplierId={currentSupplier?.id} />
+          <Contracts contracts={contracts} isLoading={contractLoading} supplierId={currentSupplier?.id} />
         </TabsContent>
       </Tabs>
     </div>
