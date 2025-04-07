@@ -4,6 +4,8 @@ import { connectToDatabase } from "@/app/api";
 import Notification from "@/app/api/models/Notification";
 import type { NotificationType } from "@/lib/types";
 import { revalidatePath } from "next/cache";
+import User from "@/app/api/models/User";
+import { UserRole } from "@/lib/types";
 
 /**
  * Create a notification using server actions
@@ -102,6 +104,110 @@ export async function createIntegrationNotification(
 		status,
 		details,
 	});
+}
+
+/**
+ * Create a contract notification
+ */
+export async function createContractNotification(
+	userId: string,
+	contractId: string,
+	contractNumber: string,
+	title: string,
+	message: string,
+	status: string
+) {
+	return createNotification(userId, "CONTRACT_UPDATE", title, message, {
+		contractId,
+		contractNumber,
+		status,
+	});
+}
+
+/**
+ * Create a bid notification
+ */
+export async function createBidNotification(
+	userId: string,
+	bidId: string,
+	bidReference: string,
+	contractId: string,
+	contractNumber: string,
+	status: string,
+	message: string
+) {
+	const title = `Bid ${bidReference} ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+
+	return createNotification(userId, "BID_UPDATE", title, message, {
+		bidId,
+		bidReference,
+		contractId,
+		contractNumber,
+		status,
+	});
+}
+
+/**
+ * Notify all suppliers about a new open contract
+ */
+export async function notifyAllSuppliersAboutOpenContract(
+	contractId: string,
+	contractNumber: string,
+	contractTitle: string
+) {
+	try {
+		await connectToDatabase();
+
+		// Find all users with supplier role
+		const suppliers = await User.find({ role: UserRole.SUPPLIER });
+
+		const title = "New Open Contract Available";
+		const message = `A new contract "${contractTitle}" is now open for bidding.`;
+
+		// Create notifications for all suppliers
+		const notificationPromises = suppliers.map((supplier) =>
+			createContractNotification(
+				supplier._id.toString(),
+				contractId,
+				contractNumber,
+				title,
+				message,
+				"open"
+			)
+		);
+
+		await Promise.all(notificationPromises);
+
+		return { success: true, count: suppliers.length };
+	} catch (error) {
+		console.error("Error notifying suppliers about open contract:", error);
+		return { success: false, error: "Failed to notify suppliers" };
+	}
+}
+
+/**
+ * Notify supplier about bid acceptance
+ */
+export async function notifySupplierAboutBidAcceptance(
+	supplierId: string,
+	bidId: string,
+	bidReference: string,
+	contractId: string,
+	contractNumber: string,
+	contractTitle: string
+) {
+	const title = `Bid ${bidReference} Accepted`;
+	const message = `Your bid for contract "${contractTitle}" has been accepted.`;
+
+	return createBidNotification(
+		supplierId,
+		bidId,
+		bidReference,
+		contractId,
+		contractNumber,
+		"accepted",
+		message
+	);
 }
 
 /**

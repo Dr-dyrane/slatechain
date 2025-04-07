@@ -7,6 +7,7 @@ import User from "../../../models/User";
 import { UserRole } from "@/lib/types";
 import Contract from "../../../models/Contract";
 import { handleRequest } from "@/app/api";
+import { notifySupplierAboutBidAcceptance } from "@/app/actions/notifications";
 
 // Define rate limits
 const UPDATE_BID_RATE_LIMIT = 10;
@@ -121,6 +122,15 @@ export async function PUT(
 						contract.bidId = bid._id;
 						await contract.save();
 					}
+					// Notify the supplier that their bid was accepted
+					await notifySupplierAboutBidAcceptance(
+						bid.supplierId.toString(),
+						bid._id.toString(),
+						bid.referenceNumber,
+						contract._id.toString(),
+						contract.contractNumber,
+						contract.title
+					);
 				}
 			}
 

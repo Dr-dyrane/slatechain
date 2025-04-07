@@ -5,7 +5,7 @@ import { useState } from "react"
 import type { Notification, NotificationType } from "@/lib/types"
 import { cn } from "@/lib/utils"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, Package, Activity, Users, X, Check, Warehouse, ShoppingBag, Truck, Blocks, Loader2 } from "lucide-react"
+import { Bell, Package, Activity, Users, X, Check, Warehouse, ShoppingBag, Truck, Blocks, Loader2, FileText, BadgeDollarSign } from "lucide-react"
 import { useDispatch, useSelector } from "react-redux"
 import type { AppDispatch, RootState } from "@/lib/store"
 import { markNotificationAsRead, deleteNotification } from "@/lib/slices/notificationSlice"
@@ -25,6 +25,8 @@ const iconMap: Record<NotificationType, React.ComponentType<{ className?: string
     STOCK_MOVEMENT: Truck,
     MANUFACTURING_ORDER: Package,
     INTEGRATION_SYNC: Blocks,
+    CONTRACT_UPDATE: FileText,
+    BID_UPDATE: BadgeDollarSign,
 }
 
 export const NotificationCard: React.FC<NotificationCardProps> = ({ notification }) => {

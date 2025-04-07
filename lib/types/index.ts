@@ -940,7 +940,9 @@ export type NotificationType =
 	| "STOCK_MOVEMENT"
 	| "MANUFACTURING_ORDER"
 	| "INTEGRATION_SYNC"
-	| "INTEGRATION_STATUS";
+	| "INTEGRATION_STATUS"
+	| "BID_UPDATE"
+	| "CONTRACT_UPDATE";
 
 // Notification State
 export interface NotificationState {

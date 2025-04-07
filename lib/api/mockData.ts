@@ -1350,6 +1350,8 @@ const generateNotifications = (count: number): Notification[] => {
 		"MANUFACTURING_ORDER",
 		"INTEGRATION_SYNC",
 		"INTEGRATION_STATUS",
+		"BID_UPDATE",
+		"CONTRACT_UPDATE",
 	];
 
 	for (let i = 0; i < count; i++) {

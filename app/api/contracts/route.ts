@@ -6,6 +6,7 @@ import Contract from "../models/Contract";
 import User from "../models/User";
 import { UserRole } from "@/lib/types";
 import { hasAccessToSupplier } from "../suppliers/[id]/route";
+import { notifyAllSuppliersAboutOpenContract } from "@/app/actions/notifications";
 
 export async function hasAccessToContract(
 	userId: string,
@@ -106,6 +107,15 @@ export async function POST(req: NextRequest) {
 				data.createdBy = userId;
 				const contract = new Contract(data);
 				await contract.save();
+
+				// If this is an open contract, notify all suppliers
+				if (contract.status === "open") {
+					await notifyAllSuppliersAboutOpenContract(
+						contract._id.toString(),
+						contract.contractNumber,
+						contract.title
+					);
+				}
 
 				return contract;
 			};
