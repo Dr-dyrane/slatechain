@@ -71,7 +71,26 @@ export function ContractFormModal({
     }
 
     const handleSelectChange = (name: string, value: string) => {
-        setFormData((prev) => ({ ...prev, [name]: value }))
+        if (name === "supplierId") {
+            // If a valid supplier is selected (not "no-supplier" and not empty)
+            if (value && value !== "no-supplier") {
+                // Only change to active if current status is "open", preserve "draft" status
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value,
+                    status: prev.status === "open" ? "active" : prev.status,
+                }))
+            } else {
+                // If no supplier or "no-supplier" is selected, ensure status is not "active"
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: value,
+                    status: prev.status === "active" ? "open" : prev.status,
+                }))
+            }
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }))
+        }
     }
 
     const handleStartDateChange = (date: Date | undefined) => {
@@ -107,7 +126,7 @@ export function ContractFormModal({
         onSubmit(formData)
     }
 
-    // Add useEffect to reset form data when the modal is closed or when the contract prop changes:
+    // Reset tag input when modal is closed
     useEffect(() => {
         // Reset form data when contract changes or modal opens/closes
         if (contract) {
@@ -133,6 +152,13 @@ export function ContractFormModal({
             setTagInput("")
         }
     }, [contract, open, selectedSupplierId])
+
+    useEffect(() => {
+        // If status is active but there's no supplier or it's "no-supplier", change status to "open"
+        if (formData.status === "active" && (!formData.supplierId || formData.supplierId === "no-supplier")) {
+            setFormData((prev) => ({ ...prev, status: "open" }))
+        }
+    }, [formData.supplierId, formData.status])
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
@@ -169,7 +195,9 @@ export function ContractFormModal({
                                     <SelectContent>
                                         <SelectItem value="draft">Draft</SelectItem>
                                         <SelectItem value="open">Open</SelectItem>
-                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="active" disabled={!formData.supplierId || formData.supplierId === "no-supplier"}>
+                                            Active
+                                        </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -156,7 +156,27 @@ export function ContractManagement({
     }
 
     const handleViewContract = (contract: Contract) => {
-        setSelectedContract(contract)
+        // Check and update contract status before opening the details modal
+        const updatedContract = { ...contract }
+
+        // If contract has a supplier but status is still open, update it to active
+        if (
+            updatedContract.status === "open" &&
+            updatedContract.supplierId &&
+            updatedContract.supplierId !== "no-supplier"
+        ) {
+            updatedContract.status = "active"
+
+            // Optionally update the contract in the backend immediately
+            dispatch(
+                updateContract({
+                    id: updatedContract.id,
+                    data: { status: "active" },
+                }),
+            )
+        }
+
+        setSelectedContract(updatedContract)
         setIsDetailsModalOpen(true)
     }
 

@@ -31,7 +31,7 @@ export function KPIs({ supplier }: KPIsProps) {
     }).length
 
     return (
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Active Contracts</CardTitle>
@@ -45,6 +45,22 @@ export function KPIs({ supplier }: KPIsProps) {
                             : activeContracts === 1
                                 ? "1 contract in progress"
                                 : `${activeContracts} contracts in progress`}
+                    </p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Completed Contracts</CardTitle>
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{completedContracts}</div>
+                    <p className="text-xs text-muted-foreground">
+                        {completedContracts === 0
+                            ? "No completed contracts"
+                            : completedContracts === 1
+                                ? "1 contract completed"
+                                : `${completedContracts} contracts completed`}
                     </p>
                 </CardContent>
             </Card>
