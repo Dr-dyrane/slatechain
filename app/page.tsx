@@ -32,7 +32,7 @@ const LandingPage: React.FC = () => {
         <div className="relative min-h-screen flex flex-col p-4 group">
             <div data-aos='fade-in' className="absolute rounded-3xl inset-0 flex items-center min-h-screen justify-center text-muted-foreground/15 -z-10 font-sans text-left font-black animate-pulse p-4 text-[25vw] opacity-10
             group-hover:opacity-100 group-hover:scale-110 transition-all ease-in-out
-            ">SLATE<br />CHAIN</div>
+            ">SUPPLY<br />CYCLES</div>
             <Navbar />
 
             <main className="flex-grow container min-h-[80vh] my-8 rounded-3xl mx-auto flex flex-col justify-center items-center text-center py-8 relative z-10">
@@ -98,7 +98,7 @@ const LandingPage: React.FC = () => {
                                 to-gray-600 dark:to-gray-400 tracking-wide mb-6 drop-shadow-lg transition-all duration-500 
                                 hover:scale-105 hover:drop-shadow-2xl animate-gradient-glow"
                 >
-                    Streamline Your Supply Chain
+                    Streamline Your Supply Cycle
                 </h1>
 
                 {/* Subheading */}
