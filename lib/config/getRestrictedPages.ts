@@ -11,7 +11,6 @@ export const restrictedPages: { [key in UserRole]: string[] } = {
 		"/suppliers",
 		"/apps",
 		"/logistics",
-		"/settings",
 		"/inventory",
 	],
 };
