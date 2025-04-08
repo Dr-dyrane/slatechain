@@ -8,9 +8,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar } from "@/components/ui/avatar"
 import type { InvoiceData } from "@/components/invoice/InvoicesTab"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { FileText, Building, Package, Hash, DollarSign } from "lucide-react"
+import { FileText, Building, Package, Hash, DollarSign, Download } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "../ui/badge"
+import html2canvas from "html2canvas"
+import { Button } from "../ui/button"
+
+
 
 interface InvoiceModalProps {
     open: boolean
@@ -41,6 +45,19 @@ export function InvoiceModal({ open, onClose, invoiceData }: InvoiceModalProps) 
         OVERDUE: "destructive",
     }
 
+    const handleDownloadImage = async () => {
+        if (!invoiceRef.current) return
+
+        const canvas = await html2canvas(invoiceRef.current)
+        const image = canvas.toDataURL("image/png")
+
+        // Create a link to download the image
+        const link = document.createElement("a")
+        link.href = image
+        link.download = `invoice-${invoiceData.invoiceNumber}.png`
+        link.click()
+    }
+
     return (
         <Dialog open={open} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
@@ -52,10 +69,21 @@ export function InvoiceModal({ open, onClose, invoiceData }: InvoiceModalProps) 
                 </DialogHeader>
 
                 <Tabs defaultValue="preview" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <div className="px-6">
+                    <div className="px-6 flex flex-row gap-4">
                         <TabsList className="grid w-full max-w-md grid-cols-1">
                             <TabsTrigger value="preview">Preview</TabsTrigger>
                         </TabsList>
+                        <div className="flex justify-end w-full">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="mr-2"
+                                onClick={handleDownloadImage}
+                            >
+                                <Download className="w-4 h-4 mr-2" />
+                                Download Image
+                            </Button>
+                        </div>
                     </div>
 
                     <TabsContent value="preview" className="mt-0">
